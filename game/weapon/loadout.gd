@@ -19,6 +19,11 @@ class Slot:
 		magazine = def.magazine_size
 		reserve = def.reserve_max
 
+	## The slot keeps its place. The magazine and the reserve become full at the new sizes.
+	func upgrade() -> void:
+		def = Arsenal.upgrade(def)
+		fill()
+
 	func is_full() -> bool:
 		return magazine == def.magazine_size and reserve == def.reserve_max
 

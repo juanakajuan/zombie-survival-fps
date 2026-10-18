@@ -158,6 +158,7 @@ func _state() -> Dictionary:
 		"hud_points": game.hud.points_label.text,
 		"hud_ammo": game.hud.ammo_label.text,
 		"hud_weapon": game.hud.weapon_label.text,
+		"hud_perks": ",".join(game.hud.perk_box.get_children().map(func(label: Node) -> String: return (label as Label).text)),
 		"hud_prompt": game.hud.prompt_label.text if game.hud.prompt_label.visible else "",
 		"hud_banner": game.hud.banner.text if game.hud.banner.modulate.a > 0.0 else "",
 		"hud_death": game.hud.death_screen.visible,

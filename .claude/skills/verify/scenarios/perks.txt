@@ -1,0 +1,31 @@
+# Perks: clear round 1 beside the Mender machine, look at it with too few points (the prompt is gray and a press buys nothing), then look at the upgrade machine.
+# The pistol alone does not survive round 2 here, so the paid buys are proven by tests/test_runner.gd (test_game_perks).
+# Around the cover block at 8,4 (x 7 to 9, z 3 to 5), and the block at 0,-4.
+walk_to 5.5 6 4
+walk_to 5.5 -17 8
+walk_to 8 -17.5 3
+face 0 0
+wait_until phase == ACTIVE 10
+fight 120 head
+wait_until phase == INTERMISSION 5
+face 0 0
+wait 0.4
+state
+expect points < 1500
+expect hud_prompt == E  Buy Mender  1500
+shot mender-prompt
+tap E
+wait 0.3
+state
+expect hud_perks ==
+expect hud_prompt == E  Buy Mender  1500
+walk_to 5.5 -17 3
+walk_to 5.5 8.5 8
+walk_to 10 8.5 4
+walk_to 10 16 5
+walk_to -10 17.5 15
+face 180 0
+wait 0.4
+state
+expect hud_prompt == E  Upgrade Pistol  4000
+shot upgrade-prompt

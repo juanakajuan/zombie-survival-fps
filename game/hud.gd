@@ -12,6 +12,7 @@ const PROMPT_GRAY: Color = Color(0.55, 0.55, 0.55)
 var round_label: Label = _label(64, ROUND_COLOR)
 var points_label: Label = _label(30, TEXT_COLOR)
 var ammo_label: Label = _label(34, TEXT_COLOR)
+var perk_box: HBoxContainer = HBoxContainer.new()
 var weapon_label: Label = _label(24, TEXT_COLOR)
 var prompt_label: Label = _label(28, TEXT_COLOR)
 var banner: Label = _label(56, TEXT_COLOR)
@@ -36,6 +37,11 @@ func _ready() -> void:
 	add_child(round_label)
 	points_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT, Control.PRESET_MODE_KEEP_SIZE, 32)
 	add_child(points_label)
+	perk_box.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT, Control.PRESET_MODE_KEEP_SIZE, 32)
+	perk_box.offset_top = 76.0
+	perk_box.add_theme_constant_override("separation", 16)
+	perk_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(perk_box)
 	var weapon_box: VBoxContainer = VBoxContainer.new()
 	weapon_box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT, Control.PRESET_MODE_KEEP_SIZE, 32)
 	weapon_box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
@@ -98,8 +104,15 @@ func set_prompt(text: String, affordable: bool) -> void:
 	prompt_label.modulate = Color.WHITE if affordable else PROMPT_GRAY
 
 
-func set_health(health: float) -> void:
-	_vignette.modulate.a = 1.0 - health / Rules.PLAYER_MAX_HEALTH
+## One label for each perk, in the order of purchase.
+func add_perk(kind: Perks.Kind) -> void:
+	var label: Label = _label(22, Perks.color(kind))
+	label.text = Perks.display_name(kind)
+	perk_box.add_child(label)
+
+
+func set_health(health: float, max_health: float = Rules.PLAYER_MAX_HEALTH) -> void:
+	_vignette.modulate.a = 1.0 - health / max_health
 
 
 func show_hit(killed: bool) -> void:

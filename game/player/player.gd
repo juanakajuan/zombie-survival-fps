@@ -18,7 +18,7 @@ class Intent:
 signal jumped
 signal landed(impact_speed: float)
 signal move_state_changed(previous: MoveState, current: MoveState)
-signal health_changed(health: float)
+signal health_changed(health: float, max_health: float)
 signal died
 
 const MAX_PITCH: float = PI * 89.0 / 180.0
@@ -40,6 +40,8 @@ var pitch: float = 0.0
 var move_state: MoveState = MoveState.AIR
 var stance: Stance = Stance.STAND
 var camera: Camera3D
+## Game sets it. The default is no perks.
+var perks: Perks = Perks.new()
 var health: float = Rules.PLAYER_MAX_HEALTH
 var alive: bool = true
 
@@ -150,8 +152,8 @@ func take_damage(amount: float) -> void:
 	if not alive:
 		return
 	health = maxf(health - amount, 0.0)
-	_regen_delay_left = Rules.PLAYER_REGEN_DELAY
-	health_changed.emit(health)
+	_regen_delay_left = Rules.regen_delay(perks)
+	health_changed.emit(health, Rules.max_health(perks))
 	if health > 0.0:
 		return
 	alive = false
@@ -165,13 +167,20 @@ func horizontal_speed() -> float:
 
 
 func _regenerate(delta: float) -> void:
-	if not alive or health >= Rules.PLAYER_MAX_HEALTH:
+	var max_health: float = Rules.max_health(perks)
+	if not alive or health >= max_health:
 		return
 	if _regen_delay_left > 0.0:
 		_regen_delay_left -= delta
 		return
-	health = minf(health + Rules.PLAYER_REGEN_RATE * delta, Rules.PLAYER_MAX_HEALTH)
-	health_changed.emit(health)
+	health = minf(health + Rules.regen_rate(perks) * delta, max_health)
+	health_changed.emit(health, max_health)
+
+
+## Tough raises the maximum, and the player is at full health when they buy it.
+func heal_to_max() -> void:
+	health = Rules.max_health(perks)
+	health_changed.emit(health, health)
 
 
 func _settle() -> void:

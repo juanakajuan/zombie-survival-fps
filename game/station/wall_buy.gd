@@ -33,7 +33,7 @@ func _ready() -> void:
 	_build()
 
 
-func offer(loadout: Loadout) -> Station.Offer:
+func offer(loadout: Loadout, _perks: Perks) -> Station.Offer:
 	var owned: Loadout.Slot = loadout.find(weapon_def.id)
 	if owned == null:
 		return Station.Offer.new(Station.Offer.Kind.WEAPON, price, "Buy %s" % weapon_def.display_name, weapon_def)
@@ -42,7 +42,7 @@ func offer(loadout: Loadout) -> Station.Offer:
 	return Station.Offer.new(Station.Offer.Kind.NONE, 0, "%s ammo full" % weapon_def.display_name)
 
 
-func accept(chosen: Station.Offer, weapon: Weapon) -> void:
+func accept(chosen: Station.Offer, weapon: Weapon, _perks: Perks) -> void:
 	match chosen.kind:
 		Station.Offer.Kind.WEAPON:
 			weapon.equip(weapon_def)

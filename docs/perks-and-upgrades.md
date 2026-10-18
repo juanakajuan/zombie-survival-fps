@@ -255,4 +255,8 @@ Headless tests with literal expected values:
 
 ## Accepted deviations
 
-None yet.
+- The upgrade machine is a wall slab like the perk machines, at (-10, 1.5, 19.95) facing -Z, not a crate with a body beside the box. A slab needs no collision body or navigation change. `Machine` is the shared base of both machine kinds.
+- Quick Hands stands at x 5 on the south wall, not x 0, because zombie spawn 6 is at (0, 0, 18).
+- `Player.health_changed` has a second argument, the maximum health, so the HUD vignette scales with Tough. `Player.heal_to_max()` fills the health when the player buys Tough.
+- `Weapon` stores the length of the reload or the change in progress (`_duration`), because perks change it and the view model animation reads it.
+- The verify scenario `perks.txt` proves the prompts only. A pistol cannot clear round 2 here and 4000 points need many rounds. The paid buys are proven by `test_game_perks`.
