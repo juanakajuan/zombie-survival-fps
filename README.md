@@ -4,7 +4,7 @@ Zombie Survival FPS is a round-based survival first-person shooter for Godot 4.7
 
 You stand in a walled yard with a pistol. Undead come in rounds. Each round has more zombies, and the zombies have more health and more speed. You get points for hits and kills, and you spend them on weapons and ammunition. The game ends when you die. Your score is the number of rounds that you survived.
 
-This is milestone 3, perks and upgrades. `DESIGN.md` gives the design of the core loop and the plan for the next milestones. `docs/weapons-and-buys.md` gives the design of the weapons, the wall buys, and the box. `docs/perks-and-upgrades.md` gives the design of the perks and the upgrade machine. `docs/player.md` gives the movement design.
+This is milestone 3, perks and upgrades. `DESIGN.md` gives the design of the core loop and the plan for the next milestones. `docs/weapons-and-buys.md` gives the design of the weapons, the wall buys, and the box. `docs/perks-and-upgrades.md` gives the design of the perks and the upgrade machine. `docs/map-and-secrets.md` gives the design of milestone 4, the next milestone. `docs/player.md` gives the movement design.
 
 ## Run the game
 
