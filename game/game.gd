@@ -13,6 +13,7 @@ var hud: Hud = Hud.new()
 var zombies: Node3D = Node3D.new()
 var director: RoundDirector = RoundDirector.new()
 var points: Points = Points.new()
+var perks: Perks = Perks.new()
 
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 ## The station in view on the last physics tick, or null.
@@ -25,6 +26,8 @@ func _ready() -> void:
 	_register_actions()
 	for world: Node in [arena, player, zombies]:
 		world.process_mode = Node.PROCESS_MODE_PAUSABLE
+	player.perks = perks
+	weapon.perks = perks
 	add_child(arena)
 	player.name = "Player"
 	add_child(player)
@@ -37,6 +40,11 @@ func _ready() -> void:
 	weapon.ammo_changed.connect(hud.set_ammo)
 	weapon.equipped.connect(func(def: WeaponDef) -> void: hud.set_weapon(def.display_name))
 	player.health_changed.connect(hud.set_health)
+	perks.granted.connect(hud.add_perk)
+	perks.granted.connect(func(kind: Perks.Kind) -> void:
+		if kind == Perks.Kind.TOUGH:
+			player.heal_to_max()
+	)
 	player.died.connect(director.player_died)
 	points.changed.connect(hud.set_points)
 	director.round_started.connect(_on_round_started)
@@ -95,10 +103,10 @@ func restart() -> void:
 func interact() -> bool:
 	if not is_instance_valid(_station):
 		return false
-	var offer: Station.Offer = _station.offer(weapon.loadout)
+	var offer: Station.Offer = _station.offer(weapon.loadout, perks)
 	if offer.kind == Station.Offer.Kind.NONE or not points.spend(offer.cost):
 		return false
-	_station.accept(offer, weapon)
+	_station.accept(offer, weapon, perks)
 	return true
 
 
@@ -114,7 +122,7 @@ func _look_for_station() -> void:
 	if _station == null:
 		hud.set_prompt("", true)
 		return
-	var offer: Station.Offer = _station.offer(weapon.loadout)
+	var offer: Station.Offer = _station.offer(weapon.loadout, perks)
 	hud.set_prompt(_prompt_text(offer), offer.kind != Station.Offer.Kind.NONE and points.balance >= offer.cost)
 
 

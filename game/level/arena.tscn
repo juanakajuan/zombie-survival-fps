@@ -9,6 +9,8 @@
 [ext_resource type="Material" path="res://game/level/materials/crate.tres" id="7_2f23n"]
 [ext_resource type="Script" path="res://game/station/mystery_box.gd" id="8_7yu5x"]
 [ext_resource type="Script" path="res://game/station/wall_buy.gd" id="9_2ak2o"]
+[ext_resource type="Script" path="res://game/station/perk_machine.gd" id="10_perk1"]
+[ext_resource type="Script" path="res://game/station/upgrade_machine.gd" id="11_upgr1"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_yd28i"]
 sky_top_color = Color(0.08, 0.1, 0.2, 1)
@@ -403,6 +405,52 @@ monitoring = false
 script = ExtResource("9_2ak2o")
 weapon_id = &"rifle"
 price = 1500
+
+[node name="Machines" type="Node3D" parent="."]
+
+[node name="MenderMachine" type="Area3D" parent="Machines"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1.5, -19.95)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("10_perk1")
+perk = 0
+price = 1500
+
+[node name="RapidMachine" type="Area3D" parent="Machines"]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 19.95, 1.5, 8)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("10_perk1")
+perk = 1
+price = 2000
+
+[node name="QuickHandsMachine" type="Area3D" parent="Machines"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5, 1.5, 19.95)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("10_perk1")
+perk = 2
+price = 2500
+
+[node name="ToughMachine" type="Area3D" parent="Machines"]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -19.95, 1.5, -8)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("10_perk1")
+perk = 3
+price = 3000
+
+[node name="UpgradeMachine" type="Area3D" parent="Machines"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -10, 1.5, 19.95)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("11_upgr1")
+
 
 [node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1118795342]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6)

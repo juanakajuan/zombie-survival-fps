@@ -20,6 +20,8 @@ const FLASH_SECONDS: float = 0.05
 const TIMER_TOLERANCE: float = 0.0001
 const FLASH_COLOR: Color = Color(1.0, 0.75, 0.35)
 
+## Game sets it. The default is no perks.
+var perks: Perks = Perks.new()
 ## Set it before add_child to start with other weapons.
 var loadout: Loadout = Loadout.new(Arsenal.pistol())
 var state: State = State.READY
@@ -33,6 +35,8 @@ var melee_requested: bool = false
 var switch_requested: bool = false
 
 var _time_left: float = 0.0
+## The length of the reload or the change in progress. Perks change it, so the view model reads it here.
+var _duration: float = 1.0
 var _trigger_was_held: bool = false
 ## A semi-automatic press made during the cooldown fires when the cooldown ends.
 var _press_pending: bool = false
@@ -58,6 +62,14 @@ func current() -> Loadout.Slot:
 func equip(weapon: WeaponDef) -> void:
 	loadout.give(weapon)
 	_start_switch()
+
+
+## The weapon in the hands gets its upgrade. The hands do not move, so the player can fire at once.
+func upgrade_current() -> void:
+	var slot: Loadout.Slot = current()
+	slot.upgrade()
+	equipped.emit(slot.def)
+	ammo_changed.emit(slot.magazine, slot.reserve)
 
 
 ## The slot of the weapon fills. A reload of that weapon in progress has nothing left to do.
@@ -105,15 +117,15 @@ func _process(delta: float) -> void:
 	_recoil = lerpf(_recoil, 0.0, 1.0 - exp(-RECOIL_RECOVERY * delta))
 	var dip: float = 0.0
 	if state == State.RELOADING:
-		dip = sin(PI * (1.0 - _time_left / current().def.reload_seconds))
+		dip = sin(PI * (1.0 - _time_left / _duration))
 	var thrust: float = 0.0
 	if state == State.MELEE:
 		thrust = sin(PI * (1.0 - _time_left / Rules.MELEE_SECONDS))
 	var drop: float = 0.0
 	var lowering: bool = false
 	if state == State.SWITCHING:
-		drop = sin(PI * (1.0 - _time_left / Rules.SWITCH_SECONDS))
-		lowering = _time_left > Rules.SWITCH_SECONDS * 0.5
+		drop = sin(PI * (1.0 - _time_left / _duration))
+		lowering = _time_left > _duration * 0.5
 	if not lowering and _shown != current().def.id:
 		_show(current().def)
 	_model.position = VIEW_OFFSET + Vector3(-0.08 * thrust, -0.12 * dip - SWITCH_DROP * drop, _recoil - MELEE_THRUST * thrust)
@@ -126,7 +138,8 @@ func _process(delta: float) -> void:
 ## The active slot changes before this call, so the HUD shows the new ammunition at once. A reload in progress stops.
 func _start_switch() -> void:
 	state = State.SWITCHING
-	_time_left = Rules.SWITCH_SECONDS
+	_duration = Rules.switch_seconds(perks)
+	_time_left = _duration
 	reload_requested = false
 	var slot: Loadout.Slot = current()
 	equipped.emit(slot.def)
@@ -137,7 +150,8 @@ func _start_reload() -> void:
 	if current().reserve == 0:
 		return
 	state = State.RELOADING
-	_time_left = current().def.reload_seconds
+	_duration = Rules.reload_seconds(current().def, perks)
+	_time_left = _duration
 	reload_started.emit()
 
 
@@ -155,7 +169,7 @@ func _fire() -> void:
 	var slot: Loadout.Slot = current()
 	slot.magazine -= 1
 	state = State.COOLDOWN
-	_time_left = slot.def.fire_interval
+	_time_left = Rules.fire_interval(slot.def, perks)
 	_press_pending = false
 	_recoil = RECOIL_KICK
 	_flash_left = FLASH_SECONDS

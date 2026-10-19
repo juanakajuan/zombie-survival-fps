@@ -90,6 +90,19 @@ static func box_pool() -> Array[WeaponDef]:
 	return [smg(), shotgun(), rifle(), lmg(), marksman()]
 
 
+## A new def. It keeps the id, so code that compares weapons by id sees the same weapon.
+static func upgrade(def: WeaponDef) -> WeaponDef:
+	var upgraded: WeaponDef = def.duplicate() as WeaponDef
+	upgraded.parts = def.parts
+	upgraded.muzzle = def.muzzle
+	upgraded.tier = 1
+	upgraded.display_name = "Upgraded %s" % def.display_name
+	upgraded.damage = def.damage * 2.0
+	upgraded.magazine_size = floori(def.magazine_size * 1.5)
+	upgraded.reserve_max = floori(def.reserve_max * 1.5)
+	return upgraded
+
+
 ## Returns null for an id that no weapon has.
 static func find(id: StringName) -> WeaponDef:
 	for weapon: WeaponDef in [pistol(), smg(), shotgun(), rifle(), lmg(), marksman()]:

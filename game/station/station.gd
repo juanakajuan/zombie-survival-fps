@@ -6,7 +6,7 @@ extends Area3D
 
 
 class Offer:
-	enum Kind { NONE, WEAPON, AMMO, BOX_ROLL, BOX_TAKE }
+	enum Kind { NONE, WEAPON, AMMO, BOX_ROLL, BOX_TAKE, PERK, UPGRADE }
 
 	var kind: Kind
 	## 0 for NONE and BOX_TAKE.
@@ -31,8 +31,8 @@ func _init() -> void:
 
 
 ## Changes nothing.
-@abstract func offer(loadout: Loadout) -> Station.Offer
+@abstract func offer(loadout: Loadout, perks: Perks) -> Station.Offer
 
 
 ## Game calls it after the spend of offer.cost succeeds.
-@abstract func accept(chosen: Station.Offer, weapon: Weapon) -> void
+@abstract func accept(chosen: Station.Offer, weapon: Weapon, perks: Perks) -> void

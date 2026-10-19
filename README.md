@@ -4,7 +4,7 @@ Zombie Survival FPS is a round-based survival first-person shooter for Godot 4.7
 
 You stand in a walled yard with a pistol. Undead come in rounds. Each round has more zombies, and the zombies have more health and more speed. You get points for hits and kills, and you spend them on weapons and ammunition. The game ends when you die. Your score is the number of rounds that you survived.
 
-This is milestone 2, weapons and buys. `DESIGN.md` gives the design of the core loop and the plan for the next milestones. `docs/weapons-and-buys.md` gives the design of the weapons, the wall buys, and the box. `docs/player.md` gives the movement design.
+This is milestone 3, perks and upgrades. `DESIGN.md` gives the design of the core loop and the plan for the next milestones. `docs/weapons-and-buys.md` gives the design of the weapons, the wall buys, and the box. `docs/perks-and-upgrades.md` gives the design of the perks and the upgrade machine. `docs/player.md` gives the movement design.
 
 ## Run the game
 
@@ -29,7 +29,7 @@ godot --path .
 | Fire | Left mouse button | Right trigger |
 | Reload | R | X |
 | Knife attack | V | Right stick press |
-| Buy (wall buy or box) | E | Right shoulder |
+| Buy (wall buy, box, perk machine, or upgrade machine) | E | Right shoulder |
 | Change weapon | Q, mouse wheel | Y |
 | Pause and resume | Esc | Start |
 | Play again after death | Enter | Start |
@@ -50,9 +50,15 @@ The keys use physical key codes. Thus the positions are the same on all keyboard
 - No wall sells the pistol. When you have no ammunition and no points, use the knife.
 - The knife does 150 damage to one zombie at a distance of 2 m or less. A wall stops the knife. One knife attack takes 0.6 seconds. The knife uses no ammunition, and it stops a reload. The reload starts again after the knife attack.
 - You get 10 points for a hit, 60 points for a kill, 100 points for a kill with a head hit, and 130 points for a kill with the knife. A shotgun shot gives the hit points one time for each zombie that it hits. You start with 500 points.
+- Four perk machines stand on the walls. Each perk costs points one time and lasts until you die. The HUD shows your perks under the points.
+  - Mender, 1500, north wall: health comes back after 1.5 seconds, at 100 per second.
+  - Rapid, 2000, east wall: the time between shots is 0.75 times as long.
+  - Quick Hands, 2500, south wall: a reload and a weapon change take half the time.
+  - Tough, 3000, west wall: maximum health is 160, and you are at full health when you buy it.
+- The upgrade machine on the south wall costs 4000 points. It upgrades the weapon in your hands one time: 2 times the damage, and 1.5 times the magazine and the reserve. The weapon is full at the new sizes, and it has a gold tint.
 - You have 100 health. A zombie hit removes 40 health. If no zombie hits you for 4 seconds, your health comes back at 50 per second.
 
-`game/rules.gd` holds the values for rounds, points, health, buys, and the box. `game/weapon/arsenal.gd` holds the weapon values:
+`game/rules.gd` holds the values for rounds, points, health, buys, the box, and the perks. `game/weapon/arsenal.gd` holds the weapon values:
 
 | Weapon | Where | Price | Damage | Pellets | Fire interval | Automatic | Magazine | Reserve | Reload |
 |---|---|---|---|---|---|---|---|---|---|
@@ -71,6 +77,7 @@ The keys use physical key codes. Thus the positions are the same on all keyboard
 | `game/game.gd` | `Game` instances the arena scene and builds the player, the weapon, and the HUD. It ticks the round director, spawns zombies, and sends events between the parts. It finds the station in view, shows its prompt, and takes the points for a buy. It owns mouse capture, pause, and restart. |
 | `game/rules.gd` | `Rules` holds all tuning values and the wave formulas. |
 | `game/round_director.gd` | `RoundDirector` is the round state machine. It uses no nodes. |
+| `game/perks.gd` | `Perks` holds the perks that the player has. `Rules` reads it for the numbers that a perk changes. |
 | `game/points.gd` | `Points` holds the point balance and the total earned. |
 | `game/layers.gd` | `Layers` names the collision layers. |
 | `game/hud.gd` | `Hud` shows the round, the points, the weapon name, the ammunition, the buy prompt, the health vignette, the crosshair, the hit marker, the banner, the death screen, and the pause screen. |
@@ -83,9 +90,12 @@ The keys use physical key codes. Thus the positions are the same on all keyboard
 | `game/weapon/weapon.gd` | `Weapon` fires, reloads, changes weapons, attacks with the knife, and casts the hit rays. It also shows the weapon model. |
 | `game/station/station.gd` | `Station` is the base of a thing that the player buys from. It tells what a press buys, and it applies the buy. |
 | `game/station/wall_buy.gd` | `WallBuy` sells one weapon and its ammunition on a wall. |
+| `game/station/machine.gd` | `Machine` is the base of a slab on a wall that sells a lasting thing. |
+| `game/station/perk_machine.gd` | `PerkMachine` sells one perk one time. |
+| `game/station/upgrade_machine.gd` | `UpgradeMachine` upgrades the weapon in the hands. |
 | `game/station/mystery_box.gd` | `MysteryBox` rolls a random weapon and offers it. |
 | `game/zombie/zombie.gd` | `Zombie` finds a path to the player, attacks, and dies. |
-| `game/level/arena.tscn` | The map: the yard, the lamps, the wall buys, the box, and the spawn markers. Edit it in the Godot editor. |
+| `game/level/arena.tscn` | The map: the yard, the lamps, the wall buys, the box, the perk machines, the upgrade machine, and the spawn markers. Edit it in the Godot editor. |
 | `game/level/arena.gd` | `Arena` reads the spawn markers and the stations of the map scene, and bakes its navigation mesh. |
 | `tests/test_runner.gd` | The headless test suite. |
 | `tests/run_checks.sh` | Runs all headless checks. |
@@ -125,9 +135,9 @@ If you do not give a path, the file is `user://visual_smoke.png`.
 
 These checks passed with Godot 4.7.2 on Linux on 2026-10-14:
 
-- `bash tests/run_checks.sh` passed. The editor import and the parse of all 20 scripts gave no errors and no warnings.
-- The test suite passed on Jolt Physics with 204 checks and 0 failures.
-- The test suite passed on Godot Physics with 204 checks and 0 failures.
+- `bash tests/run_checks.sh` passed. The editor import and the parse of all 25 scripts gave no errors and no warnings.
+- The test suite passed on Jolt Physics with 238 checks and 0 failures.
+- The test suite passed on Godot Physics with 238 checks and 0 failures.
 - `godot --headless --path . --quit-after 600` gave no `ERROR` lines and no `WARNING` lines.
 - The visual smoke test passed with Vulkan Forward+ at 1600x900. The luminance spread of the frame was 0.93. A frame of one color gives 0.0.
 - The `verify` skill played `scenarios/buys.txt` in the real main scene and passed: it cleared round 1, bought the SMG with E, changed weapons with Q, cleared round 2, rolled the box, and took its weapon.

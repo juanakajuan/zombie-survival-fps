@@ -42,6 +42,7 @@ func run() -> void:
 	test_loadout()
 	test_wall_buy_offer()
 	test_mystery_box()
+	test_perks()
 	await test_ground_speed()
 	await test_jump_height()
 	await test_air_control()
@@ -67,6 +68,8 @@ func run() -> void:
 	await test_game()
 	await test_game_melee()
 	await test_game_stations()
+	await test_perk_effects()
+	await test_game_perks()
 	print("RESULT: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)
 
@@ -719,12 +722,12 @@ func test_wall_buy_offer() -> void:
 	wall.weapon_id = &"smg"
 	wall.price = 1000
 	var loadout: Loadout = Loadout.new(Arsenal.pistol())
-	check(offer_text(wall.offer(loadout)) == "WEAPON 1000 \"Buy SMG\" smg" and loadout_text(loadout) == "*pistol 8/80", "Without the SMG the wall offers the SMG for 1000, and the offer changes nothing")
+	check(offer_text(wall.offer(loadout, Perks.new())) == "WEAPON 1000 \"Buy SMG\" smg" and loadout_text(loadout) == "*pistol 8/80", "Without the SMG the wall offers the SMG for 1000, and the offer changes nothing")
 	loadout.give(Arsenal.smg())
 	loadout.current().magazine = 29
-	check(offer_text(wall.offer(loadout)) == "AMMO 500 \"Buy SMG ammo\" smg", "With 29 of 30 SMG rounds the wall offers SMG ammo for 500")
+	check(offer_text(wall.offer(loadout, Perks.new())) == "AMMO 500 \"Buy SMG ammo\" smg", "With 29 of 30 SMG rounds the wall offers SMG ammo for 500")
 	loadout.current().fill()
-	check(offer_text(wall.offer(loadout)) == "NONE 0 \"SMG ammo full\" -", "With full SMG ammunition the wall offers nothing and says so")
+	check(offer_text(wall.offer(loadout, Perks.new())) == "NONE 0 \"SMG ammo full\" -", "With full SMG ammunition the wall offers nothing and says so")
 	wall.free()
 
 
@@ -735,31 +738,31 @@ func test_mystery_box() -> void:
 	weapon.loadout.give(Arsenal.smg())
 	var seen: PackedStringArray = []
 	for roll: int in range(200):
-		box.accept(box.offer(weapon.loadout), weapon)
+		box.accept(box.offer(weapon.loadout, Perks.new()), weapon, Perks.new())
 		if not seen.has(box.result.id):
 			seen.append(box.result.id)
 		box.advance(4.0)
 		box.advance(10.0)
 	seen.sort()
 	check(seen == PackedStringArray(["lmg", "marksman", "rifle", "shotgun"]), "In 200 rolls from a loadout of the pistol and the SMG the box gives the shotgun, the rifle, the LMG, and the marksman, and never the SMG or the pistol")
-	check(offer_text(box.offer(weapon.loadout)) == "BOX_ROLL 950 \"Mystery box\" -", "An idle box offers a roll for 950")
-	box.accept(box.offer(weapon.loadout), weapon)
-	check(box.phase == MysteryBox.Phase.ROLLING and offer_text(box.offer(weapon.loadout)) == "NONE 0 \"\" -", "A rolling box offers nothing and shows no prompt")
+	check(offer_text(box.offer(weapon.loadout, Perks.new())) == "BOX_ROLL 950 \"Mystery box\" -", "An idle box offers a roll for 950")
+	box.accept(box.offer(weapon.loadout, Perks.new()), weapon, Perks.new())
+	check(box.phase == MysteryBox.Phase.ROLLING and offer_text(box.offer(weapon.loadout, Perks.new())) == "NONE 0 \"\" -", "A rolling box offers nothing and shows no prompt")
 	box.advance(3.5)
 	var rolling_at: MysteryBox.Phase = box.phase
 	box.advance(0.5)
 	check(rolling_at == MysteryBox.Phase.ROLLING and box.phase == MysteryBox.Phase.OFFERING, "ROLLING lasts 4.0 s")
-	var take: Station.Offer = box.offer(weapon.loadout)
+	var take: Station.Offer = box.offer(weapon.loadout, Perks.new())
 	check(offer_text(take) == "BOX_TAKE 0 \"Take %s\" %s" % [box.result.display_name, box.result.id], "An offering box offers its result for 0")
 	box.advance(9.5)
 	var offering_at: MysteryBox.Phase = box.phase
 	box.advance(0.5)
 	check(offering_at == MysteryBox.Phase.OFFERING and box.phase == MysteryBox.Phase.IDLE and box.result == null, "OFFERING lasts 10.0 s, and then the weapon is gone")
 	check(loadout_text(weapon.loadout) == "pistol 8/80, *smg 30/150", "A timeout gives nothing")
-	box.accept(box.offer(weapon.loadout), weapon)
+	box.accept(box.offer(weapon.loadout, Perks.new()), weapon, Perks.new())
 	box.advance(4.0)
 	var offered: StringName = box.result.id
-	box.accept(box.offer(weapon.loadout), weapon)
+	box.accept(box.offer(weapon.loadout, Perks.new()), weapon, Perks.new())
 	check(box.phase == MysteryBox.Phase.IDLE and box.result == null and weapon.current().def.id == offered and weapon.loadout.find(&"smg") == null and weapon.state == Weapon.State.SWITCHING, "A take gives the offered weapon in place of the SMG in the hands and returns the box to IDLE")
 	weapon.free()
 	box.free()
@@ -873,7 +876,7 @@ func test_player_health() -> void:
 	dying.intent.move = Vector2(0.0, 1.0)
 	var healths: Array[float] = []
 	var deaths: Array[int] = [0]
-	dying.health_changed.connect(func(value: float) -> void: healths.append(value))
+	dying.health_changed.connect(func(value: float, _max_health: float) -> void: healths.append(value))
 	dying.died.connect(func() -> void: deaths[0] += 1)
 	dying.take_damage(40.0)
 	dying.take_damage(40.0)
@@ -1163,7 +1166,7 @@ func arena_shape_problems(arena: Arena) -> PackedStringArray:
 func test_arena_navigation() -> void:
 	var arena: Arena = await make_arena()
 	check(arena.navigation.navigation_mesh.get_polygon_count() > 0 and arena.zombie_spawns.size() == 8, "The arena bakes a navigation mesh and has 8 zombie spawn points")
-	check(arena.stations.size() == 4 and arena.box != null and arena.box in arena.stations, "The arena has three wall buys and the box")
+	check(arena.stations.size() == 9 and arena.box != null and arena.box in arena.stations, "The arena has three wall buys, the box, four perk machines, and the upgrade machine")
 	check(arena_shape_problems(arena).is_empty(), "Each static body in the arena scene is on Layers.WORLD, and its collision box is the size of its mesh box: %s" % ", ".join(arena_shape_problems(arena)))
 	var nav_mesh: NavigationMesh = arena.navigation.navigation_mesh
 	check(is_equal_approx(nav_mesh.agent_height, Zombie.HEIGHT) and nav_mesh.geometry_collision_mask == Layers.WORLD and is_equal_approx(nav_mesh.cell_height, NavigationServer3D.map_get_cell_height(arena.get_world_3d().navigation_map)), "The navigation mesh uses the zombie height, the world layer, and the cell height of the navigation map")
@@ -1401,6 +1404,140 @@ func test_game_stations() -> void:
 	await frames(1)
 	check(game.arena.box.phase == MysteryBox.Phase.IDLE and game.points.balance == 0 and loadout_text(game.weapon.loadout) == "*pistol 8/80, smg 30/150", "A timeout gives no weapon and does not give the 950 points back")
 	check(game.director.phase == RoundDirector.Phase.STARTING, "All buys happened before round 1")
+	current_scene = null
+	game.queue_free()
+	await physics_frame
+
+
+func test_perks() -> void:
+	var none: Perks = Perks.new()
+	var smg: WeaponDef = Arsenal.smg()
+	check([Rules.max_health(none), Rules.regen_delay(none), Rules.regen_rate(none), Rules.fire_interval(smg, none), Rules.reload_seconds(smg, none), Rules.switch_seconds(none)] == [100.0, 4.0, 50.0, 0.075, 2.0, 0.5], "With no perks the lookups give the base numbers")
+	var tough: Perks = Perks.new()
+	tough.grant(Perks.Kind.TOUGH)
+	var mender: Perks = Perks.new()
+	mender.grant(Perks.Kind.MENDER)
+	var rapid: Perks = Perks.new()
+	rapid.grant(Perks.Kind.RAPID)
+	var quick: Perks = Perks.new()
+	quick.grant(Perks.Kind.QUICK_HANDS)
+	check(Rules.max_health(tough) == 160.0 and Rules.regen_delay(tough) == 4.0 and Rules.fire_interval(smg, tough) == 0.075, "Tough changes the maximum health and nothing else")
+	check(Rules.regen_delay(mender) == 1.5 and Rules.regen_rate(mender) == 100.0 and Rules.max_health(mender) == 100.0, "Mender changes the regeneration delay and rate")
+	check(is_equal_approx(Rules.fire_interval(smg, rapid), 0.05625) and Rules.reload_seconds(smg, rapid) == 2.0, "Rapid cuts the SMG fire interval to 0.05625 s and leaves the reload")
+	check(Rules.reload_seconds(smg, quick) == 1.0 and Rules.switch_seconds(quick) == 0.25 and Rules.fire_interval(smg, quick) == 0.075, "Quick Hands halves the reload and the change")
+	var granted: Array[int] = []
+	none.granted.connect(func(kind: Perks.Kind) -> void: granted.append(kind))
+	none.grant(Perks.Kind.RAPID)
+	none.grant(Perks.Kind.RAPID)
+	check(none.owned == [Perks.Kind.RAPID] and granted == [Perks.Kind.RAPID], "A second grant of one perk adds nothing and emits no signal")
+	var pistol: WeaponDef = Arsenal.pistol()
+	var upgraded: WeaponDef = Arsenal.upgrade(pistol)
+	check("%s %s %.1f %d %d %d" % [upgraded.id, upgraded.display_name, upgraded.damage, upgraded.magazine_size, upgraded.reserve_max, upgraded.tier] == "pistol Upgraded Pistol 70.0 12 120 1" and pistol.damage == 35.0 and pistol.tier == 0, "The upgrade makes the pistol 70 damage, 12 and 120 rounds, tier 1, with the same id, and leaves the argument alone")
+	var shotgun: WeaponDef = Arsenal.upgrade(Arsenal.shotgun())
+	check(shotgun.magazine_size == 9 and shotgun.reserve_max == 63 and shotgun.pellets == 8, "The upgrade makes the shotgun 9 and 63 rounds with 8 pellets")
+	var loadout: Loadout = Loadout.new(Arsenal.pistol())
+	loadout.current().magazine = 3
+	loadout.current().upgrade()
+	check(slot_text(loadout.current()) == "pistol 12/120" and loadout.find(&"pistol").def.tier == 1, "Slot.upgrade() fills the slot at the new sizes and find() still finds it")
+	loadout.give(Arsenal.pistol())
+	check(loadout.current().def.tier == 1, "give() of a weapon that the player has keeps its upgrade")
+	var machine: PerkMachine = PerkMachine.new()
+	machine.perk = Perks.Kind.TOUGH
+	machine.price = 3000
+	var owned: Perks = Perks.new()
+	check(offer_text(machine.offer(loadout, owned)) == "PERK 3000 \"Buy Tough\" -", "A perk machine offers the perk for its price")
+	owned.grant(Perks.Kind.TOUGH)
+	check(offer_text(machine.offer(loadout, owned)) == "NONE 0 \"Tough owned\" -", "A perk machine of an owned perk offers nothing and says so")
+	var press: UpgradeMachine = UpgradeMachine.new()
+	check(offer_text(press.offer(loadout, owned)) == "NONE 0 \"Already upgraded\" -", "The upgrade machine refuses an upgraded weapon")
+	check(offer_text(press.offer(Loadout.new(Arsenal.pistol()), owned)) == "UPGRADE 4000 \"Upgrade Pistol\" pistol", "The upgrade machine offers to upgrade the pistol for 4000")
+
+
+func test_perk_effects() -> void:
+	var level: Node3D = make_level()
+	var player: Player = spawn(level, tuning(), Vector3.ZERO, 0.0)
+	var perks: Perks = Perks.new()
+	var weapon: Weapon = Weapon.new()
+	weapon.perks = perks
+	weapon.loadout = Loadout.new(steady(Arsenal.pistol()))
+	weapon.loadout.give(steady(Arsenal.smg()))
+	player.camera.add_child(weapon)
+	var shots: Array[int] = [0]
+	weapon.fired.connect(func() -> void: shots[0] += 1)
+	await frames(5)
+	weapon.trigger_held = true
+	await frames(17)
+	weapon.trigger_held = false
+	check(shots[0] == 4, "Without Rapid the SMG fires 4 shots in 17 ticks")
+	await frames(30)
+	perks.grant(Perks.Kind.RAPID)
+	shots[0] = 0
+	weapon.trigger_held = true
+	await frames(17)
+	weapon.trigger_held = false
+	check(shots[0] == 5, "With Rapid the SMG fires 5 shots in 17 ticks")
+	perks.grant(Perks.Kind.QUICK_HANDS)
+	weapon.switch_requested = true
+	await frames(1)
+	check(await ticks_in_state(weapon, Weapon.State.SWITCHING, 60) == 15 and weapon.current().def.id == &"pistol", "With Quick Hands a change takes 15 ticks")
+	weapon.current().magazine = 4
+	weapon.reload_requested = true
+	await frames(1)
+	var reload_ticks: int = await ticks_in_state(weapon, Weapon.State.RELOADING, 120)
+	check(reload_ticks == 42 and weapon.current().magazine == 8, "With Quick Hands a pistol reload takes 42 ticks")
+	weapon.upgrade_current()
+	check(slot_text(weapon.current()) == "pistol 12/120" and weapon.state == Weapon.State.READY, "upgrade_current() fills the pistol at the new sizes and does not start SWITCHING")
+	var ahead: Zombie = make_still_zombie(level, Vector3(0.0, 0.0, -3.0), 1000.0)
+	var hits: Array[String] = []
+	weapon.hit.connect(func(target: Zombie, damage: float, kind: Rules.HitKind) -> void:
+		hits.append("%.1f %s" % [damage, Rules.HitKind.find_key(kind)]))
+	player.look(0.0, -atan(0.65 / 2.65))
+	await frames(5)
+	weapon.trigger_held = true
+	await frames(1)
+	weapon.trigger_held = false
+	check(hits == ["70.0 BODY"] and is_instance_valid(ahead), "An upgraded pistol hits for 70 damage")
+	await finish(level)
+	var hurt: Player = spawn(make_level(), tuning(), Vector3.ZERO, 0.0)
+	hurt.perks = Perks.new()
+	hurt.perks.grant(Perks.Kind.TOUGH)
+	hurt.heal_to_max()
+	for hit_number: int in range(3):
+		hurt.take_damage(40.0)
+	check(hurt.health == 40.0 and hurt.alive, "With Tough three zombie hits leave 40 health")
+	hurt.take_damage(40.0)
+	check(not hurt.alive, "With Tough a fourth hit kills")
+	var healing: Player = spawn(make_level(), tuning(), Vector3.ZERO, 0.0)
+	healing.perks = Perks.new()
+	healing.perks.grant(Perks.Kind.MENDER)
+	healing.take_damage(30.0)
+	await frames(84)
+	check(healing.health == 70.0, "With Mender the player does not heal 1.4 s after a hit")
+	await frames(30)
+	check(healing.health > 80.0, "With Mender regeneration has started 1.9 s after a hit")
+
+
+func test_game_perks() -> void:
+	var game: Game = start_game()
+	game.player.teleport(Vector3(8.0, 0.0, -18.45), 0.0)
+	game.points.earn(1000)
+	await frames(3)
+	check(prompt_text(game) == "E  Buy Mender  1500" and game.interact() and game.points.balance == 0, "At the Mender machine the prompt is \"E  Buy Mender  1500\", and the press takes 1500 points")
+	await frames(1)
+	check(game.perks.has(Perks.Kind.MENDER) and game.hud.perk_box.get_child_count() == 1 and (game.hud.perk_box.get_child(0) as Label).text == "Mender", "The perk row shows Mender")
+	check(prompt_text(game) == "Mender owned" and not game.interact(), "A second press at an owned perk does nothing")
+	game.player.teleport(Vector3(-18.45, 0.0, -8.0), PI * 0.5)
+	game.points.earn(3000)
+	game.player.take_damage(40.0)
+	await frames(3)
+	check(game.interact() and game.perks.has(Perks.Kind.TOUGH) and game.player.health == 160.0, "Buying Tough for 3000 puts the player at 160 health")
+	game.player.teleport(Vector3(-10.0, 0.0, 18.45), PI)
+	game.points.earn(4000)
+	await frames(3)
+	check(prompt_text(game) == "E  Upgrade Pistol  4000" and game.interact() and game.points.balance == 0, "At the upgrade machine the prompt is \"E  Upgrade Pistol  4000\", and the press takes 4000 points")
+	check(slot_text(game.weapon.current()) == "pistol 12/120" and game.hud.weapon_label.text == "Upgraded Pistol", "The pistol is upgraded and the HUD shows its name")
+	await frames(1)
+	check(prompt_text(game) == "Already upgraded" and not game.interact(), "A second upgrade is refused")
 	current_scene = null
 	game.queue_free()
 	await physics_frame

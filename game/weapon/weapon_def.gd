@@ -8,6 +8,8 @@ extends Resource
 @export_range(0.0, 1000.0, 0.5) var damage: float = 0.0
 @export_range(1, 20, 1) var pellets: int = 1
 @export_range(0.01, 5.0, 0.01, "suffix:s") var fire_interval: float = 0.1
+## 0 for a stock weapon, 1 after the upgrade machine.
+@export_range(0, 1, 1) var tier: int = 0
 ## True: hold the trigger to fire.
 @export var automatic: bool = false
 @export_range(1, 200, 1) var magazine_size: int = 1
@@ -19,6 +21,9 @@ extends Resource
 var parts: Array[WeaponDef.Part] = []
 ## Where the muzzle flash shows, in view model space.
 var muzzle: Vector3 = Vector3.ZERO
+
+
+const UPGRADE_TINT: Color = Color(1.6, 1.3, 0.6)
 
 
 class Part:
@@ -43,7 +48,7 @@ func build_model(scale: float, tint: Color = Color.TRANSPARENT) -> Node3D:
 			material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			material.albedo_color = tint
 		else:
-			material.albedo_color = part.color
+			material.albedo_color = part.color * UPGRADE_TINT if tier > 0 else part.color
 			material.roughness = 0.5
 			material.metallic = 0.6
 		var mesh: MeshInstance3D = MeshInstance3D.new()

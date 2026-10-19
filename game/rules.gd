@@ -36,6 +36,13 @@ const BOX_PRICE: int = 950
 const BOX_ROLL_SECONDS: float = 4.0
 const BOX_OFFER_SECONDS: float = 10.0
 
+const UPGRADE_PRICE: int = 4000
+const PLAYER_TOUGH_HEALTH: float = 160.0
+const MENDER_REGEN_DELAY: float = 1.5
+const MENDER_REGEN_RATE: float = 100.0
+const RAPID_INTERVAL_FACTOR: float = 0.75
+const QUICK_HANDS_FACTOR: float = 0.5
+
 
 static func zombie_count(round_number: int) -> int:
 	var count: int = 6 + 3 * (round_number - 1)
@@ -78,3 +85,27 @@ static func points_for_hit(killed: bool, kind: HitKind) -> int:
 
 static func ammo_price(weapon_price: int) -> int:
 	return floori(weapon_price / 2.0)
+
+
+static func max_health(perks: Perks) -> float:
+	return PLAYER_TOUGH_HEALTH if perks.has(Perks.Kind.TOUGH) else PLAYER_MAX_HEALTH
+
+
+static func regen_delay(perks: Perks) -> float:
+	return MENDER_REGEN_DELAY if perks.has(Perks.Kind.MENDER) else PLAYER_REGEN_DELAY
+
+
+static func regen_rate(perks: Perks) -> float:
+	return MENDER_REGEN_RATE if perks.has(Perks.Kind.MENDER) else PLAYER_REGEN_RATE
+
+
+static func fire_interval(def: WeaponDef, perks: Perks) -> float:
+	return def.fire_interval * RAPID_INTERVAL_FACTOR if perks.has(Perks.Kind.RAPID) else def.fire_interval
+
+
+static func reload_seconds(def: WeaponDef, perks: Perks) -> float:
+	return def.reload_seconds * QUICK_HANDS_FACTOR if perks.has(Perks.Kind.QUICK_HANDS) else def.reload_seconds
+
+
+static func switch_seconds(perks: Perks) -> float:
+	return SWITCH_SECONDS * QUICK_HANDS_FACTOR if perks.has(Perks.Kind.QUICK_HANDS) else SWITCH_SECONDS

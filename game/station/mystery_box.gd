@@ -68,7 +68,7 @@ func _process(delta: float) -> void:
 	_display.rotate_y(SPIN_SPEED * delta)
 
 
-func offer(_loadout: Loadout) -> Station.Offer:
+func offer(_loadout: Loadout, _perks: Perks) -> Station.Offer:
 	match phase:
 		Phase.IDLE:
 			return Station.Offer.new(Station.Offer.Kind.BOX_ROLL, Rules.BOX_PRICE, "Mystery box")
@@ -77,7 +77,7 @@ func offer(_loadout: Loadout) -> Station.Offer:
 	return Station.Offer.new(Station.Offer.Kind.NONE, 0, "")
 
 
-func accept(chosen: Station.Offer, weapon: Weapon) -> void:
+func accept(chosen: Station.Offer, weapon: Weapon, _perks: Perks) -> void:
 	match chosen.kind:
 		Station.Offer.Kind.BOX_ROLL:
 			_roll(weapon.loadout)
