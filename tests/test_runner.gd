@@ -70,6 +70,11 @@ func run() -> void:
 	await test_game_stations()
 	await test_perk_effects()
 	await test_game_perks()
+	test_pick_spawn()
+	await test_zones()
+	await test_doors()
+	await test_power()
+	await test_secret()
 	print("RESULT: %d checks, %d failures" % [checks, failures])
 	quit(1 if failures > 0 else 0)
 
@@ -1145,7 +1150,7 @@ func make_arena() -> Arena:
 	root.add_child(arena)
 	var map: RID = arena.get_world_3d().navigation_map
 	for tick: int in range(30):
-		if not NavigationServer3D.map_get_path(map, arena.player_spawn.origin, arena.zombie_spawns[0], true).is_empty():
+		if not NavigationServer3D.map_get_path(map, arena.player_spawn.origin, arena.spawns()[0], true).is_empty():
 			break
 		await physics_frame
 	return arena
@@ -1165,8 +1170,8 @@ func arena_shape_problems(arena: Arena) -> PackedStringArray:
 
 func test_arena_navigation() -> void:
 	var arena: Arena = await make_arena()
-	check(arena.navigation.navigation_mesh.get_polygon_count() > 0 and arena.zombie_spawns.size() == 8, "The arena bakes a navigation mesh and has 8 zombie spawn points")
-	check(arena.stations.size() == 9 and arena.box != null and arena.box in arena.stations, "The arena has three wall buys, the box, four perk machines, and the upgrade machine")
+	check(arena.navigation.navigation_mesh.get_polygon_count() > 0 and arena.spawns().size() == 8, "The arena bakes a navigation mesh and has 8 zombie spawn points")
+	check(arena.stations.size() == 13 and arena.box != null and arena.box in arena.stations, "The arena has three wall buys, the box, four perk machines, and the upgrade machine")
 	check(arena_shape_problems(arena).is_empty(), "Each static body in the arena scene is on Layers.WORLD, and its collision box is the size of its mesh box: %s" % ", ".join(arena_shape_problems(arena)))
 	var nav_mesh: NavigationMesh = arena.navigation.navigation_mesh
 	check(is_equal_approx(nav_mesh.agent_height, Zombie.HEIGHT) and nav_mesh.geometry_collision_mask == Layers.WORLD and is_equal_approx(nav_mesh.cell_height, NavigationServer3D.map_get_cell_height(arena.get_world_3d().navigation_map)), "The navigation mesh uses the zombie height, the world layer, and the cell height of the navigation map")
@@ -1444,11 +1449,13 @@ func test_perks() -> void:
 	var machine: PerkMachine = PerkMachine.new()
 	machine.perk = Perks.Kind.TOUGH
 	machine.price = 3000
+	machine.powered = true
 	var owned: Perks = Perks.new()
 	check(offer_text(machine.offer(loadout, owned)) == "PERK 3000 \"Buy Tough\" -", "A perk machine offers the perk for its price")
 	owned.grant(Perks.Kind.TOUGH)
 	check(offer_text(machine.offer(loadout, owned)) == "NONE 0 \"Tough owned\" -", "A perk machine of an owned perk offers nothing and says so")
 	var press: UpgradeMachine = UpgradeMachine.new()
+	press.powered = true
 	check(offer_text(press.offer(loadout, owned)) == "NONE 0 \"Already upgraded\" -", "The upgrade machine refuses an upgraded weapon")
 	check(offer_text(press.offer(Loadout.new(Arsenal.pistol()), owned)) == "UPGRADE 4000 \"Upgrade Pistol\" pistol", "The upgrade machine offers to upgrade the pistol for 4000")
 
@@ -1519,6 +1526,8 @@ func test_perk_effects() -> void:
 
 func test_game_perks() -> void:
 	var game: Game = start_game()
+	for machine: Machine in game.arena.machines:
+		machine.powered = true
 	game.player.teleport(Vector3(8.0, 0.0, -18.45), 0.0)
 	game.points.earn(1000)
 	await frames(3)
@@ -1538,6 +1547,154 @@ func test_game_perks() -> void:
 	check(slot_text(game.weapon.current()) == "pistol 12/120" and game.hud.weapon_label.text == "Upgraded Pistol", "The pistol is upgraded and the HUD shows its name")
 	await frames(1)
 	check(prompt_text(game) == "Already upgraded" and not game.interact(), "A second upgrade is refused")
+	current_scene = null
+	game.queue_free()
+	await physics_frame
+
+
+func test_pick_spawn() -> void:
+	var player: Vector3 = Vector3.ZERO
+	var spawns: Array[Vector3] = [Vector3(30.0, 0.0, 0.0), Vector3(15.0, 0.0, 0.0), Vector3(5.0, 0.0, 0.0)]
+	check(Rules.pick_spawn(spawns, player) == Vector3(15.0, 0.0, 0.0), "pick_spawn takes the nearest candidate that is 12 m or more away")
+	spawns = [Vector3(5.0, 0.0, 0.0), Vector3(8.0, 0.0, 0.0), Vector3(2.0, 0.0, 0.0)]
+	check(Rules.pick_spawn(spawns, player) == Vector3(8.0, 0.0, 0.0), "pick_spawn takes the farthest candidate if all are closer than 12 m")
+	spawns = [Vector3(12.0, 0.0, 0.0), Vector3(11.9, 0.0, 0.0)]
+	check(Rules.pick_spawn(spawns, player) == Vector3(12.0, 0.0, 0.0), "A candidate at exactly 12 m counts as far")
+
+
+func test_zones() -> void:
+	var arena: Arena = await make_arena()
+	check(arena.spawns().size() == 8 and arena.open_zones == [&"yard"], "At first only the 8 Yard spawn points are open")
+	arena.open_zone(&"warehouse")
+	arena.open_zone(&"warehouse")
+	check(arena.spawns().size() == 11 and arena.open_zones == [&"yard", &"warehouse"], "open_zone adds the 3 Warehouse spawn points one time")
+	var farthest: float = 0.0
+	for spawn_point: Vector3 in arena.zone_spawns[&"warehouse"]:
+		farthest = maxf(farthest, spawn_point.distance_to(Vector3(0.0, 0.0, 6.0)))
+	check(farthest > 12.0, "The Warehouse spawn points are far from the player spawn")
+	var map: RID = arena.get_world_3d().navigation_map
+	for zone: StringName in arena.zone_spawns:
+		for spawn_point: Vector3 in arena.zone_spawns[zone]:
+			var snapped: Vector3 = NavigationServer3D.map_get_closest_point(map, spawn_point)
+			check(Vector2(snapped.x - spawn_point.x, snapped.z - spawn_point.z).length() < 0.5 and not NavigationServer3D.map_get_path(map, arena.player_spawn.origin, spawn_point, true).is_empty(), "The %s spawn point %s is on the navigation mesh and has a path from the player spawn" % [zone, spawn_point])
+	var doors: Array[Door] = []
+	for station: Station in arena.stations:
+		if station is Door:
+			doors.append(station as Door)
+	var zones: Array[StringName] = []
+	for door: Door in doors:
+		zones.append(door.zone)
+	zones.sort()
+	var keys: Array[StringName] = []
+	for zone: StringName in arena.zone_spawns:
+		if zone != Arena.START_ZONE:
+			keys.append(zone)
+	keys.sort()
+	check(zones == keys, "Each zone except the Yard has exactly one door")
+	await finish(arena)
+
+
+func test_doors() -> void:
+	var game: Game = start_game()
+	game.player.teleport(Vector3(17.5, 0.0, 0.0), -PI * 0.5)
+	await frames(3)
+	check(prompt_text(game) == "E  Open Warehouse  1250" and game.hud.prompt_label.modulate == Hud.PROMPT_GRAY, "Facing the east door the prompt is \"E  Open Warehouse  1250\" in gray")
+	game.player.intent.move = Vector2(0.0, 1.0)
+	await frames(60)
+	check(game.player.global_position.x < 20.0, "The player cannot walk through a closed door")
+	game.player.intent.move = Vector2.ZERO
+	game.player.teleport(Vector3(17.5, 0.0, 0.0), -PI * 0.5)
+	await frames(3)
+	check(not game.interact() and game.arena.spawns().size() == 8, "Without points a press does nothing and no zone opens")
+	game.points.earn(1000)
+	await frames(1)
+	check(game.interact() and game.points.balance == 250 and game.arena.open_zones == [&"yard", &"warehouse"], "With 1500 points the press takes 1250 and opens the Warehouse")
+	await frames(2)
+	check(prompt_text(game) == "" and not game.interact(), "An open door shows no prompt and a press does nothing")
+	game.player.teleport(Vector3(17.5, 0.0, 0.0), -PI * 0.5)
+	await frames(1)
+	game.player.intent.move = Vector2(0.0, 1.0)
+	await frames(90)
+	check(game.player.global_position.x > 24.0, "After the door opens the player walks into the Warehouse")
+	game.player.intent.move = Vector2.ZERO
+	var runner: Zombie = make_zombie(game.arena, Vector3(26.0, 0.0, -12.0), 150.0, 3.2, game.player)
+	game.player.teleport(Vector3(8.0, 0.0, 0.0), 0.0)
+	var reached: int = -1
+	for tick: int in range(1, 1801):
+		await physics_frame
+		if runner.state == Zombie.State.ATTACK:
+			reached = tick
+			break
+	measure("time for a Warehouse zombie to reach the Yard player", reached * TICK, "s")
+	check(reached > 0 and reached * TICK < 30.0, "A zombie spawned in the Warehouse reaches a player in the Yard within 30 s")
+	current_scene = null
+	game.queue_free()
+	await physics_frame
+	var north: Game = start_game()
+	north.player.teleport(Vector3(0.0, 0.0, -17.5), 0.0)
+	north.points.earn(1500)
+	await frames(3)
+	check(prompt_text(north) == "E  Open Courtyard  1750" and north.points.balance == 2000 and north.interact() and north.arena.open_zones == [&"yard", &"courtyard"], "The north door costs 1750 and opens the Courtyard")
+	current_scene = null
+	north.queue_free()
+	await physics_frame
+
+
+func test_power() -> void:
+	var game: Game = start_game()
+	check(game.arena.machines.size() == 5 and game.arena.machines.all(func(machine: Machine) -> bool: return not machine.powered), "A new arena has 5 machines and no power")
+	game.player.teleport(Vector3(8.0, 0.0, -18.45), 0.0)
+	game.points.earn(2000)
+	await frames(3)
+	check(prompt_text(game) == "No power" and not game.interact() and game.points.balance == 2500, "Without power a machine says \"No power\" and a press does nothing")
+	var switch: PowerSwitch = null
+	for station: Station in game.arena.stations:
+		if station is PowerSwitch:
+			switch = station as PowerSwitch
+	game.player.teleport(Vector3(58.0, 0.0, 0.0), -PI * 0.5)
+	await frames(3)
+	check(prompt_text(game) == "E  Turn on power" and game.interact() and switch.is_on, "The switch prompt is \"E  Turn on power\", and the press turns it on at no cost")
+	await frames(2)
+	check(game.points.balance == 2500 and prompt_text(game) == "Power is on" and not game.interact(), "The switch costs nothing and works one time")
+	check(game.arena.machines.all(func(machine: Machine) -> bool: return machine.powered), "All 5 machines have power")
+	game.player.teleport(Vector3(8.0, 0.0, -18.45), 0.0)
+	await frames(3)
+	check(prompt_text(game) == "E  Buy Mender  1500" and game.interact() and game.perks.has(Perks.Kind.MENDER), "With power the Mender machine sells")
+	current_scene = null
+	game.queue_free()
+	await physics_frame
+
+
+func test_secret() -> void:
+	var game: Game = start_game()
+	var secret: Secret = game.arena.get_node(^"Secret") as Secret
+	var sigils: Array[Sigil] = []
+	for node: Node in secret.find_children("*", "Sigil", false):
+		sigils.append(node as Sigil)
+	check(sigils.size() == 3 and not secret.cache.revealed and secret.panel.collision_layer == Layers.WORLD, "The secret has 3 sigils, a closed panel, and a hidden cache")
+	check(secret.cache.collision_layer == 0 and offer_text(secret.cache.offer(game.weapon.loadout, game.perks)) == "NONE 0 \"\" -", "A hidden cache is out of the interact ray and offers nothing")
+	sigils[0].light()
+	sigils[1].light()
+	sigils[1].light()
+	check(not secret.revealed and not secret.cache.revealed, "Two lit sigils do not reveal the cache")
+	var third: Sigil = sigils[2]
+	game.player.teleport(Vector3(third.position.x, 0.0, -57.0), 0.0)
+	await frames(10)
+	game.weapon.trigger_held = true
+	await frames(3)
+	game.weapon.trigger_held = false
+	check(third.is_lit and secret.revealed and secret.cache.revealed, "A pistol shot at the third sigil lights it and reveals the cache")
+	await frames(70)
+	check(not is_instance_valid(secret.panel), "The panel sinks and frees itself")
+	game.player.teleport(Vector3(18.0, 0.0, -43.0), -PI * 0.5)
+	game.weapon.loadout.current().magazine = 1
+	game.weapon.loadout.current().reserve = 3
+	var before: int = game.points.balance
+	await frames(3)
+	check(prompt_text(game) == "E  Take the cache", "In the alcove the prompt is \"E  Take the cache\"")
+	check(game.interact() and game.points.balance == before + 1500 and slot_text(game.weapon.current()) == "pistol 8/80", "The cache gives 1500 points and fills the weapon")
+	await frames(2)
+	check(not game.interact() and game.points.balance == before + 1500, "The cache works one time")
 	current_scene = null
 	game.queue_free()
 	await physics_frame

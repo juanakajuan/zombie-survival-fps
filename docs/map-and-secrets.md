@@ -150,4 +150,10 @@ Live checks with the `verify` skill: buy the east door and walk through, turn on
 
 ## Accepted deviations
 
-None yet. The implementer lists each change to a number or a rule here.
+- **Door prices are not in `Rules`.** A door stores its `price` as an exported field, as a wall buy does, so the scene is the one place for the number. `Rules` has no `WAREHOUSE_DOOR_PRICE` or `COURTYARD_DOOR_PRICE`.
+- **`SPAWN_CANDIDATES` stays in `Game`.** `Rules` has `SPAWN_MIN_DISTANCE` and `pick_spawn` only.
+- **`Arena` connects the signals.** `Arena` connects `Door.opened` and `PowerSwitch.switched_on` itself. `Game` connects only `Cache.taken`, because the cache needs points and the weapon.
+- **`Arena.zombie_spawns` is `zone_spawns`.** It is a dictionary by zone id. `spawns()` gives the open ones.
+- **Cache area.** The cache interact area is 1.8 m tall, so the ray at eye height finds it.
+- **Perks scenario.** With the power off, the `perks` verify scenario proves the `No power` prompt, not the perk prompt.
+- **Not measured.** The bake time at load. The 600-frame launch check passes.

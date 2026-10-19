@@ -21,7 +21,7 @@ func glow_color() -> Color:
 	return Perks.color(perk)
 
 
-func offer(_loadout: Loadout, perks: Perks) -> Station.Offer:
+func _offer(_loadout: Loadout, perks: Perks) -> Station.Offer:
 	if perks.has(perk):
 		return Station.Offer.new(Station.Offer.Kind.NONE, 0, "%s owned" % Perks.display_name(perk))
 	return Station.Offer.new(Station.Offer.Kind.PERK, price, "Buy %s" % Perks.display_name(perk))

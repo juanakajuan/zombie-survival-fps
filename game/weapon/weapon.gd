@@ -206,6 +206,10 @@ func _cast_pellets(def: WeaponDef) -> void:
 		var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(view.origin, view.origin + direction * def.range, Layers.WORLD | Layers.ZOMBIES)
 		var result: Dictionary = space.intersect_ray(query)
 		var collider: Object = result.get("collider")
+		var sigil: Sigil = collider as Sigil
+		if sigil != null:
+			sigil.light()
+			continue
 		var target: Zombie = collider as Zombie
 		if target == null:
 			continue

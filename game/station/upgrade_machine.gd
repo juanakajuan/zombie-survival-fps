@@ -14,7 +14,7 @@ func glow_color() -> Color:
 	return GLOW
 
 
-func offer(loadout: Loadout, _perks: Perks) -> Station.Offer:
+func _offer(loadout: Loadout, _perks: Perks) -> Station.Offer:
 	var def: WeaponDef = loadout.current().def
 	if def.tier > 0:
 		return Station.Offer.new(Station.Offer.Kind.NONE, 0, "Already upgraded")
