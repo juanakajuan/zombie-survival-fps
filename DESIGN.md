@@ -11,7 +11,7 @@ The world and its visuals are in scenes: `game/level/arena.tscn` holds the geome
 1. **Core loop.** This document. One map, one starting pistol, rounds with harder waves, zombies that find a path to the player, player health with regeneration, points, death, and restart.
 2. **Weapons and buys.** Wall buys, a random weapon box, ammo buys. Points become a currency here. `docs/weapons-and-buys.md` gives the design.
 3. **Upgrades.** Perk machines and a weapon upgrade machine. `docs/perks-and-upgrades.md` gives the design.
-4. **Map and secrets.** A larger map, doors that the player buys to open areas, a power switch, and hidden secrets.
+4. **Map and secrets.** A larger map, doors that the player buys to open areas, a power switch, and hidden secrets. `docs/map-and-secrets.md` gives the design.
 
 Milestone 1 must not add speculative hooks for milestones 2 to 4. It must keep two shapes that the later milestones need: points are a balance that can go down (`spend`), and a weapon is data (`WeaponDef`) and not code.
 

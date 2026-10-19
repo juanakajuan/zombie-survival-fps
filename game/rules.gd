@@ -43,6 +43,10 @@ const MENDER_REGEN_RATE: float = 100.0
 const RAPID_INTERVAL_FACTOR: float = 0.75
 const QUICK_HANDS_FACTOR: float = 0.5
 
+const CACHE_POINTS: int = 1500
+## A zombie does not spawn closer to the player than this, if another candidate is farther.
+const SPAWN_MIN_DISTANCE: float = 12.0
+
 
 static func zombie_count(round_number: int) -> int:
 	var count: int = 6 + 3 * (round_number - 1)
@@ -109,3 +113,19 @@ static func reload_seconds(def: WeaponDef, perks: Perks) -> float:
 
 static func switch_seconds(perks: Perks) -> float:
 	return SWITCH_SECONDS * QUICK_HANDS_FACTOR if perks.has(Perks.Kind.QUICK_HANDS) else SWITCH_SECONDS
+
+
+## Of the candidates, the nearest to the player that is at least SPAWN_MIN_DISTANCE away. If every candidate is closer, the farthest one.
+static func pick_spawn(candidates: Array[Vector3], player: Vector3) -> Vector3:
+	var best: Vector3 = candidates[0]
+	var best_far: bool = false
+	for candidate: Vector3 in candidates:
+		var distance: float = candidate.distance_to(player)
+		var far: bool = distance >= SPAWN_MIN_DISTANCE
+		var current: float = best.distance_to(player)
+		if far and (not best_far or distance < current):
+			best = candidate
+			best_far = true
+		elif not far and not best_far and distance > current:
+			best = candidate
+	return best

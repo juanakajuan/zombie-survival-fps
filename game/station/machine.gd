@@ -8,7 +8,13 @@ const SLAB_SIZE: Vector3 = Vector3(1.2, 1.7, 0.3)
 ## The interact area stands out from the wall, so the ray finds it before the wall.
 const AREA_DEPTH: float = 0.7
 const BODY_COLOR: Color = Color(0.06, 0.06, 0.07)
+const OFF_COLOR: Color = Color(0.12, 0.12, 0.13)
 
+## A machine does nothing until the power is on. The arena sets it when the power switch is used.
+var powered: bool = false:
+	set(on):
+		powered = on
+		_build()
 ## The children that _build() adds. They have no owner, so the editor does not save them in the scene.
 var _built: Array[Node] = []
 
@@ -16,6 +22,15 @@ var _built: Array[Node] = []
 ## Runs in the editor too, so the viewport shows the slab. A Machine has no per-frame code.
 func _ready() -> void:
 	_build()
+
+
+func offer(loadout: Loadout, perks: Perks) -> Station.Offer:
+	if not powered:
+		return Station.Offer.new(Station.Offer.Kind.NONE, 0, "No power")
+	return _offer(loadout, perks)
+
+
+@abstract func _offer(loadout: Loadout, perks: Perks) -> Station.Offer
 
 
 ## The two lines on the slab.
@@ -49,7 +64,7 @@ func _build() -> void:
 	slab.material_override = slab_material
 	slab.position = Vector3(0.0, 0.0, SLAB_SIZE.z * 0.5)
 	_add(slab)
-	var color: Color = glow_color()
+	var color: Color = glow_color() if powered else OFF_COLOR
 	var strip_mesh: BoxMesh = BoxMesh.new()
 	strip_mesh.size = Vector3(SLAB_SIZE.x * 0.8, 0.12, 0.02)
 	var strip_material: StandardMaterial3D = StandardMaterial3D.new()
@@ -71,7 +86,7 @@ func _build() -> void:
 	_add(label)
 	var glow: OmniLight3D = OmniLight3D.new()
 	glow.light_color = color
-	glow.light_energy = 1.2
+	glow.light_energy = 1.2 if powered else 0.0
 	glow.omni_range = 3.5
 	glow.position = Vector3(0.0, 0.0, SLAB_SIZE.z + 0.6)
 	_add(glow)

@@ -6,7 +6,7 @@ extends Area3D
 
 
 class Offer:
-	enum Kind { NONE, WEAPON, AMMO, BOX_ROLL, BOX_TAKE, PERK, UPGRADE }
+	enum Kind { NONE, WEAPON, AMMO, BOX_ROLL, BOX_TAKE, PERK, UPGRADE, DOOR, POWER, CACHE }
 
 	var kind: Kind
 	## 0 for NONE and BOX_TAKE.

@@ -1,7 +1,7 @@
 class_name Game
 extends Node3D
 
-## Of this many random spawn points, the zombie uses the one farthest from the player, so it does not appear in view at close range.
+## Of this many random spawn points, Rules.pick_spawn chooses one, so the zombie does not appear in view at close range.
 const SPAWN_CANDIDATES: int = 4
 
 const ARENA_SCENE: PackedScene = preload("res://game/level/arena.tscn")
@@ -37,6 +37,9 @@ func _ready() -> void:
 	add_child(zombies)
 	add_child(hud)
 	weapon.hit.connect(_on_weapon_hit)
+	for station: Station in arena.stations:
+		if station is Cache:
+			(station as Cache).taken.connect(_on_cache_taken)
 	weapon.ammo_changed.connect(hud.set_ammo)
 	weapon.equipped.connect(func(def: WeaponDef) -> void: hud.set_weapon(def.display_name))
 	player.health_changed.connect(hud.set_health)
@@ -135,11 +138,11 @@ static func _prompt_text(offer: Station.Offer) -> String:
 
 
 func _spawn_zombie() -> void:
-	var at: Vector3 = arena.zombie_spawns[_rng.randi_range(0, arena.zombie_spawns.size() - 1)]
-	for candidate: int in range(SPAWN_CANDIDATES - 1):
-		var other: Vector3 = arena.zombie_spawns[_rng.randi_range(0, arena.zombie_spawns.size() - 1)]
-		if other.distance_squared_to(player.global_position) > at.distance_squared_to(player.global_position):
-			at = other
+	var open: Array[Vector3] = arena.spawns()
+	var candidates: Array[Vector3] = []
+	for candidate: int in range(SPAWN_CANDIDATES):
+		candidates.append(open[_rng.randi_range(0, open.size() - 1)])
+	var at: Vector3 = Rules.pick_spawn(candidates, player.global_position)
 	var round_number: int = director.round_number
 	var zombie: Zombie = Zombie.new()
 	zombie.setup(Rules.zombie_health(round_number), Rules.zombie_speed(round_number, _rng.randf()), player)
@@ -157,6 +160,12 @@ func _on_weapon_hit(target: Zombie, damage: float, kind: Rules.HitKind) -> void:
 	var killed: bool = target.state == Zombie.State.DEAD
 	points.earn(Rules.points_for_hit(killed, kind))
 	hud.show_hit(killed)
+
+
+func _on_cache_taken() -> void:
+	points.earn(Rules.CACHE_POINTS)
+	for slot: Loadout.Slot in weapon.loadout.slots:
+		weapon.fill(slot.def.id)
 
 
 func _on_round_started(round_number: int) -> void:

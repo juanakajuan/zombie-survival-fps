@@ -1,0 +1,27 @@
+# Doors: walk to the east door and the north door with too few points (500). The prompt shows the price in gray and a press buys nothing.
+# Around the cover block at 8,4 (x 7 to 9, z 3 to 5) and the block at 12,-2 (x 10.5 to 13.5, z -2.5 to -1.5).
+walk_to 5.5 6 4
+walk_to 5.5 1 4
+walk_to 17.5 1 8
+walk_to 17.5 0 2
+face -90 0
+wait 0.4
+state
+expect hud_prompt == E  Open Warehouse  1250
+shot east-door
+tap E
+wait 0.3
+expect points == 500
+expect hud_prompt == E  Open Warehouse  1250
+walk_to 17.5 8 4
+walk_to 3 8 8
+walk_to 3 -17.5 10
+walk_to 0 -17.5 3
+face 0 0
+wait 0.4
+state
+expect hud_prompt == E  Open Courtyard  1750
+shot north-door
+tap E
+wait 0.3
+expect points == 500
