@@ -1,7 +1,7 @@
 @tool
 class_name MysteryBox
 extends Station
-## The random weapon box. Arena puts it on a crate body on Layers.WORLD, so the navigation bake cuts the crate out.
+## The random weapon box. Arena puts it on a crate body on Layers.WORLD, so the navigation bake cuts the crate out. The origin is the crate center.
 
 enum Phase { IDLE, ROLLING, OFFERING }
 
@@ -11,7 +11,6 @@ const CRATE_SIZE: Vector3 = Vector3(1.8, 0.9, 0.9)
 const AREA_SIZE: Vector3 = Vector3(2.0, 1.8, 1.1)
 const CYCLE_SECONDS: float = 0.1
 const MODEL_SCALE: float = 1.5
-## The floating weapon is one flat glowing color, so it reads in the dark yard.
 const MODEL_TINT: Color = Color(0.75, 0.85, 1.0)
 const MODEL_HEIGHT: float = 0.45
 const SPIN_SPEED: float = 1.2
@@ -20,7 +19,6 @@ const GLOW_COLOR: Color = Color(0.45, 0.65, 1.0)
 var phase: Phase = Phase.IDLE
 ## Set in ROLLING and OFFERING.
 var result: WeaponDef = null
-## Tests seed it.
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 var _time_left: float = 0.0
@@ -31,7 +29,6 @@ var _display: Node3D
 var _models: Dictionary[StringName, Node3D] = {}
 
 
-## The origin is the crate center. It runs in the editor too, so the viewport shows the glow, but the editor does not roll or spin.
 ## The children have no owner, so the editor does not save them in the scene.
 func _ready() -> void:
 	if Engine.is_editor_hint():
@@ -86,7 +83,6 @@ func accept(chosen: Station.Offer, weapon: Weapon, _perks: Perks) -> void:
 			_enter_idle()
 
 
-## _physics_process calls it. Tests call it directly.
 func advance(delta: float) -> void:
 	if phase == Phase.IDLE:
 		return

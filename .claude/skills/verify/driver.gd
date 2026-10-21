@@ -1,6 +1,4 @@
 extends SceneTree
-## Plays the real main scene from a scenario file. It sends real input events and writes state, logs, and screenshots.
-## Usage: godot --path . --script res://.claude/skills/verify/driver.gd -- <scenario-file> <evidence-dir>
 
 const MAIN_SCENE: String = "res://game/main.tscn"
 ## nearest_zombie_m when no zombie is alive, so a wait for "<= N" does not pass early.
@@ -10,7 +8,6 @@ const WEAPON_STATES: PackedStringArray = ["READY", "COOLDOWN", "RELOADING", "MEL
 const MOVE_STATES: PackedStringArray = ["GROUND", "AIR", "SLIDE"]
 const STANCES: PackedStringArray = ["STAND", "CROUCH"]
 const BOX_PHASES: PackedStringArray = ["IDLE", "ROLLING", "OFFERING"]
-## walk_to stops this close to its target.
 const ARRIVE_DISTANCE: float = 0.3
 const BURST_TICKS: int = 12
 
@@ -121,7 +118,6 @@ func _game() -> Game:
 	return current_scene as Game
 
 
-## Every field that expect and wait_until can read. The values come from the live nodes, not from the test hooks.
 func _state() -> Dictionary:
 	var game: Game = _game()
 	var nearest: Zombie = _nearest_zombie()
@@ -267,14 +263,12 @@ func _aim_nearest(part: String) -> bool:
 	return true
 
 
-## Turns the view to a yaw and a pitch with one mouse motion. Yaw 0 faces -Z, and yaw 90 faces -X.
 func _face(yaw: float, pitch: float) -> void:
 	var player: Player = _game().player
 	var turn: float = deg_to_rad(player.mouse_sensitivity)
 	_look(Vector2(-wrapf(yaw - player.yaw, -PI, PI) / turn, -(pitch - player.pitch) / turn))
 
 
-## Holds W and steers with mouse motion until the player is within ARRIVE_DISTANCE of the point on the floor.
 func _walk_to(target: Vector2, timeout: float) -> bool:
 	var player: Player = _game().player
 	var deadline: float = Time.get_ticks_msec() / 1000.0 + timeout
@@ -300,8 +294,6 @@ func _slots(loadout: Loadout) -> String:
 	return ",".join(names)
 
 
-## Aims at the nearest zombie and holds the fire button for BURST_TICKS, again and again, until the time ends or the round is cleared.
-## A semi-automatic weapon fires once for each hold, and an automatic weapon fires a burst.
 func _fight(seconds: float, part: String) -> void:
 	var deadline: float = Time.get_ticks_msec() / 1000.0 + seconds
 	while Time.get_ticks_msec() / 1000.0 < deadline and _game().director.phase == RoundDirector.Phase.ACTIVE:

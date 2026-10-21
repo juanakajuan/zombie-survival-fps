@@ -44,7 +44,6 @@ const RAPID_INTERVAL_FACTOR: float = 0.75
 const QUICK_HANDS_FACTOR: float = 0.5
 
 const CACHE_POINTS: int = 1500
-## A zombie does not spawn closer to the player than this, if another candidate is farther.
 const SPAWN_MIN_DISTANCE: float = 12.0
 
 

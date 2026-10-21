@@ -20,12 +20,10 @@ const FLASH_SECONDS: float = 0.05
 const TIMER_TOLERANCE: float = 0.0001
 const FLASH_COLOR: Color = Color(1.0, 0.75, 0.35)
 
-## Game sets it. The default is no perks.
 var perks: Perks = Perks.new()
 ## Set it before add_child to start with other weapons.
 var loadout: Loadout = Loadout.new(Arsenal.pistol())
 var state: State = State.READY
-## The game writes this from input. Tests write it directly.
 var trigger_held: bool = false
 ## Kept until the weapon is READY, then cleared, so a press during the cooldown is not lost.
 var reload_requested: bool = false
@@ -72,7 +70,6 @@ func upgrade_current() -> void:
 	ammo_changed.emit(slot.magazine, slot.reserve)
 
 
-## The slot of the weapon fills. A reload of that weapon in progress has nothing left to do.
 func fill(id: StringName) -> void:
 	var slot: Loadout.Slot = loadout.find(id)
 	slot.fill()

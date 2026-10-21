@@ -9,7 +9,6 @@ class Offer:
 	enum Kind { NONE, WEAPON, AMMO, BOX_ROLL, BOX_TAKE, PERK, UPGRADE, DOOR, POWER, CACHE }
 
 	var kind: Kind
-	## 0 for NONE and BOX_TAKE.
 	var cost: int
 	## The prompt text. "" for no prompt.
 	var label: String
@@ -23,7 +22,6 @@ class Offer:
 		weapon = offer_weapon
 
 
-## Only the interact ray finds a station. It does not collide with bodies.
 func _init() -> void:
 	collision_layer = Layers.INTERACT
 	collision_mask = 0
@@ -34,5 +32,4 @@ func _init() -> void:
 @abstract func offer(loadout: Loadout, perks: Perks) -> Station.Offer
 
 
-## Game calls it after the spend of offer.cost succeeds.
 @abstract func accept(chosen: Station.Offer, weapon: Weapon, perks: Perks) -> void

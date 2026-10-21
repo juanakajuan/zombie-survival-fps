@@ -104,7 +104,6 @@ func set_prompt(text: String, affordable: bool) -> void:
 	prompt_label.modulate = Color.WHITE if affordable else PROMPT_GRAY
 
 
-## One label for each perk, in the order of purchase.
 func add_perk(kind: Perks.Kind) -> void:
 	var label: Label = _label(22, Perks.color(kind))
 	label.text = Perks.display_name(kind)

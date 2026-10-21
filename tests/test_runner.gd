@@ -1156,7 +1156,6 @@ func make_arena() -> Arena:
 	return arena
 
 
-## The scene stores a collision box and a mesh box for each body. A hand edit can change one and not the other.
 func arena_shape_problems(arena: Arena) -> PackedStringArray:
 	var problems: PackedStringArray = []
 	for node: Node in arena.find_children("*", "StaticBody3D"):
@@ -1171,7 +1170,7 @@ func arena_shape_problems(arena: Arena) -> PackedStringArray:
 func test_arena_navigation() -> void:
 	var arena: Arena = await make_arena()
 	check(arena.navigation.navigation_mesh.get_polygon_count() > 0 and arena.spawns().size() == 8, "The arena bakes a navigation mesh and has 8 zombie spawn points")
-	check(arena.stations.size() == 13 and arena.box != null and arena.box in arena.stations, "The arena has three wall buys, the box, four perk machines, and the upgrade machine")
+	check(arena.stations.size() == 13 and arena.box != null and arena.box in arena.stations, "The arena has three wall buys, the box, four perk machines, the upgrade machine, two doors, the power switch, and the cache")
 	check(arena_shape_problems(arena).is_empty(), "Each static body in the arena scene is on Layers.WORLD, and its collision box is the size of its mesh box: %s" % ", ".join(arena_shape_problems(arena)))
 	var nav_mesh: NavigationMesh = arena.navigation.navigation_mesh
 	check(is_equal_approx(nav_mesh.agent_height, Zombie.HEIGHT) and nav_mesh.geometry_collision_mask == Layers.WORLD and is_equal_approx(nav_mesh.cell_height, NavigationServer3D.map_get_cell_height(arena.get_world_3d().navigation_map)), "The navigation mesh uses the zombie height, the world layer, and the cell height of the navigation map")
@@ -1231,7 +1230,6 @@ func start_game() -> Game:
 	return game
 
 
-## Puts the zombie on the floor in front of the player, so that a level melee hits it.
 func place_in_front(game: Game, zombie: Zombie, distance: float) -> void:
 	zombie.global_position = game.player.global_position + Vector3.FORWARD.rotated(Vector3.UP, game.player.yaw) * distance
 

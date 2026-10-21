@@ -16,7 +16,6 @@ var is_taken: bool = false
 var _built: Array[Node] = []
 
 
-## The cache is out of the interact ray and out of sight until reveal(). The editor shows it.
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		revealed = true

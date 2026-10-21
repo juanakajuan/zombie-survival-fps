@@ -10,7 +10,6 @@ const AREA_DEPTH: float = 0.7
 const BODY_COLOR: Color = Color(0.06, 0.06, 0.07)
 const OFF_COLOR: Color = Color(0.12, 0.12, 0.13)
 
-## A machine does nothing until the power is on. The arena sets it when the power switch is used.
 var powered: bool = false:
 	set(on):
 		powered = on
@@ -19,7 +18,6 @@ var powered: bool = false:
 var _built: Array[Node] = []
 
 
-## Runs in the editor too, so the viewport shows the slab. A Machine has no per-frame code.
 func _ready() -> void:
 	_build()
 
@@ -40,7 +38,6 @@ func offer(loadout: Loadout, perks: Perks) -> Station.Offer:
 @abstract func glow_color() -> Color
 
 
-## The setters of the subclasses call it again, so an edit in the inspector redraws the slab.
 func _build() -> void:
 	if not is_node_ready():
 		return
