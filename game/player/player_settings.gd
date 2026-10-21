@@ -40,6 +40,10 @@ extends Resource
 @export_range(0.0, 5.0, 0.05, "suffix:s") var slide_cooldown: float = 0.6
 @export_range(0.0, 100.0, 0.1, "suffix:m/s²") var slide_steer_acceleration: float = 8.0
 
+@export_group("Mantle")
+@export_range(0.0, 3.0, 0.01, "suffix:m") var mantle_max_height: float = 1.2
+@export_range(0.05, 2.0, 0.01, "suffix:s") var mantle_time: float = 0.4
+
 @export_group("Camera")
 ## Horizontal field of view on a 16:9 screen. Wider screens see more to the sides.
 @export_range(30.0, 150.0, 0.5, "suffix:°") var base_fov: float = 90.0
