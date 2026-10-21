@@ -23,9 +23,9 @@ Run this first, and again when something looks wrong. It is read-only.
 .claude/skills/verify/doctor.sh
 ```
 
-Each line starts with `OK:` or `PROBLEM:`. Exit code 1 means at least one problem. It checks Godot 4.7, `kwin_wayland`, `XDG_RUNTIME_DIR`, the project import (`.godot/`), no `override.cfg` (it changes the physics engine), and no stranded verify instances.
+Each line starts with `OK:` or `PROBLEM:`. Exit code 1 means at least one problem. It checks Godot 4.7, `kwin_wayland`, `XDG_RUNTIME_DIR`, the project import (each `class_name` in `game/` is in the class cache in `.godot/`), no `override.cfg` (it changes the physics engine), and no stranded verify instances.
 
-If the project is not imported, run `godot --headless --path . --editor --quit` once.
+If the project is not imported, or the class cache is stale (a new `class_name` since the last import), run `godot --headless --path . --editor --quit` once. With a stale cache, each run fails with `SCRIPT ERROR: Parse Error: Could not find type "<Class>"`.
 
 ## Launch and drive
 
@@ -64,7 +64,7 @@ One command on each line. `#` starts a comment line. The run stops at the first 
 | `expect <field> <op> <value>` | Asserts a field. Ops: `==`, `!=`, `>`, `<`, `>=`, `<=`, and `contains` for text. The value is the rest of the line with its inner spaces, so `expect hud_ammo == 8 / 80` and `expect hud_prompt == E  Buy SMG  1000` work. |
 | `wait_until <field> <op> <value> <timeout-s>` | Waits for a field, checked each physics tick. Fails at the timeout. |
 
-State fields: `phase` (`STARTING`, `ACTIVE`, `INTERMISSION`, `GAME_OVER`), `round`, `to_spawn`, `zombies_alive`, `nearest_zombie_m` (999 when no zombie is alive), `points`, `earned`, `magazine` and `reserve` (of the weapon in the hands), `weapon` (`READY`, `COOLDOWN`, `RELOADING`, `MELEE`, `SWITCHING`), `weapon_name`, `slots` (for example `Pistol,*SMG`, with `*` on the weapon in the hands), `box` (`IDLE`, `ROLLING`, `OFFERING`), `health`, `player_alive`, `move_state` (`GROUND`, `AIR`, `SLIDE`), `stance` (`STAND`, `CROUCH`), `speed` (horizontal m/s), `position`, `yaw_deg`, `paused`, `mouse_captured`, `fps`, `ticks_ms`, and the HUD text the player sees: `hud_round`, `hud_points`, `hud_ammo`, `hud_weapon`, `hud_prompt` (empty when hidden), `hud_banner` (empty when faded), `hud_death`, `hud_death_text`, `hud_pause`.
+State fields: `phase` (`STARTING`, `ACTIVE`, `INTERMISSION`, `GAME_OVER`), `round`, `to_spawn`, `zombies_alive`, `nearest_zombie_m` (999 when no zombie is alive), `points`, `earned`, `magazine` and `reserve` (of the weapon in the hands), `weapon` (`READY`, `COOLDOWN`, `RELOADING`, `MELEE`, `SWITCHING`), `weapon_name`, `slots` (for example `Pistol,*SMG`, with `*` on the weapon in the hands), `box` (`IDLE`, `ROLLING`, `OFFERING`), `health`, `player_alive`, `move_state` (`GROUND`, `AIR`, `SLIDE`), `stance` (`STAND`, `CROUCH`), `speed` (horizontal m/s), `position`, `yaw_deg`, `paused`, `mouse_captured`, `fps`, `ticks_ms`, and the HUD text the player sees: `hud_round`, `hud_points`, `hud_ammo`, `hud_weapon`, `hud_prompt` (empty when hidden), `hud_perks` (the owned perk names under the points, comma-separated, empty when none), `hud_banner` (empty when faded), `hud_death`, `hud_death_text`, `hud_pause`.
 
 To add a field or a command, edit `driver.gd`. The project treats untyped and unsafe GDScript as errors, so keep all declarations typed. Check the parse with:
 
@@ -109,8 +109,9 @@ Never use `pkill -f` with a pattern from this skill: the pattern also matches th
 - `run.sh` starts Godot with `--disable-vsync --max-fps 60`. With vsync, Vulkan FIFO present under the virtual KWin sometimes blocks for ever, and the run freezes at a `shot`.
 - Godot sometimes did not exit after `quit()` in a run that used restart (scene reload). `run.sh` stops Godot 15 s after `VERIFY DONE` and prints a `NOTE:` line. The result then comes from the transcript.
 - The camera rig applies a look on the next rendered frame. A shot or knife in the same tick as a large look uses the old view. `aim_nearest` and `fight` wait for this. After a raw `look`, add `wait 0.1` before `click` or `tap V`.
-- Round 1 starts 3 s after launch. Each zombie spawns at the farthest of 4 random picks from 8 spawn points, so it is 12 to 28.6 m from the player spawn (usually 28.6 m). A far zombie needs 15 to 25 s to reach the player, a near one less.
-- The player spawns at `0,0,6` and faces -Z. A cover block is 10 m ahead at z = -4. For movement tests, turn to +Z first (`look 1800 0`): that lane is clear for 14 m.
+- Round 1 starts 3 s after launch. Each zombie spawns at the nearest of 4 random picks that is 12 m or more from the player (the farthest pick if all are nearer). The picks come from the 8 Yard spawn points, plus 3 for each zone with an open door. From the player spawn, a zombie is 12 to 28.6 m away, and often 12 m: the spawn point at `0,0,18` is the nearest far pick. A round-1 zombie walks at 1.6 m/s, so it needs about 8 s from 12 m and 18 s from 28.6 m. Later rounds add joggers (3.2 m/s) and runners (5 m/s).
+- The player spawns at `0,0,6` and faces -Z. A cover block is 10 m ahead at z = -4. For movement tests, turn to +Z first (`look 1800 0`): that lane has no obstacle for 14 m, but zombies often spawn in it at `0,0,18`.
+- Lamp posts (0.2 m boxes) block `walk_to`. They stand at `±15,±15` in the Yard, at `30,0` and `52,0` in the Warehouse (on the line through the east door), and at `-10,-28` and `10,-55` in the Courtyard. Keep a waypoint line 1 m or more away from them.
 - The headless test suite (`bash tests/run_checks.sh`) and this skill are different proofs. Run both for a gameplay change.
 
 ## Feature map

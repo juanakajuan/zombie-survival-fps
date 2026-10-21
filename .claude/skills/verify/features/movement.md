@@ -6,14 +6,14 @@ The player walks at 7 m/s, sprints at 10.5 m/s, crouches at 3.5 m/s, slides from
 
 - `walk` with W, A, S, D.
 - `sprint` with Shift held.
-- `slide` when you press Ctrl or C at 8 m/s or more (sprint speed). Shift does not have to be held. The slide stops when you release the key or the speed goes below 4 m/s. Under 8 m/s, Ctrl or C crouches.
+- `slide` when you press Ctrl or C on the ground at 8 m/s or more (sprint is 10.5 m/s), 0.6 s or more after the last slide. It adds 3.5 m/s, to 15 m/s at most. Landing with Ctrl or C held at 8 m/s or more also slides. Shift does not have to be held. The slide stops when you release the key or the speed goes below 4 m/s. Under 8 m/s, Ctrl or C crouches.
 - `jump` with Space. The state goes `AIR`, then `GROUND` on landing.
 - `look` with mouse motion: 0.1 degree for each pixel.
 - `stairs` on the platform at -10, -10 (stairs on its +Z side, a ramp on its +X side).
 
 ## How to get to it (user POV)
 
-- Keyboard and mouse as above. Left stick, left stick press, B, and A on a gamepad.
+- Keyboard and mouse as above. Left stick, left stick press, B, A, and the right stick (look) on a gamepad.
 
 ## Driving it with run.sh
 
@@ -29,4 +29,4 @@ Run `.claude/skills/verify/run.sh .claude/skills/verify/scenarios/movement.txt`.
 
 - Facing -Z from spawn, the cover block at z = -4 stops a sprint after about 1 s, and `speed` drops to 0.
 - `press` holds a key until `release`. The driver releases held keys at the end of the run.
-- Zombies can reach the player during long movement runs after round 1 starts at 3 s.
+- Zombies can reach the player during long movement runs after round 1 starts at 3 s. The spawn point at `0,0,18` is in the +Z lane.
