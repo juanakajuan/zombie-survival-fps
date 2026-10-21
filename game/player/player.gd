@@ -232,12 +232,11 @@ func _transition(crouch_pressed: bool) -> void:
 	match move_state:
 		MoveState.GROUND:
 			if _jump_buffer_left > 0.0:
-				_jump()
+				if not _start_mantle():
+					_jump()
 			elif not _on_floor:
 				_coyote_left = settings.coyote_time
 				_set_state(MoveState.AIR)
-			elif _start_mantle():
-				pass
 			elif crouch_pressed and _slide_cooldown_left <= 0.0 and horizontal_speed() >= settings.slide_min_speed:
 				_boost_slide()
 				_set_state(MoveState.SLIDE)
@@ -252,7 +251,7 @@ func _transition(crouch_pressed: bool) -> void:
 					_set_state(MoveState.GROUND)
 			elif _jump_buffer_left > 0.0 and _coyote_left > 0.0:
 				_jump()
-			elif velocity.y <= 0.0:
+			elif velocity.y <= 0.0 and (intent.jump_held or _jump_buffer_left > 0.0):
 				_start_mantle()
 		MoveState.SLIDE:
 			if _jump_buffer_left > 0.0:
@@ -439,6 +438,7 @@ func _start_mantle() -> bool:
 	if plan == null:
 		return false
 	_mantle = plan
+	_jump_buffer_left = 0.0
 	_set_state(MoveState.MANTLE)
 	return true
 

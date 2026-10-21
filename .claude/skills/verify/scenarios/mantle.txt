@@ -1,9 +1,12 @@
-# Mantle: climb the 1.2 m Cover4 block at 12, -2 from its +Z side.
+# Mantle: walk into, then jump to climb the 1.2 m Cover4 block at 12, -2 from its +Z side.
 wait 0.5
 walk_to 12 1.5 20
 face 0
 press W
-wait_until move_state == MANTLE 2
+wait 0.6
+expect move_state == GROUND
+tap Space
+wait_until move_state == MANTLE 1
 shot mantle
 wait_until move_state == GROUND 2
 release W

@@ -24,7 +24,7 @@ godot --path .
 | Move | W, A, S, D | Left stick |
 | Look | Mouse | Right stick |
 | Jump | Space | A |
-| Mantle. Move into a ledge between 0.36 m and 1.2 m high, on the ground or at the end of a jump. | W, left stick | Left stick |
+| Mantle. Jump while you move into a ledge between 0.36 m and 1.2 m high. In the air, hold jump. | W and Space | Left stick and A |
 | Sprint | Shift | Left stick press |
 | Crouch. At sprint speed, slide. | Ctrl, C | B |
 | Fire | Left mouse button | Right trigger |
@@ -139,9 +139,9 @@ If you do not give a path, the file is `user://visual_smoke.png`.
 These checks passed with Godot 4.7.2 on Linux on 2026-10-14:
 
 - `bash tests/run_checks.sh` passed. The editor import and the parse of all 25 scripts gave no errors and no warnings.
-- The test suite passed on Jolt Physics with 301 checks and 0 failures on 2026-10-21, after the mantle was added.
-- The test suite passed on Godot Physics with 301 checks and 0 failures on 2026-10-21, after the mantle was added.
-- The mantle checks are part of those 301. They cover a walk into a 1.0 m ledge, a 1.5 m ledge that blocks, a ledge with a ceiling too low for a crouched body, a ledge with a ceiling that fits only a crouched body, a short jump onto a ledge, a jump at a 2.0 m ledge, the camera at 240 FPS during a mantle, and a scripted route with a literal end position.
+- The test suite passed on Jolt Physics with 303 checks and 0 failures on 2026-10-21, after the mantle was added.
+- The test suite passed on Godot Physics with 303 checks and 0 failures on 2026-10-21, after the mantle was added.
+- The mantle checks are part of those 303. They cover a walk into a 1.0 m ledge with no jump, a jump press at that ledge, a 1.5 m ledge that blocks, a ledge with a ceiling too low for a crouched body, a ledge with a ceiling that fits only a crouched body, a short jump onto a ledge with jump held, a short jump with jump released, a jump at a 2.0 m ledge, the camera at 240 FPS during a mantle, and a scripted route with a literal end position.
 - `godot --headless --path . --quit-after 600` gave no `ERROR` lines and no `WARNING` lines.
 - The visual smoke test passed with Vulkan Forward+ at 1600x900. The luminance spread of the frame was 0.93. A frame of one color gives 0.0.
 - The `verify` skill played `scenarios/buys.txt` in the real main scene and passed: it cleared round 1, bought the SMG with E, changed weapons with Q, cleared round 2, rolled the box, and took its weapon.

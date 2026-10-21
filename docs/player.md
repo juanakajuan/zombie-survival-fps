@@ -108,15 +108,15 @@ One `match move_state` in `_transition()`, then one `match move_state` for the m
 
 | From | Condition | To | Effect |
 |---|---|---|---|
+| GROUND | buffered jump, forward intent, a ledge in reach, room on top (see Mantle) | MANTLE | plan the path, `elapsed` is zero, no jump |
 | GROUND | buffered jump | AIR | jump velocity, emit `jumped` |
 | GROUND | not on floor | AIR | start coyote timer |
-| GROUND | forward intent, a ledge in reach, room on top (see Mantle) | MANTLE | plan the path, `elapsed` is zero |
 | GROUND | crouch pressed, speed >= `slide_min_speed`, cooldown done | SLIDE | add `slide_boost` up to `slide_max_speed` |
 | AIR | on floor, buffered jump | AIR | emit `landed`, then jump with no friction tick (bunny hop) |
 | AIR | on floor, crouch held, speed >= `slide_min_speed` | SLIDE | emit `landed`, no boost |
 | AIR | on floor | GROUND | emit `landed` |
 | AIR | buffered jump, coyote time left | AIR | jump |
-| AIR | `velocity.y <= 0`, forward intent, a ledge in reach, room on top | MANTLE | plan the path, `elapsed` is zero |
+| AIR | `velocity.y <= 0`, jump held or buffered, forward intent, a ledge in reach, room on top | MANTLE | plan the path, `elapsed` is zero |
 | SLIDE | buffered jump | AIR | jump, keep horizontal momentum |
 | SLIDE | not on floor | AIR | start coyote timer |
 | SLIDE | speed < `slide_exit_speed` or crouch released | GROUND | |
@@ -179,10 +179,11 @@ A walkable top is a contact normal within `floor_max_angle`. If the capsule rest
 
 A mantle moves the body along a fixed path in `mantle_time`. It is a step that is too high for `_step_up()`. `_start_mantle()` runs in `_transition()`:
 
-- In GROUND, after the buffered jump and the not-on-floor checks, and before the slide check.
-- In AIR, only when `velocity.y <= 0`, after the on-floor and coyote jump checks. A rising body does not mantle, so a jump that would clear a ledge is not cut short.
+- In GROUND, only on a buffered jump. If the mantle starts, the body does not jump. If not, the body jumps as usual.
+- In AIR, only when `velocity.y <= 0` and jump is held or buffered, after the on-floor and coyote jump checks. A rising body does not mantle, so a jump that would clear a ledge is not cut short.
 - In SLIDE, never.
 
+The player must ask for a mantle with the jump input. A walk into a ledge with no jump stops at the ledge, and a fall with jump released does not grab a ledge. A mantle that starts with no jump input (auto-mantle) is not in this version.
 `_start_mantle()` and `_plan_mantle()` plan with `body_test_motion`. The mantle starts only if every step passes:
 
 1. The forward intent is above zero. The direction is the horizontal wish direction.
@@ -244,7 +245,7 @@ Mouse look applies in `_unhandled_input` from `InputEventMouseMotion.screen_rela
 
 ## Verification plan
 
-Headless tests drive real physics through `intent` with `player_controlled = false`, and each test builds its own `PlayerSettings` with explicit values, so the expected values are literals in the test. The suite runs on Jolt Physics and on Godot Physics. Two tests cap the frame rate at 240 FPS and read the camera height on each rendered frame, one while the body climbs twenty 0.3 m steps and one during a mantle. The mantle tests cover a walk into a 1.0 m ledge, a ledge above `mantle_max_height`, two kinds of low ceiling, a short jump onto a ledge, a jump at a ledge above the reach from the last floor, and a scripted route that ends at a literal position.
+Headless tests drive real physics through `intent` with `player_controlled = false`, and each test builds its own `PlayerSettings` with explicit values, so the expected values are literals in the test. The suite runs on Jolt Physics and on Godot Physics. Two tests cap the frame rate at 240 FPS and read the camera height on each rendered frame, one while the body climbs twenty 0.3 m steps and one during a mantle. The mantle tests cover a walk into a 1.0 m ledge with no jump, a jump press at that ledge, a ledge above `mantle_max_height`, two kinds of low ceiling, a short jump onto a ledge with jump held, a short jump with jump released, a jump at a ledge above the reach from the last floor, and a scripted route that ends at a literal position.
 
 ## Accepted deviations
 

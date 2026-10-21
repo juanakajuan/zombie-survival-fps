@@ -461,7 +461,7 @@ func test_stairs() -> void:
 	player.teleport(Vector3(20.0, 0.0, 2.0), 0.0)
 	clear_events()
 	await frames(120)
-	check(absf(player.global_position.y - 0.6) < 0.02 and transitions == ["GROUND>MANTLE", "MANTLE>GROUND"], "A 0.6 m ledge is too high for a step, so the body climbs it with a mantle")
+	check(player.global_position.y < 0.05 and player.global_position.z > -2.7 and transitions.is_empty(), "A 0.6 m step blocks the body when it walks with no jump")
 	await finish(level)
 
 
@@ -530,23 +530,39 @@ func ticks_in_mantle(player: Player, limit: int) -> int:
 	return count
 
 
+func push_into_wall(player: Player) -> void:
+	player.intent.move = Vector2(0.0, 1.0)
+	await frames(10)
+	for tick: int in range(120):
+		await physics_frame
+		if player.horizontal_speed() < 0.1:
+			return
+
+
 func test_mantle() -> void:
 	var level: Node3D = make_level()
 	add_ledge(level, 0.0, 1.0)
 	add_ledge(level, 10.0, 1.5)
 	var player: Player = spawn(level, tuning(), Vector3(0.0, 0.0, 0.0), 0.0)
 	await frames(5)
-	player.intent.move = Vector2(0.0, 1.0)
-	var mantle_ticks: int = await ticks_in_mantle(player, 120)
+	await push_into_wall(player)
+	await frames(30)
+	check(player.global_position.y < 0.05 and player.global_position.z > -3.8 and transitions.is_empty(), "Walking into a 1.0 m ledge with no jump stops at the ledge and never starts a mantle")
+	press_jump(player)
+	var mantle_ticks: int = await ticks_in_mantle(player, 40)
 	measure("ticks in MANTLE for a 1.0 m ledge", mantle_ticks, "ticks")
-	check(absf(player.global_position.y - 1.0) < 0.02 and player.global_position.z < -4.3, "Walking into a 1.0 m ledge ends on top of it")
-	check(transitions == ["GROUND>MANTLE", "MANTLE>GROUND"], "Climbing the 1.0 m ledge goes GROUND to MANTLE to GROUND and nothing else")
+	check(absf(player.global_position.y - 1.0) < 0.02 and player.global_position.z < -4.3, "A jump press against a 1.0 m ledge ends on top of it")
+	check(transitions == ["GROUND>MANTLE", "MANTLE>GROUND"] and jumps == 0, "The jump press at the 1.0 m ledge goes GROUND to MANTLE to GROUND, with no jump")
 	check(mantle_ticks >= 24 and mantle_ticks <= 25, "The mantle takes mantle_time, 0.4 s, within one tick")
 	player.teleport(Vector3(10.0, 0.0, 0.0), 0.0)
+	player.intent.jump_held = false
 	clear_events()
+	await push_into_wall(player)
+	press_jump(player)
 	await frames(90)
 	check(player.global_position.y < 0.05 and player.global_position.z > -3.8, "A 1.5 m ledge is above mantle_max_height, so it blocks the body")
-	check(transitions.is_empty(), "Walking into the 1.5 m ledge never starts a mantle")
+	check(not transitions.has("GROUND>MANTLE") and not transitions.has("AIR>MANTLE") and jumps == 1, "A jump press at the 1.5 m ledge is a normal jump and never starts a mantle")
+	player.intent.jump_held = false
 	player.teleport(Vector3(0.0, 0.0, 0.0), 0.0)
 	player.intent.move = Vector2(0.0, -1.0)
 	clear_events()
@@ -577,6 +593,14 @@ func test_mantle_in_air() -> void:
 	await jump_toward_ledge(player, 0.15)
 	await frames(90)
 	check(player.global_position.y < 0.05 and not transitions.has("AIR>MANTLE"), "A jump at a 2.0 m ledge does not mantle, because the reach is measured from the last floor")
+	player.teleport(Vector3(0.0, 0.0, 4.0), 0.0)
+	player.intent.jump_held = false
+	clear_events()
+	await jump_toward_ledge(player, 0.15)
+	await physics_frame
+	player.intent.jump_held = false
+	await frames(90)
+	check(player.global_position.y < 0.05 and not transitions.has("AIR>MANTLE"), "A short jump with jump released before the ledge does not mantle")
 	await finish(level)
 
 
@@ -588,13 +612,19 @@ func test_mantle_headroom() -> void:
 	add_box(level, Vector3(6.0, 0.5, 4.0), Vector3(10.0, 2.65, -6.0))
 	var player: Player = spawn(level, tuning(), Vector3(0.0, 0.0, 0.0), 0.0)
 	await frames(5)
-	player.intent.move = Vector2(0.0, 1.0)
+	await push_into_wall(player)
+	press_jump(player)
+	await frames(1)
+	player.intent.jump_held = false
 	await frames(90)
 	check(player.global_position.y < 0.05 and not transitions.has("GROUND>MANTLE"), "A ledge with a ceiling too low even for a crouched body is refused")
 	check(player.stance == Player.Stance.STAND, "A refused mantle leaves the stance unchanged")
 	player.teleport(Vector3(10.0, 0.0, 0.0), 0.0)
+	await frames(5)
 	clear_events()
-	await frames(60)
+	await push_into_wall(player)
+	press_jump(player)
+	await frames(30)
 	check(absf(player.global_position.y - 1.0) < 0.02 and transitions == ["GROUND>MANTLE", "MANTLE>GROUND"], "A ledge with a ceiling that fits a crouched body but not a standing one is climbed")
 	check(player.stance == Player.Stance.CROUCH, "The body ends the mantle crouched under that ceiling")
 	await frames(120)
@@ -609,9 +639,10 @@ func test_camera_on_mantle() -> void:
 	values.head_bob_enabled = false
 	var player: Player = spawn(level, values, Vector3(0.0, 0.0, 0.0), 0.0)
 	await frames(5)
+	await push_into_wall(player)
 	var previous_max_fps: int = Engine.max_fps
 	Engine.max_fps = 240
-	player.intent.move = Vector2(0.0, 1.0)
+	press_jump(player)
 	var start_tick: int = Engine.get_physics_frames()
 	var last_tick: int = start_tick
 	var last_body_y: float = player.global_position.y
@@ -648,7 +679,9 @@ func test_mantle_route() -> void:
 	var player: Player = spawn(level, tuning(), Vector3(0.0, 0.0, 3.0), 0.0)
 	await frames(5)
 	player.intent.move = Vector2(0.0, 1.0)
-	await frames(100)
+	await frames(60)
+	press_jump(player)
+	await frames(40)
 	player.look(deg_to_rad(90.0), 0.0)
 	await frames(20)
 	player.intent.move = Vector2.ZERO
@@ -657,7 +690,7 @@ func test_mantle_route() -> void:
 	measure("route end x", position.x, "m")
 	measure("route end y", position.y, "m")
 	measure("route end z", position.z, "m")
-	check(position.distance_to(Vector3(-2.619, 1.0, -6.634)) < 0.02, "The scripted route that walks, mantles a 1.0 m ledge, turns left and walks on ends at the expected position")
+	check(position.distance_to(Vector3(-2.619, 1.0, -6.518)) < 0.02, "The scripted route that walks, jumps to mantle a 1.0 m ledge, turns left and walks on ends at the expected position")
 	check(transitions == ["GROUND>MANTLE", "MANTLE>GROUND"], "The scripted route mantles exactly once")
 	await finish(level)
 
