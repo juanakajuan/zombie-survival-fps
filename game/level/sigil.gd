@@ -23,7 +23,6 @@ func _ready() -> void:
 	_build()
 
 
-## No change and no signal if the sigil is lit.
 func light() -> void:
 	if is_lit:
 		return

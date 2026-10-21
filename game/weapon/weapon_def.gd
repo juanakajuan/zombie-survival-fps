@@ -10,7 +10,6 @@ extends Resource
 @export_range(0.01, 5.0, 0.01, "suffix:s") var fire_interval: float = 0.1
 ## 0 for a stock weapon, 1 after the upgrade machine.
 @export_range(0, 1, 1) var tier: int = 0
-## True: hold the trigger to fire.
 @export var automatic: bool = false
 @export_range(1, 200, 1) var magazine_size: int = 1
 @export_range(0, 1000, 1) var reserve_max: int = 0

@@ -10,7 +10,6 @@ const DRAWING_SCALE: float = 3.0
 ## The interact area stands out from the wall, so the ray finds it before the wall.
 const AREA_DEPTH: float = 0.3
 
-## The id of an Arsenal weapon. The arena scene sets it.
 @export var weapon_id: StringName = &"":
 	set(id):
 		weapon_id = id
@@ -28,7 +27,6 @@ var weapon_def: WeaponDef
 var _built: Array[Node] = []
 
 
-## Runs in the editor too, so the viewport shows the panel. A WallBuy has no per-frame code.
 func _ready() -> void:
 	_build()
 
@@ -50,7 +48,6 @@ func accept(chosen: Station.Offer, weapon: Weapon, _perks: Perks) -> void:
 			weapon.fill(weapon_def.id)
 
 
-## The setters call it again, so an edit of weapon_id or price in the inspector redraws the panel.
 func _build() -> void:
 	if not is_node_ready():
 		return

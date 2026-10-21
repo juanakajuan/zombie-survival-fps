@@ -19,7 +19,6 @@ class Slot:
 		magazine = def.magazine_size
 		reserve = def.reserve_max
 
-	## The slot keeps its place. The magazine and the reserve become full at the new sizes.
 	func upgrade() -> void:
 		def = Arsenal.upgrade(def)
 		fill()
@@ -44,7 +43,6 @@ func find(id: StringName) -> Loadout.Slot:
 	return null
 
 
-## Only the empty-slot case adds a slot, so there are never more than LOADOUT_SIZE slots.
 func give(weapon: WeaponDef) -> void:
 	var owned: Loadout.Slot = find(weapon.id)
 	if owned != null:
@@ -57,7 +55,6 @@ func give(weapon: WeaponDef) -> void:
 		slots[active] = Loadout.Slot.new(weapon)
 
 
-## False and no change with one slot.
 func cycle() -> bool:
 	if slots.size() < 2:
 		return false

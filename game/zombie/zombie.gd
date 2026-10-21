@@ -23,7 +23,6 @@ const EYE_COLOR: Color = Color(1.0, 0.85, 0.3)
 var state: State = State.CHASE
 var health: float = 0.0
 var speed: float = 0.0
-## The player.
 var target: Node3D
 
 var _agent: NavigationAgent3D = NavigationAgent3D.new()

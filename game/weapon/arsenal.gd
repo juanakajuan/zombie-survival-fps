@@ -90,7 +90,6 @@ static func box_pool() -> Array[WeaponDef]:
 	return [smg(), shotgun(), rifle(), lmg(), marksman()]
 
 
-## A new def. It keeps the id, so code that compares weapons by id sees the same weapon.
 static func upgrade(def: WeaponDef) -> WeaponDef:
 	var upgraded: WeaponDef = def.duplicate() as WeaponDef
 	upgraded.parts = def.parts

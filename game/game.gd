@@ -1,7 +1,6 @@
 class_name Game
 extends Node3D
 
-## Of this many random spawn points, Rules.pick_spawn chooses one, so the zombie does not appear in view at close range.
 const SPAWN_CANDIDATES: int = 4
 
 const ARENA_SCENE: PackedScene = preload("res://game/level/arena.tscn")
@@ -21,7 +20,6 @@ var _station: Station = null
 
 
 func _ready() -> void:
-	# Game keeps reading the pause and restart actions while the tree is paused. The world below it pauses.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_register_actions()
 	for world: Node in [arena, player, zombies]:
@@ -113,7 +111,6 @@ func interact() -> bool:
 	return true
 
 
-## A ray from the camera finds the station in use. A wall stops it, so a station behind a wall is not in use.
 func _look_for_station() -> void:
 	_station = null
 	if player.alive:
@@ -152,7 +149,6 @@ func _spawn_zombie() -> void:
 	zombies.add_child(zombie)
 
 
-## A zombie can die and free in the same tick as a second ray, so the target is checked.
 func _on_weapon_hit(target: Zombie, damage: float, kind: Rules.HitKind) -> void:
 	if not is_instance_valid(target) or target.state == Zombie.State.DEAD:
 		return

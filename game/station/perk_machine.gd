@@ -1,7 +1,6 @@
 @tool
 class_name PerkMachine
 extends Machine
-## One perk at one price. The player buys each perk one time.
 
 @export var perk: Perks.Kind = Perks.Kind.MENDER:
 	set(kind):

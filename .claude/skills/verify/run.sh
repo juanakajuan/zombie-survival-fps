@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Plays one scenario in the real game window inside a private headless KWin, and keeps the evidence.
 # Usage: .claude/skills/verify/run.sh <scenario-file> [evidence-dir]
 set -euo pipefail
 skill_dir="$(cd "$(dirname "$0")" && pwd)"

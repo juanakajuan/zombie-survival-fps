@@ -34,7 +34,6 @@ func _ready() -> void:
 	snap()
 
 
-## Puts every smoothed value on its target and places the camera now.
 func snap() -> void:
 	_previous_origin = body.global_position
 	_current_origin = body.global_position

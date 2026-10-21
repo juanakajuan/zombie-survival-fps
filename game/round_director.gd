@@ -75,7 +75,6 @@ func _spawn_due() -> int:
 		to_spawn -= 1
 		alive += 1
 		_timer += Rules.spawn_interval(round_number)
-	# A spawn held back by MAX_ALIVE goes out on the first tick after a death, not in a burst of saved-up spawns.
 	_timer = maxf(_timer, 0.0)
 	return count
 

@@ -1,7 +1,5 @@
 class_name Secret
 extends Node3D
-## The sigils, the panel, and the cache of one secret. Its children are the Sigil nodes, a StaticBody3D named Panel, and a Cache named Cache.
-## When every sigil is lit, the panel sinks and the cache shows.
 
 const PANEL_SINK_SECONDS: float = 1.0
 const PANEL_SINK_DEPTH: float = 3.2

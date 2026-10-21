@@ -1,6 +1,5 @@
 class_name Perks
 extends RefCounted
-## The perks the player owns. The numbers that a perk changes are the lookups in Rules.
 
 enum Kind { MENDER, RAPID, QUICK_HANDS, TOUGH }
 
@@ -13,7 +12,6 @@ func has(kind: Kind) -> bool:
 	return owned.has(kind)
 
 
-## No change and no signal if the perk is owned.
 func grant(kind: Kind) -> void:
 	if has(kind):
 		return

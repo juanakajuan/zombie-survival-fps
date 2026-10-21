@@ -40,7 +40,6 @@ var pitch: float = 0.0
 var move_state: MoveState = MoveState.AIR
 var stance: Stance = Stance.STAND
 var camera: Camera3D
-## Game sets it. The default is no perks.
 var perks: Perks = Perks.new()
 var health: float = Rules.PLAYER_MAX_HEALTH
 var alive: bool = true
@@ -177,7 +176,6 @@ func _regenerate(delta: float) -> void:
 	health_changed.emit(health, max_health)
 
 
-## Tough raises the maximum, and the player is at full health when they buy it.
 func heal_to_max() -> void:
 	health = Rules.max_health(perks)
 	health_changed.emit(health, health)
