@@ -4,11 +4,11 @@ Points are a currency. The player buys weapons and ammunition at three wall buys
 
 ## Sub-features
 
-- `buy-prompt` shows the prompt below the crosshair when the player looks at a station from 2.5 m or less, for example `E  Buy SMG  1000`. It is gray when the player cannot pay. A wall between the player and the station hides it.
+- `buy-prompt` shows the prompt below the crosshair when the player looks at a station from 2.5 m or less, for example `E  Buy SMG  1000`. It is gray when the player cannot pay or when the station has nothing to sell (`SMG ammo full`). A wall between the player and the station hides it.
 - `buy-weapon` buys the weapon with E. It goes to the empty slot, or it replaces the weapon in the hands. The HUD shows the weapon name above the ammunition.
-- `buy-ammo` buys ammunition for half the price at the wall of a weapon that the player has. With full ammunition the prompt is `SMG ammo full` and E does nothing.
-- `weapon-change` changes weapons with Q or the mouse wheel. `weapon` is `SWITCHING` for 0.5 s.
-- `box-roll` rolls the box for 950 points. It is `ROLLING` for 4 s with no prompt, then `OFFERING` with `E  Take <weapon>` for 10 s. E takes the weapon. A timeout keeps the points.
+- `buy-ammo` buys ammunition for half the price (500, 600, 750) at the wall of a weapon that the player has. With full ammunition the prompt is `SMG ammo full` and E does nothing.
+- `weapon-change` changes weapons with Q or the mouse wheel (Y on a gamepad). `weapon` is `SWITCHING` for 0.5 s, or 0.25 s with Quick Hands. Nothing happens with one weapon or during a knife attack.
+- `box-roll` rolls the box for 950 points. It is `ROLLING` for 4 s with no prompt, then `OFFERING` with `E  Take <weapon>` for 10 s. E takes the weapon. A timeout keeps the points. The box offers the SMG, Shotgun, Rifle, LMG, or Marksman, never the pistol or a weapon that the player has.
 
 ## How to get to it (user POV)
 
@@ -36,3 +36,4 @@ Run `.claude/skills/verify/run.sh .claude/skills/verify/scenarios/buys.txt`. It 
 - The prompt can be one tick old. Game reads the offer before the box advances in the same tick, so add `wait 0.1` after a `wait_until box == ...`.
 - `walk_to` goes in a straight line. A waypoint behind an obstacle makes it time out against the obstacle.
 - Round 2 can start during the walk. Zombies then attack the player at the station.
+- The walk past `-1.2,-17.5` goes through the north door area, so `hud_prompt` shows `E  Open Courtyard  1750` for a moment. Do not press E there.

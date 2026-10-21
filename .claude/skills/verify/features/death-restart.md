@@ -4,9 +4,9 @@ A zombie hit removes 40 health. At 0 health the game ends and shows the death sc
 
 ## Sub-features
 
-- `damage-vignette` shows a red vignette that gets stronger as health goes down. Health comes back at 50/s after 4 s without a hit.
-- `death-screen` shows `YOU DIED`, `You survived <n> rounds.`, `You earned <n> points.`, and frees the mouse.
-- `restart` reloads the scene with Enter: round 0, 500 points, 0 earned, 100 health, and the pistol only (`slots == *Pistol`).
+- `damage-vignette` shows a red vignette that gets stronger as health goes down. Health comes back at 50/s after 4 s without a hit (100/s after 1.5 s with Mender). Tough makes the maximum 160, and the vignette scales to it.
+- `death-screen` shows `YOU DIED`, `You survived <n> rounds.` (`round` when n is 1), `You earned <n> points.` (points earned, not the balance), `Press Enter to play again.`, and frees the mouse. Esc does not pause it.
+- `restart` reloads the scene with Enter: round 0, 500 points, 0 earned, 100 health, and the pistol only (`slots == *Pistol`). The scene reload also removes the perks (`hud_perks` empty) and the upgrades, closes the doors, turns off the power, and hides the cache.
 
 ## How to get to it (user POV)
 
