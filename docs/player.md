@@ -42,7 +42,7 @@ Choice: **B**. The body runs on the physics clock and the camera runs on the ren
 ## Files
 
 - `game/player/player_settings.gd`. `class_name PlayerSettings extends Resource`. All tuning, grouped with `@export_group`. The only source of truth for sizes and speeds.
-- `game/player/player.gd`. `class_name Player extends CharacterBody3D`. Builds its own children from settings. Parses input into `Intent`. Runs the move state machine. Steps up stairs.
+- `game/player/player.gd`. `class_name Player extends CharacterBody3D`. Builds its own children from settings. Parses input into `Intent`. Runs the move state machine. Steps up stairs. Plans and runs mantles.
 - `game/player/player_camera_rig.gd`. `class_name PlayerCameraRig extends Node3D`. Top-level node. Places the camera every rendered frame from the interpolated body position plus look angles plus feel effects.
 - `tests/test_runner.gd`. Headless physics integration tests.
 
@@ -51,7 +51,7 @@ Choice: **B**. The body runs on the physics clock and the camera runs on the ren
 ```gdscript
 class_name Player extends CharacterBody3D
 
-enum MoveState { GROUND, AIR, SLIDE }
+enum MoveState { GROUND, AIR, SLIDE, MANTLE }
 enum Stance { STAND, CROUCH }
 
 class Intent:
@@ -60,6 +60,13 @@ class Intent:
 	var jump_held: bool = false
 	var sprint_held: bool = false
 	var crouch_held: bool = false
+
+class Mantle:
+	var path: PackedVector3Array  # start, over, ahead, landing
+	var duration: float
+	var elapsed: float = 0.0
+	func sample() -> Vector3      # position at elapsed, by arc length along path
+	func finished() -> bool
 
 signal jumped
 signal landed(impact_speed: float)
@@ -84,30 +91,40 @@ func teleport(target_position: Vector3, target_yaw: float) -> void
 func horizontal_speed() -> float
 ```
 
+The body keeps two more private values for the mantle. `_mantle` is not null only while `move_state` is MANTLE. `_floor_height` is the y of the last floor that the body stood on. The Mantle group of `PlayerSettings` has two values:
+
+| Setting | Default | Meaning |
+|---|---|---|
+| `mantle_max_height` | 1.2 m | The highest ledge top above the floor that a mantle reaches |
+| `mantle_time` | 0.4 s | The time that a mantle takes |
+
 The body never rotates. Facing is `yaw` only. The capsule is round, so body rotation adds nothing and would put mouse look behind physics interpolation.
 
 ## State machine
 
 One `match move_state` in `_transition()`, then one `match move_state` for the move. Timers are floats that count down: `_coyote_left`, `_jump_buffer_left`, `_slide_cooldown_left`.
 
-"On floor" in the table is the `_on_floor` flag from the last move, not `is_on_floor()`. In AIR, the flag is `is_on_floor()` after `move_and_slide()`. In GROUND and SLIDE, the flag is true when `_step_up()` climbs a step. Otherwise it is `is_on_floor()` after `move_and_slide()`, or the result of `_step_down()`.
+"On floor" in the table is the `_on_floor` flag from the last move, not `is_on_floor()`. In AIR, the flag is `is_on_floor()` after `move_and_slide()`. In MANTLE, the flag is true on the tick that the path ends. In GROUND and SLIDE, the flag is true when `_step_up()` climbs a step. Otherwise it is `is_on_floor()` after `move_and_slide()`, or the result of `_step_down()`.
 
 | From | Condition | To | Effect |
 |---|---|---|---|
 | GROUND | buffered jump | AIR | jump velocity, emit `jumped` |
 | GROUND | not on floor | AIR | start coyote timer |
+| GROUND | forward intent, a ledge in reach, room on top (see Mantle) | MANTLE | plan the path, `elapsed` is zero |
 | GROUND | crouch pressed, speed >= `slide_min_speed`, cooldown done | SLIDE | add `slide_boost` up to `slide_max_speed` |
 | AIR | on floor, buffered jump | AIR | emit `landed`, then jump with no friction tick (bunny hop) |
 | AIR | on floor, crouch held, speed >= `slide_min_speed` | SLIDE | emit `landed`, no boost |
 | AIR | on floor | GROUND | emit `landed` |
 | AIR | buffered jump, coyote time left | AIR | jump |
+| AIR | `velocity.y <= 0`, forward intent, a ledge in reach, room on top | MANTLE | plan the path, `elapsed` is zero |
 | SLIDE | buffered jump | AIR | jump, keep horizontal momentum |
 | SLIDE | not on floor | AIR | start coyote timer |
 | SLIDE | speed < `slide_exit_speed` or crouch released | GROUND | |
+| MANTLE | path done | GROUND | the GROUND move runs in the next tick |
 
 Each exit from SLIDE starts the slide cooldown. A state change emits `move_state_changed`. A bunny hop stays in AIR, so it emits no state change.
 
-Stance is CROUCH while crouch is held, while in SLIDE, or while a ceiling blocks standing. Stance sets the capsule height. The capsule shrinks from the top, so the feet stay on the floor.
+Stance is CROUCH while crouch is held, while in SLIDE, or while a ceiling blocks standing. Stance sets the capsule height. The capsule shrinks from the top, so the feet stay on the floor. In MANTLE the stance does not change. `_start_mantle()` can set CROUCH for a ledge with a low ceiling, and the normal rules apply again when the mantle ends.
 
 ## Movement model
 
@@ -158,12 +175,38 @@ GROUND and SLIDE move through `_move_on_floor()`. It tries `_step_up()` first. I
 
 A walkable top is a contact normal within `floor_max_angle`. If the capsule rests on an edge, the contact normal is tilted. Then a 0.1 m ray down, 0.02 m past the contact point on the side away from the capsule center, reads the real top surface.
 
+## Mantle
+
+A mantle moves the body along a fixed path in `mantle_time`. It is a step that is too high for `_step_up()`. `_start_mantle()` runs in `_transition()`:
+
+- In GROUND, after the buffered jump and the not-on-floor checks, and before the slide check.
+- In AIR, only when `velocity.y <= 0`, after the on-floor and coyote jump checks. A rising body does not mantle, so a jump that would clear a ledge is not cut short.
+- In SLIDE, never.
+
+`_start_mantle()` and `_plan_mantle()` plan with `body_test_motion`. The mantle starts only if every step passes:
+
+1. The forward intent is above zero. The direction is the horizontal wish direction.
+2. A test motion of 0.1 m in that direction hits a surface that is not walkable. The horizontal part of its normal faces the body: `-normal_h.dot(direction) >= 0.7`.
+3. The base height is the support height in GROUND, as for stairs. In AIR it is `_floor_height`.
+4. Raise the capsule to `mantle_max_height + 0.05` above the base, or less if a ceiling stops it.
+5. Move the raised capsule forward by the probe travel plus the capsule diameter. It must not hit anything. A wall or a ceiling over the ledge refuses the mantle. Then sweep down from there, by the height of the raise, to find the landing.
+6. The mantle is refused in these cases: nothing is under the sweep, the contact is more than `mantle_max_height + 0.01` above the base, the top is not walkable, or the landing is not above the start by more than 0.01 m.
+7. In GROUND, sweep down again from the raised capsule moved forward by only 0.1 m, where the body first reaches the obstacle. The mantle is refused if that contact is `step_height + 0.01` or less above the base. Stairs own that range, so the two have no gap and no overlap. The sweep must be near the body. At the landing, 0.7 m away, a staircase of 0.2 m risers is already 0.4 m or more above the base, and it would be a mantle.
+8. Lower the raise to 0.05 m above the landing. The straight way up from the start and the way forward from there must not hit anything. The path is the start, that point over the ledge, that point moved forward, and the landing.
+9. If the plan fails with a standing capsule, the planner sets CROUCH and plans again. If that fails too, it sets STAND again. A mantle is refused only if neither a standing nor a crouched capsule fits on the ledge.
+
+`_move_mantle()` adds `delta` to `elapsed`, sets the position from `sample()`, and sets the velocity to the move of the tick divided by `delta`. The path has the same speed along its whole length. When `elapsed` reaches `mantle_time`, the velocity is zero, `_on_floor` is true, and `_floor_height` is the landing height. `_set_state()` clears `_mantle` when the state leaves MANTLE and emits `move_state_changed` for both changes.
+
+The reach in AIR is measured from `_floor_height`, not from the body. `_floor_height` is the y of the last floor that the body stood on. A mantle then never goes higher than `mantle_max_height` above a floor. That is lower than `jump_height`, so a mantle opens no surface that a jump cannot reach. A zombie attacks only within 1.2 m of height, so a spot above that height stays out of reach for the player.
+
+The body moves along the path in every tick, so the rig interpolates it like any other move and needs no change. The path has one move down: the last 0.05 m onto the ledge. `_move_mantle()` sends that move to the rig with `add_step()`, or the camera would drop 0.05 m in one tick. The head bob runs only in GROUND, so it is off during a mantle.
+
 ## Camera rig
 
 `top_level = true` and `physics_interpolation_mode = PHYSICS_INTERPOLATION_MODE_OFF`. The rig interpolates the body position itself. It does not use `get_global_transform_interpolated()`.
 
 ```
-add_step(h):           # the body calls it when _step_up() or _step_down() moves it by h
+add_step(h):           # the body calls it when _step_up(), _step_down(), or the end of a mantle moves it by h
 	pending_step += h
 
 record_tick():         # the body calls it at the end of _physics_process()
@@ -201,7 +244,7 @@ Mouse look applies in `_unhandled_input` from `InputEventMouseMotion.screen_rela
 
 ## Verification plan
 
-Headless tests drive real physics through `intent` with `player_controlled = false`, and each test builds its own `PlayerSettings` with explicit values, so the expected values are literals in the test. The suite runs on Jolt Physics and on Godot Physics. One test caps the frame rate at 240 FPS and reads the camera height on each rendered frame while the body climbs twenty 0.3 m steps.
+Headless tests drive real physics through `intent` with `player_controlled = false`, and each test builds its own `PlayerSettings` with explicit values, so the expected values are literals in the test. The suite runs on Jolt Physics and on Godot Physics. Two tests cap the frame rate at 240 FPS and read the camera height on each rendered frame, one while the body climbs twenty 0.3 m steps and one during a mantle. The mantle tests cover a walk into a 1.0 m ledge, a ledge above `mantle_max_height`, two kinds of low ceiling, a short jump onto a ledge, a jump at a ledge above the reach from the last floor, and a scripted route that ends at a literal position.
 
 ## Accepted deviations
 
@@ -219,6 +262,9 @@ The code differs from the first version of this design in the ways below. Each d
 - The camera becomes current only when `player_controlled` is true, so a bot does not take the view from the player.
 - Slide details: the cap applies only to the slope gain, so speed from air strafing is not cut. Steering adds no speed, so input cannot push a slide faster. A landing slide has no boost, so a chain of slide jumps cannot add the boost on each landing. The cooldown starts when the slide ends, so a long slide cannot chain into a new boost.
 - `gamepad_look_exponent` (default 2.0) curves the stick, so small stick motions give fine aim.
+- The mantle issue asked for a recorded golden run. The recording API was removed, so a scripted route test replaces it. The test uses a fixed sequence of intents and checks the end position against a literal value.
+- The check that leaves stairs to `_step_up()` measures the obstacle 0.1 m ahead of the body, not at the landing of the mantle. With the contact at the landing, three tests of stairs failed, because a staircase is 0.4 m or more above the base 0.7 m ahead.
+- `_move_mantle()` calls `add_step()` for the last move down onto the ledge. Without it, a camera test at 240 FPS measures a drop of 0.021 m in one frame, and the limit is 0.01 m.
 - `stop_speed` is 3.0 m/s, so a stop from walk speed takes 0.23 s, inside the 0.25 s limit of the stop test.
 
 The constant slide deceleration and the rig interpolation are not deviations. The lead asked for them in review, and the sections above describe them.

@@ -24,6 +24,7 @@ godot --path .
 | Move | W, A, S, D | Left stick |
 | Look | Mouse | Right stick |
 | Jump | Space | A |
+| Mantle. Move into a ledge between 0.36 m and 1.2 m high, on the ground or at the end of a jump. | W, left stick | Left stick |
 | Sprint | Shift | Left stick press |
 | Crouch. At sprint speed, slide. | Ctrl, C | B |
 | Fire | Left mouse button | Right trigger |
@@ -35,6 +36,8 @@ godot --path .
 | Play again after death | Enter | Start |
 
 The keys use physical key codes. Thus the positions are the same on all keyboard layouts.
+
+The player has four move states: GROUND, AIR, SLIDE, and MANTLE. A step of 0.35 m or less needs no state change. A mantle takes 0.4 seconds, and it needs room for the body on the ledge. The settings `mantle_max_height` and `mantle_time` are in `game/player/player_settings.gd`. `docs/player.md` has the rules.
 
 ## Rules
 
@@ -136,8 +139,9 @@ If you do not give a path, the file is `user://visual_smoke.png`.
 These checks passed with Godot 4.7.2 on Linux on 2026-10-14:
 
 - `bash tests/run_checks.sh` passed. The editor import and the parse of all 25 scripts gave no errors and no warnings.
-- The test suite passed on Jolt Physics with 238 checks and 0 failures.
-- The test suite passed on Godot Physics with 238 checks and 0 failures.
+- The test suite passed on Jolt Physics with 301 checks and 0 failures on 2026-10-21, after the mantle was added.
+- The test suite passed on Godot Physics with 301 checks and 0 failures on 2026-10-21, after the mantle was added.
+- The mantle checks are part of those 301. They cover a walk into a 1.0 m ledge, a 1.5 m ledge that blocks, a ledge with a ceiling too low for a crouched body, a ledge with a ceiling that fits only a crouched body, a short jump onto a ledge, a jump at a 2.0 m ledge, the camera at 240 FPS during a mantle, and a scripted route with a literal end position.
 - `godot --headless --path . --quit-after 600` gave no `ERROR` lines and no `WARNING` lines.
 - The visual smoke test passed with Vulkan Forward+ at 1600x900. The luminance spread of the frame was 0.93. A frame of one color gives 0.0.
 - The `verify` skill played `scenarios/buys.txt` in the real main scene and passed: it cleared round 1, bought the SMG with E, changed weapons with Q, cleared round 2, rolled the box, and took its weapon.
