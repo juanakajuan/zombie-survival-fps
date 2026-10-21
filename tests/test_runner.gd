@@ -65,6 +65,7 @@ func run() -> void:
 	await test_shotgun()
 	await test_arena_navigation()
 	await test_zombie()
+	await test_zombie_model()
 	await test_game()
 	await test_game_melee()
 	await test_game_stations()
@@ -1220,6 +1221,34 @@ func test_zombie() -> void:
 	await frames(40)
 	check(not is_instance_valid(zombie), "The dead zombie frees itself 1.0 s after death")
 	await finish(arena)
+
+
+func test_zombie_model() -> void:
+	var arena: Arena = await make_arena()
+	var zombie: Zombie = make_still_zombie(arena, Vector3(8.0, 0.0, 1.0))
+	var meshes: Array[Node] = zombie.find_children("*", "MeshInstance3D", true, false)
+	var mesh: MeshInstance3D = meshes[0] as MeshInstance3D if meshes.size() == 1 else null
+	var height: float = mesh.get_aabb().size.y if mesh != null else 0.0
+	measure("zombie model height", height, "m")
+	check(mesh != null and height >= 1.6 and height <= 1.85, "A zombie shows one mesh between 1.6 m and 1.85 m tall, which fits the 1.8 m capsule")
+	check(mesh != null and mesh.material_override == load("res://game/zombie/zombie_material.tres"), "The zombie mesh uses the shared PS1 material")
+	await process_frame
+	await process_frame
+	check(mesh != null and flash_of(mesh) == 0.0, "A zombie that took no damage does not flash")
+	zombie.take_damage(10.0, false)
+	await process_frame
+	await process_frame
+	check(mesh != null and flash_of(mesh) == 1.0, "A zombie flashes after damage")
+	await create_timer(Zombie.FLASH_SECONDS + 0.1).timeout
+	await process_frame
+	await process_frame
+	check(mesh != null and flash_of(mesh) == 0.0, "The flash ends after FLASH_SECONDS")
+	await finish(arena)
+
+
+func flash_of(mesh: MeshInstance3D) -> float:
+	var value: Variant = mesh.get_instance_shader_parameter(&"flash")
+	return value if value is float else -1.0
 
 
 func start_game() -> Game:

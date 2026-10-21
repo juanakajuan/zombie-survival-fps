@@ -16,9 +16,8 @@ const REPATH_DISTANCE: float = 0.5
 const SINK_SPEED: float = 1.2
 const SINK_SECONDS: float = 1.0
 const FLASH_SECONDS: float = 0.08
-const SKIN_COLOR: Color = Color(0.42, 0.52, 0.36)
-const CLOTH_COLOR: Color = Color(0.25, 0.22, 0.3)
-const EYE_COLOR: Color = Color(1.0, 0.85, 0.3)
+const MODEL: PackedScene = preload("res://game/zombie/zombie.glb")
+const MATERIAL: ShaderMaterial = preload("res://game/zombie/zombie_material.tres")
 
 var state: State = State.CHASE
 var health: float = 0.0
@@ -31,7 +30,7 @@ var _collision: CollisionShape3D = CollisionShape3D.new()
 var _safe_velocity: Vector3 = Vector3.ZERO
 var _last_target_position: Vector3 = Vector3.INF
 var _dead_time: float = 0.0
-var _skin: StandardMaterial3D = StandardMaterial3D.new()
+var _mesh: MeshInstance3D
 var _flash_left: float = 0.0
 
 
@@ -59,7 +58,10 @@ func _ready() -> void:
 	_agent.avoidance_enabled = true
 	_agent.velocity_computed.connect(func(safe_velocity: Vector3) -> void: _safe_velocity = safe_velocity)
 	add_child(_agent)
-	_build_model()
+	var model: Node3D = MODEL.instantiate() as Node3D
+	add_child(model)
+	_mesh = model.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
+	_mesh.material_override = MATERIAL
 
 
 func take_damage(amount: float, headshot: bool) -> void:
@@ -98,7 +100,7 @@ func _physics_process(delta: float) -> void:
 
 func _process(delta: float) -> void:
 	_flash_left -= delta
-	_skin.emission_enabled = _flash_left > 0.0
+	_mesh.set_instance_shader_parameter(&"flash", 1.0 if _flash_left > 0.0 else 0.0)
 
 
 func _target_in_range() -> bool:
@@ -136,37 +138,3 @@ func _move(horizontal: Vector3, delta: float) -> void:
 func _face(direction: Vector3) -> void:
 	if Vector2(direction.x, direction.z).length_squared() > 0.0001:
 		rotation.y = atan2(-direction.x, -direction.z)
-
-
-func _build_model() -> void:
-	_skin.albedo_color = SKIN_COLOR
-	_skin.emission = Color(1.0, 0.25, 0.2)
-	_skin.emission_energy_multiplier = 1.5
-	var cloth: StandardMaterial3D = StandardMaterial3D.new()
-	cloth.albedo_color = CLOTH_COLOR
-	var eyes: StandardMaterial3D = StandardMaterial3D.new()
-	eyes.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	eyes.albedo_color = EYE_COLOR
-	var torso: CapsuleMesh = CapsuleMesh.new()
-	torso.radius = RADIUS
-	torso.height = 1.5
-	_add_part(torso, Vector3(0.0, 0.75, 0.0), cloth)
-	var head: BoxMesh = BoxMesh.new()
-	head.size = Vector3(0.36, 0.36, 0.36)
-	_add_part(head, Vector3(0.0, 1.62, 0.0), _skin)
-	var eye: BoxMesh = BoxMesh.new()
-	eye.size = Vector3(0.07, 0.04, 0.02)
-	_add_part(eye, Vector3(-0.08, 1.66, -0.18), eyes)
-	_add_part(eye, Vector3(0.08, 1.66, -0.18), eyes)
-	var arm: BoxMesh = BoxMesh.new()
-	arm.size = Vector3(0.12, 0.12, 0.6)
-	_add_part(arm, Vector3(-0.26, 1.3, -0.3), _skin)
-	_add_part(arm, Vector3(0.26, 1.3, -0.3), _skin)
-
-
-func _add_part(mesh: Mesh, at: Vector3, material: Material) -> void:
-	var part: MeshInstance3D = MeshInstance3D.new()
-	part.mesh = mesh
-	part.material_override = material
-	part.position = at
-	add_child(part)
