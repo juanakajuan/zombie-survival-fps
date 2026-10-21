@@ -1197,6 +1197,11 @@ func test_zombie() -> void:
 	var deaths: Array[bool] = []
 	zombie.attacked.connect(func(damage: float) -> void: attacks.append(damage))
 	zombie.died.connect(func(headshot: bool) -> void: deaths.append(headshot))
+	var animation: AnimationPlayer = zombie.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	await frames(30)
+	check(animation.current_animation == Zombie.WALK and animation.is_playing() and animation.get_animation(Zombie.WALK).loop_mode == Animation.LOOP_LINEAR, "A chasing zombie plays the looping walk")
+	measure("walk speed_scale of a 3.2 m/s zombie", animation.speed_scale, "x")
+	check(animation.speed_scale > 1.5 and animation.speed_scale <= 2.0 + 0.01, "The walk of a 3.2 m/s zombie plays at up to 2x, its speed over the 1.6 m/s clip speed")
 	var reached: int = -1
 	for tick: int in range(1, 601):
 		await physics_frame
@@ -1206,7 +1211,9 @@ func test_zombie() -> void:
 	measure("time for a 3.2 m/s zombie to reach the player around a 2 m block", reached * TICK, "s")
 	var offset: Vector3 = player.global_position - zombie.global_position
 	check(reached > 0 and reached * TICK < 6.0 and Vector2(offset.x, offset.z).length() <= 1.3, "A zombie behind a 2 m block reaches attack range of the player within 6 s")
-	await frames(150)
+	await frames(10)
+	check(animation.current_animation == Zombie.ATTACK and animation.speed_scale == 1.0, "A zombie in ATTACK plays the attack swing at speed 1")
+	await frames(140)
 	check(attacks == [40.0, 40.0, 40.0], "In 2.5 s of ATTACK the zombie attacks three times for 40, 1.2 s apart")
 	player.teleport(Vector3(-5.0, 0.0, 15.0), 0.0)
 	await frames(2)
@@ -1216,6 +1223,7 @@ func test_zombie() -> void:
 	zombie.take_damage(70.0, true)
 	zombie.take_damage(70.0, true)
 	check(zombie.state == Zombie.State.DEAD and zombie.health == 0.0 and deaths == [true], "A 70 headshot at 50 health kills the zombie once and reports a headshot")
+	check(not animation.is_playing(), "A dead zombie stops its animation")
 	await frames(30)
 	check(is_instance_valid(zombie), "The dead zombie still sinks 0.5 s after death")
 	await frames(40)

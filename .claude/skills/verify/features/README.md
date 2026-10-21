@@ -34,3 +34,4 @@ This directory is the maintained source for verifying what a player can do in Zo
 | Buys: wall buys, ammo, weapon change, box | [buys.md](buys.md) | `scenarios/buys.txt` |
 | Perks and upgrades: perk machines, upgrade machine | [perks.md](perks.md) | `scenarios/perks.txt` (`No power` prompts only) |
 | Doors, power, and the secret | [doors.md](doors.md) | `scenarios/doors.txt` (door prompts only) |
+| Zombie animation: walk and attack | [zombie-animation.md](zombie-animation.md) | `scenarios/zombie-animation.txt` |

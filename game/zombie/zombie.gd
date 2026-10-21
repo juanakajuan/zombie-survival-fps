@@ -16,6 +16,11 @@ const REPATH_DISTANCE: float = 0.5
 const SINK_SPEED: float = 1.2
 const SINK_SECONDS: float = 1.0
 const FLASH_SECONDS: float = 0.08
+## The walk clip plays at speed_scale 1 at this ground speed, so the feet keep pace with the body.
+const WALK_CLIP_SPEED: float = 1.6
+const WALK: StringName = &"walk"
+const ATTACK: StringName = &"attack"
+const BLEND_SECONDS: float = 0.15
 const MODEL: PackedScene = preload("res://game/zombie/zombie.glb")
 const MATERIAL: ShaderMaterial = preload("res://game/zombie/zombie_material.tres")
 
@@ -31,6 +36,7 @@ var _safe_velocity: Vector3 = Vector3.ZERO
 var _last_target_position: Vector3 = Vector3.INF
 var _dead_time: float = 0.0
 var _mesh: MeshInstance3D
+var _animation: AnimationPlayer
 var _flash_left: float = 0.0
 
 
@@ -62,6 +68,10 @@ func _ready() -> void:
 	add_child(model)
 	_mesh = model.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
 	_mesh.material_override = MATERIAL
+	_animation = model.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	_animation.play(WALK)
+	# A random start keeps a crowd of zombies out of step.
+	_animation.seek(randf() * _animation.current_animation_length, true)
 
 
 func take_damage(amount: float, headshot: bool) -> void:
@@ -74,6 +84,7 @@ func take_damage(amount: float, headshot: bool) -> void:
 	state = State.DEAD
 	_collision.set_deferred(&"disabled", true)
 	_agent.avoidance_enabled = false
+	_animation.pause()
 	died.emit(headshot)
 
 
@@ -96,11 +107,23 @@ func _physics_process(delta: float) -> void:
 			position.y -= SINK_SPEED * delta
 			if _dead_time >= SINK_SECONDS:
 				queue_free()
+	_animate()
 
 
 func _process(delta: float) -> void:
 	_flash_left -= delta
 	_mesh.set_instance_shader_parameter(&"flash", 1.0 if _flash_left > 0.0 else 0.0)
+
+
+func _animate() -> void:
+	if state == State.DEAD:
+		return
+	if _animation.current_animation != ATTACK:
+		if _animation.current_animation != WALK:
+			_animation.play(WALK, BLEND_SECONDS)
+		_animation.speed_scale = Vector2(velocity.x, velocity.z).length() / WALK_CLIP_SPEED
+	else:
+		_animation.speed_scale = 1.0
 
 
 func _target_in_range() -> bool:
@@ -126,6 +149,7 @@ func _attack(delta: float) -> void:
 	_move(Vector3.ZERO, delta)
 	if _attack_cooldown_left <= 0.0:
 		_attack_cooldown_left = Rules.ZOMBIE_ATTACK_COOLDOWN
+		_animation.play(ATTACK, BLEND_SECONDS)
 		attacked.emit(Rules.ZOMBIE_DAMAGE)
 
 

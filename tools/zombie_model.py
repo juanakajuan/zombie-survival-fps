@@ -3,16 +3,19 @@
 Usage: blender -b --python tools/zombie_model.py
 
 A high-poly body is painted per vertex. Its colors are baked to a 128 px texture on a
-low-poly copy of about 800 triangles. The glb has UVs and no materials. The game
-material (game/zombie/zombie_material.tres) supplies the texture.
+low-poly copy of about 800 triangles. An armature built from the same joint table skins
+the low-poly copy, and two actions animate it: "walk" (a 1 s shambling loop) and
+"attack" (a 1 s two-arm swing). The glb has UVs, the skin, the actions and no materials.
+The game material (game/zombie/zombie_material.tres) supplies the texture.
 The model faces +Y in Blender, which is -Z in Godot.
 """
 import bpy, json, math, os, struct
-from mathutils import Vector, noise
+from mathutils import Euler, Vector, noise
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "game", "zombie")
 TEXTURE_SIZE = 128
+FPS = 30
 os.makedirs(OUT, exist_ok=True)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
@@ -232,21 +235,170 @@ def bake(high, low):
     high.select_set(False)
 
 
+# Bones: (name, head joint, tail joint, parent). Each bone takes the vertices near its own
+# edge and near the extra edges in BONE_EDGES.
+HEAD_TOP = HEAD + Vector((0, 0, 0.12))
+BONES = [("hips", "pelvis", "spine", None), ("spine", "spine", "chest", "hips"),
+         ("chest", "chest", "neck", "spine"), ("neck", "neck", "neck2", "chest"), ("head", "neck2", HEAD_TOP, "neck")]
+for s in "LR":
+    BONES += [("upper_arm_" + s, "sh" + s, "el" + s, "chest"), ("forearm_" + s, "el" + s, "wr" + s, "upper_arm_" + s),
+              ("hand_" + s, "wr" + s, "f2" + s, "forearm_" + s), ("thigh_" + s, "hip" + s, "kn" + s, "hips"),
+              ("shin_" + s, "kn" + s, "an" + s, "thigh_" + s), ("foot_" + s, "an" + s, "to" + s, "shin_" + s)]
+BONE_EDGES = {"hips": [("pelvis", "hipL"), ("pelvis", "hipR")], "chest": [("chest", "shL"), ("chest", "shR")],
+              "head": [(HEAD, HEAD_TOP)],
+              "hand_L": [("hL", f) for f in ("f1L", "f3L")], "hand_R": [("hR", f) for f in ("f1R", "f3R")]}
+WEIGHT_FALLOFF = 0.025
+
+
+def joint(j):
+    return Vector(J[j][0]) if isinstance(j, str) else j
+
+
+def segment_distance(p, a, b):
+    ab = b - a
+    t = max(0.0, min(1.0, (p - a).dot(ab) / ab.length_squared))
+    return (p - (a + ab * t)).length
+
+
+def build_armature(mesh):
+    arm = bpy.data.objects.new("Rig", bpy.data.armatures.new("Rig"))
+    scene.collection.objects.link(arm)
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="EDIT")
+    for name, head, tail, parent in BONES:
+        b = arm.data.edit_bones.new(name)
+        b.head, b.tail = joint(head), joint(tail)
+        b.align_roll(Vector((0, 0, 1)) if abs((b.tail - b.head).normalized().z) < 0.7 else Vector((0, 1, 0)))
+        if parent:
+            b.parent = arm.data.edit_bones[parent]
+    bpy.ops.object.mode_set(mode="OBJECT")
+    segments = {name: [(joint(h), joint(t))] + [(joint(a), joint(b)) for a, b in BONE_EDGES.get(name, [])]
+                for name, h, t, _ in BONES}
+    groups = {name: mesh.vertex_groups.new(name=name) for name in segments}
+    for v in mesh.data.vertices:
+        d = {n: min(segment_distance(v.co, a, b) for a, b in segs) for n, segs in segments.items()}
+        nearest = sorted(d, key=lambda n: (d[n], n))[:3]
+        w = {n: math.exp(-(d[n] - d[nearest[0]]) / WEIGHT_FALLOFF) for n in nearest}
+        w = {n: x for n, x in w.items() if x > 0.05}
+        total = sum(w.values())
+        for n, x in w.items():
+            groups[n].add([v.index], x / total, "REPLACE")
+    mesh.parent = arm
+    mesh.modifiers.new("rig", "ARMATURE").object = arm
+    for pb in arm.pose.bones:
+        pb.rotation_mode = "QUATERNION"
+    return arm
+
+
+def rotation(x=0.0, y=0.0, z=0.0):
+    """Rotation about the armature axes: x tips a down bone forward, y rolls to the side, z turns."""
+    return Euler((x, y, z), "XYZ").to_matrix()
+
+
+def key_pose(arm, frame, pose):
+    """pose: bone -> (x, y, z) rotation about the armature axes at the bone head, or "lift" -> metres up."""
+    for pb in arm.pose.bones:
+        rest = pb.bone.matrix_local.to_3x3()
+        pb.rotation_quaternion = (rest.inverted() @ rotation(*pose.get(pb.name, (0, 0, 0))) @ rest).to_quaternion()
+        pb.keyframe_insert("rotation_quaternion", frame=frame)
+    hips = arm.pose.bones["hips"]
+    hips.location = hips.bone.matrix_local.to_3x3().inverted() @ Vector((0, 0, pose.get("lift", 0.0)))
+    hips.keyframe_insert("location", frame=frame)
+
+
+def walk_pose(phase):
+    t = 2 * math.pi * phase
+    swing_l, swing_r = math.sin(t), math.sin(t + math.pi)
+    lift_l, lift_r = max(0.0, math.cos(t)), max(0.0, math.cos(t + math.pi))
+    return {
+        "lift": -0.03 + 0.03 * math.cos(2 * t),
+        "hips": (0.0, 0.07 * math.sin(t), 0.12 * math.sin(t)),
+        "spine": (-0.14, 0.0, -0.09 * math.sin(t)),
+        "chest": (-0.06 + 0.04 * math.sin(2 * t), -0.06 * math.sin(t), -0.05 * math.sin(t)),
+        "head": (0.08 * math.sin(2 * t + 1), 0.16 * math.sin(t + 0.6), 0.06 * math.sin(t)),
+        "thigh_L": (0.08 + 0.42 * swing_l, 0.0, 0.0),
+        "shin_L": (-0.12 - 0.7 * lift_l, 0.0, 0.0),
+        "foot_L": (0.1 * swing_l + 0.3 * lift_l, 0.0, 0.0),
+        # The right leg drags: a short swing, turned out, with a small knee lift.
+        "thigh_R": (0.05 + 0.26 * swing_r, -0.06, -0.12),
+        "shin_R": (-0.2 - 0.3 * lift_r, 0.0, 0.0),
+        "foot_R": (0.05 * swing_r + 0.1 * lift_r, 0.0, 0.0),
+        "upper_arm_L": (0.1 * math.sin(2 * t + 0.4), 0.0, 0.06 * math.sin(t)),
+        "forearm_L": (0.08 * math.sin(2 * t + 1.2), 0.0, 0.0),
+        "hand_L": (-0.15 * math.sin(2 * t + 1.8), 0.0, 0.0),
+        "upper_arm_R": (0.3 * math.sin(t - 0.3), 0.08, 0.0),
+        "forearm_R": (0.35 + 0.2 * math.sin(t - 1.0), 0.0, 0.0),
+        "hand_R": (0.2 * math.sin(t - 1.6), 0.0, 0.0),
+    }
+
+
+# Attack key poses (time in s, pose). Both arms rise, then swing down at 0.4 s.
+ATTACK_KEYS = [
+    (0.0, {}),
+    (0.3, {"spine": (0.18, 0, 0), "chest": (0.1, 0, 0), "head": (0.15, 0, 0),
+           "upper_arm_L": (1.1, 0, 0.2), "forearm_L": (0.4, 0, 0),
+           "upper_arm_R": (2.3, 0, -0.2), "forearm_R": (0.9, 0, 0), "shin_L": (-0.25, 0, 0), "shin_R": (-0.25, 0, 0)}),
+    (0.45, {"lift": -0.06, "spine": (-0.35, 0, 0), "chest": (-0.2, 0, 0), "head": (-0.15, 0, 0),
+            "upper_arm_L": (-0.5, 0, -0.1), "forearm_L": (-0.2, 0, 0),
+            "upper_arm_R": (0.9, 0, 0.3), "forearm_R": (0.2, 0, 0),
+            "thigh_L": (0.3, 0, 0), "shin_L": (-0.5, 0, 0), "shin_R": (-0.3, 0, 0)}),
+    (0.6, {"lift": -0.05, "spine": (-0.3, 0, 0), "chest": (-0.15, 0, 0),
+           "upper_arm_L": (-0.4, 0, -0.1), "upper_arm_R": (0.7, 0, 0.3),
+           "thigh_L": (0.3, 0, 0), "shin_L": (-0.5, 0, 0), "shin_R": (-0.3, 0, 0)}),
+    (1.0, {}),
+]
+
+
+def attack_pose(time):
+    i = max(k for k in range(len(ATTACK_KEYS) - 1) if ATTACK_KEYS[k][0] <= time)
+    (t0, a), (t1, b) = ATTACK_KEYS[i], ATTACK_KEYS[i + 1]
+    f = smooth(t0, t1, time)
+    pose = {}
+    for n in set(a) | set(b):
+        if n == "lift":
+            pose[n] = lerp(a.get(n, 0.0), b.get(n, 0.0), f)
+        else:
+            pose[n] = tuple(lerp(x, y, f) for x, y in zip(a.get(n, (0, 0, 0)), b.get(n, (0, 0, 0))))
+    return pose
+
+
+def bake_action(arm, name, pose_at):
+    """Keys every frame of a 1 s action. pose_at takes the time in seconds."""
+    arm.animation_data_create()
+    action = bpy.data.actions.new(name)
+    action.use_fake_user = True
+    arm.animation_data.action = action
+    for frame in range(FPS + 1):
+        key_pose(arm, frame, pose_at(frame / FPS))
+    arm.animation_data.action = None
+    for pb in arm.pose.bones:
+        pb.rotation_quaternion = (1, 0, 0, 0)
+        pb.location = (0, 0, 0)
+
+
 high = skin_body("High", 3, True)
 paint(high)
 vc_material(high)
 zombie = skin_body("Zombie", 0, False)
 bake(high, zombie)
 bpy.data.objects.remove(high)
+scene.render.fps = FPS
+rig = build_armature(zombie)
+# The "-loop" suffix tells the Godot importer to loop the walk.
+bake_action(rig, "walk-loop", walk_pose)
+bake_action(rig, "attack", attack_pose)
 
 bpy.ops.object.select_all(action="DESELECT")
 zombie.select_set(True)
-bpy.context.view_layer.objects.active = zombie
+rig.select_set(True)
+bpy.context.view_layer.objects.active = rig
 bpy.ops.export_scene.gltf(
     filepath=os.path.join(OUT, "zombie.glb"),
     use_selection=True,
     export_materials="NONE",
     export_image_format="NONE",
+    export_animation_mode="ACTIONS",
+    export_force_sampling=True,
 )
 
 

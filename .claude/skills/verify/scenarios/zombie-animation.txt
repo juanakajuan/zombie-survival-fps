@@ -1,0 +1,20 @@
+# Zombie animation: a chasing zombie walks with a shamble, and a zombie in reach swings its arms.
+wait_until phase == ACTIVE 10
+wait_until nearest_zombie_m < 9 30
+aim_nearest body
+shot walk-1
+wait 0.25
+aim_nearest body
+shot walk-2
+wait 0.25
+aim_nearest body
+shot walk-3
+# The attack swing starts on the tick that takes the health. The arms are up at 0.3 s and down at 0.45 s.
+wait_until health < 100 20
+aim_nearest body
+wait 0.1
+shot attack-rise
+wait 0.3
+shot attack-strike
+state
+expect hud_death == false
