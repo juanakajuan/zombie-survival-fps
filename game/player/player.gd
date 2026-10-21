@@ -1,7 +1,7 @@
 class_name Player
 extends CharacterBody3D
 
-enum MoveState { GROUND, AIR, SLIDE }
+enum MoveState { GROUND, AIR, SLIDE, MANTLE }
 enum Stance { STAND, CROUCH }
 
 
@@ -13,6 +13,29 @@ class Intent:
 	var jump_held: bool = false
 	var sprint_held: bool = false
 	var crouch_held: bool = false
+
+
+class Mantle:
+	## start, over (start raised to the ledge top plus STEP_CLEARANCE), ahead (over moved forward), landing.
+	var path: PackedVector3Array
+	var duration: float
+	var elapsed: float = 0.0
+
+	## Position at elapsed, by arc length along path.
+	func sample() -> Vector3:
+		var total: float = 0.0
+		for index: int in range(path.size() - 1):
+			total += path[index].distance_to(path[index + 1])
+		var remaining: float = total * clampf(elapsed / duration, 0.0, 1.0)
+		for index: int in range(path.size() - 1):
+			var length: float = path[index].distance_to(path[index + 1])
+			if remaining <= length:
+				return path[index].lerp(path[index + 1], remaining / length if length > 0.0 else 1.0)
+			remaining -= length
+		return path[path.size() - 1]
+
+	func finished() -> bool:
+		return elapsed >= duration
 
 
 signal jumped
@@ -54,6 +77,8 @@ var _crouch_was_held: bool = false
 var _jump_cut_armed: bool = false
 var _impact_speed: float = 0.0
 var _on_floor: bool = false
+var _floor_height: float = 0.0
+var _mantle: Mantle
 var _regen_delay_left: float = 0.0
 
 
@@ -126,6 +151,8 @@ func _physics_process(delta: float) -> void:
 			_move_air(delta)
 		MoveState.SLIDE:
 			_move_slide(delta)
+		MoveState.MANTLE:
+			_move_mantle(delta)
 	_rig.record_tick()
 
 
@@ -186,6 +213,8 @@ func _settle() -> void:
 	move_and_slide()
 	apply_floor_snap()
 	_on_floor = is_on_floor()
+	if _on_floor:
+		_floor_height = global_position.y
 	_set_state(MoveState.GROUND if _on_floor else MoveState.AIR)
 	_rig.snap()
 
@@ -207,6 +236,8 @@ func _transition(crouch_pressed: bool) -> void:
 			elif not _on_floor:
 				_coyote_left = settings.coyote_time
 				_set_state(MoveState.AIR)
+			elif _start_mantle():
+				pass
 			elif crouch_pressed and _slide_cooldown_left <= 0.0 and horizontal_speed() >= settings.slide_min_speed:
 				_boost_slide()
 				_set_state(MoveState.SLIDE)
@@ -221,6 +252,8 @@ func _transition(crouch_pressed: bool) -> void:
 					_set_state(MoveState.GROUND)
 			elif _jump_buffer_left > 0.0 and _coyote_left > 0.0:
 				_jump()
+			elif velocity.y <= 0.0:
+				_start_mantle()
 		MoveState.SLIDE:
 			if _jump_buffer_left > 0.0:
 				_jump()
@@ -229,6 +262,9 @@ func _transition(crouch_pressed: bool) -> void:
 				_set_state(MoveState.AIR)
 			elif not intent.crouch_held or horizontal_speed() < settings.slide_exit_speed:
 				_set_state(MoveState.GROUND)
+		MoveState.MANTLE:
+			if _mantle.finished():
+				_set_state(MoveState.GROUND)
 
 
 func _set_state(next: MoveState) -> void:
@@ -236,6 +272,8 @@ func _set_state(next: MoveState) -> void:
 		return
 	if move_state == MoveState.SLIDE:
 		_slide_cooldown_left = settings.slide_cooldown
+	if move_state == MoveState.MANTLE:
+		_mantle = null
 	var previous: MoveState = move_state
 	move_state = next
 	move_state_changed.emit(previous, next)
@@ -257,6 +295,8 @@ func _boost_slide() -> void:
 
 
 func _update_stance() -> void:
+	if move_state == MoveState.MANTLE:
+		return
 	if intent.crouch_held or move_state == MoveState.SLIDE:
 		_set_stance(Stance.CROUCH)
 	elif stance == Stance.CROUCH and _can_stand():
@@ -336,15 +376,97 @@ func _move_air(delta: float) -> void:
 	_impact_speed = maxf(-velocity.y, 0.0)
 	move_and_slide()
 	_on_floor = is_on_floor()
+	if _on_floor:
+		_floor_height = global_position.y
 	velocity.y = maxf(velocity.y - gravity * delta * 0.5, -settings.terminal_fall_speed)
+
+
+func _move_mantle(delta: float) -> void:
+	var before: Vector3 = global_position
+	_mantle.elapsed += delta
+	global_position = _mantle.sample()
+	# The only way down is the last settle onto the ledge. The rig eases it like a step, or the camera would drop in one tick.
+	if global_position.y < before.y:
+		_rig.add_step(global_position.y - before.y)
+	if _mantle.finished():
+		velocity = Vector3.ZERO
+		_on_floor = true
+		_floor_height = global_position.y
+	else:
+		velocity = (global_position - before) / delta
+
+
+## The stairs own an obstacle if its top, where the body first reaches it, is within step height of the base.
+## Measuring there and not at the far side of the ledge keeps a staircase from being a mantle.
+func _step_climbs(raised: Transform3D, probe: Vector3, depth: float, base: float) -> bool:
+	var hit: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
+	_drop_onto_step(raised, probe, depth, hit)
+	return hit.get_collision_count() == 0 or hit.get_collision_point().y - base <= settings.step_height + MIN_STEP
 
 
 func _move_on_floor(delta: float) -> void:
 	if _step_up(delta):
 		_on_floor = true
-		return
-	move_and_slide()
-	_on_floor = is_on_floor() or _step_down()
+	else:
+		move_and_slide()
+		_on_floor = is_on_floor() or _step_down()
+	if _on_floor:
+		_floor_height = global_position.y
+
+
+## Starts a mantle if the body pushes into a ledge above the stairs' reach and below mantle_max_height.
+## In the air the reach is measured from the last floor, so a mantle never opens a surface that a jump cannot reach.
+## If a standing body does not fit on the ledge, a crouched body gets a second try.
+func _start_mantle() -> bool:
+	if intent.move.y <= 0.0:
+		return false
+	var direction: Vector3 = _wish(1.0).normalized()
+	var start: Transform3D = global_transform
+	var probe_hit: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
+	if not _test_motion(start, direction * STEP_PROBE, probe_hit) or _is_walkable(probe_hit.get_collision_normal()):
+		return false
+	var normal: Vector3 = probe_hit.get_collision_normal()
+	if -Vector3(normal.x, 0.0, normal.z).normalized().dot(direction) < 0.7:
+		return false
+	var base: float = _support_height(start) if move_state == MoveState.GROUND else _floor_height
+	var forward: Vector3 = direction * (probe_hit.get_travel().length() + 2.0 * settings.capsule_radius)
+	var plan: Mantle = _plan_mantle(start, forward, base)
+	if plan == null and stance == Stance.STAND:
+		_set_stance(Stance.CROUCH)
+		plan = _plan_mantle(start, forward, base)
+		if plan == null:
+			_set_stance(Stance.STAND)
+	if plan == null:
+		return false
+	_mantle = plan
+	_set_state(MoveState.MANTLE)
+	return true
+
+
+## base is the height of the floor that the reach is measured from. forward carries the body from the wall to a spot over the ledge.
+func _plan_mantle(start: Transform3D, forward: Vector3, base: float) -> Mantle:
+	var raised: Transform3D = start
+	raised.origin += _free_travel(start, Vector3.UP * maxf(base - start.origin.y + settings.mantle_max_height + STEP_CLEARANCE, 0.0))
+	if _test_motion(raised, forward, PhysicsTestMotionResult3D.new()):
+		return null
+	var depth: float = raised.origin.y - start.origin.y
+	if move_state == MoveState.GROUND and _step_climbs(raised, forward.normalized() * STEP_PROBE, depth, base):
+		return null
+	var hit: PhysicsTestMotionResult3D = PhysicsTestMotionResult3D.new()
+	var landing: Vector3 = _drop_onto_step(raised, forward, depth, hit)
+	if hit.get_collision_count() == 0 or landing.y - start.origin.y <= MIN_STEP:
+		return null
+	var rise: float = hit.get_collision_point().y - base
+	if rise > settings.mantle_max_height + MIN_STEP or not _rests_on_walkable(hit, landing):
+		return null
+	var over: Transform3D = start
+	over.origin.y = landing.y + STEP_CLEARANCE
+	if _test_motion(start, over.origin - start.origin, PhysicsTestMotionResult3D.new()) or _test_motion(over, forward, PhysicsTestMotionResult3D.new()):
+		return null
+	var plan: Mantle = Mantle.new()
+	plan.path = PackedVector3Array([start.origin, over.origin, over.origin + forward, landing])
+	plan.duration = settings.mantle_time
+	return plan
 
 
 ## Moves the body onto a step in the way of this tick's motion. Returns false and leaves the body in place if there is no step to climb.
