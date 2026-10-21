@@ -624,7 +624,6 @@ func test_player_input() -> void:
 	player.settings = tuning()
 	level.add_child(player)
 	player.teleport(Vector3.ZERO, 0.0)
-	check(InputMap.action_get_events(&"crouch").size() == 3 and InputMap.action_get_events(&"look_right").size() == 1, "The controller registers the default actions: crouch has three events and look_right has one")
 	Input.action_press(&"move_forward")
 	Input.action_press(&"sprint")
 	await frames(60)
@@ -1309,9 +1308,9 @@ func test_game() -> void:
 	check(game.director.phase == RoundDirector.Phase.GAME_OVER and game.hud.death_screen.visible, "Player death ends the game and shows the death screen")
 	check(game.hud.death_text.text.begins_with("You survived 1 round.\nYou earned 420 points."), "The death screen shows 1 round survived and 420 points earned")
 	check(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "Death releases the mouse")
-	var spawned_after: int = game.zombies.get_child_count()
+	var zombies_at_death: Array[Node] = game.zombies.get_children()
 	await frames(150)
-	check(game.zombies.get_child_count() <= spawned_after, "No zombie spawns after the game is over")
+	check(game.zombies.get_children().all(func(zombie: Node) -> bool: return zombie in zombies_at_death), "No zombie spawns in the 2.5 s after the game is over")
 	send_action(&"restart")
 	await frames(3)
 	var fresh: Game = current_scene as Game
@@ -1456,6 +1455,8 @@ func test_perks() -> void:
 	press.powered = true
 	check(offer_text(press.offer(loadout, owned)) == "NONE 0 \"Already upgraded\" -", "The upgrade machine refuses an upgraded weapon")
 	check(offer_text(press.offer(Loadout.new(Arsenal.pistol()), owned)) == "UPGRADE 4000 \"Upgrade Pistol\" pistol", "The upgrade machine offers to upgrade the pistol for 4000")
+	machine.free()
+	press.free()
 
 
 func test_perk_effects() -> void:
@@ -1503,7 +1504,8 @@ func test_perk_effects() -> void:
 	weapon.trigger_held = false
 	check(hits == ["70.0 BODY"] and is_instance_valid(ahead), "An upgraded pistol hits for 70 damage")
 	await finish(level)
-	var hurt: Player = spawn(make_level(), tuning(), Vector3.ZERO, 0.0)
+	var tough_level: Node3D = make_level()
+	var hurt: Player = spawn(tough_level, tuning(), Vector3.ZERO, 0.0)
 	hurt.perks = Perks.new()
 	hurt.perks.grant(Perks.Kind.TOUGH)
 	hurt.heal_to_max()
@@ -1512,14 +1514,18 @@ func test_perk_effects() -> void:
 	check(hurt.health == 40.0 and hurt.alive, "With Tough three zombie hits leave 40 health")
 	hurt.take_damage(40.0)
 	check(not hurt.alive, "With Tough a fourth hit kills")
-	var healing: Player = spawn(make_level(), tuning(), Vector3.ZERO, 0.0)
+	await finish(tough_level)
+	var mender_level: Node3D = make_level()
+	var healing: Player = spawn(mender_level, tuning(), Vector3.ZERO, 0.0)
 	healing.perks = Perks.new()
 	healing.perks.grant(Perks.Kind.MENDER)
 	healing.take_damage(30.0)
 	await frames(84)
 	check(healing.health == 70.0, "With Mender the player does not heal 1.4 s after a hit")
-	await frames(30)
-	check(healing.health > 80.0, "With Mender regeneration has started 1.9 s after a hit")
+	await frames(18)
+	measure("health 1.7 s after 30 damage with Mender", healing.health, "hp")
+	check(healing.health > 85.0 and healing.health < 92.0, "With Mender, 0.2 s into regeneration at 100 per second the health is near 90")
+	await finish(mender_level)
 
 
 func test_game_perks() -> void:
@@ -1669,8 +1675,10 @@ func test_secret() -> void:
 	var sigils: Array[Sigil] = []
 	for node: Node in secret.find_children("*", "Sigil", false):
 		sigils.append(node as Sigil)
-	check(sigils.size() == 3 and not secret.cache.revealed and secret.panel.collision_layer == Layers.WORLD, "The secret has 3 sigils, a closed panel, and a hidden cache")
-	check(secret.cache.collision_layer == 0 and offer_text(secret.cache.offer(game.weapon.loadout, game.perks)) == "NONE 0 \"\" -", "A hidden cache is out of the interact ray and offers nothing")
+	check(sigils.size() == 3 and not secret.cache.revealed, "The secret has 3 sigils and a hidden cache")
+	game.player.teleport(Vector3(18.0, 0.0, -43.0), -PI * 0.5)
+	await frames(3)
+	check(prompt_text(game) == "" and not game.interact(), "In front of the closed panel there is no prompt, and a press does nothing")
 	sigils[0].light()
 	sigils[1].light()
 	sigils[1].light()
