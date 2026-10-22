@@ -7,6 +7,7 @@ wait 0.6
 expect move_state == GROUND
 tap Space
 wait_until move_state == MANTLE 1
+state
 shot mantle
 wait_until move_state == GROUND 2
 release W
