@@ -110,20 +110,7 @@ class AllowedDuplicate:
     reason: str
 
 
-_BUILD_CHILDREN = "The children that _build() adds. They have no owner, so the editor does not save them in the scene."
-_AREA_DEPTH = "The interact area stands out from the wall, so the ray finds it before the wall."
-_BUILD_REASON = "The same doc comment sits on the _built variable of each script that has a _build(). PR 8 removes every entry of this table and its _built variables."
-_AREA_REASON = "The same doc comment sits on the AREA_DEPTH constant of machine.gd and wall_buy.gd. PR 8 removes every entry of this table and keeps one copy."
-ALLOWED_DUPLICATES: tuple[AllowedDuplicate, ...] = (
-    AllowedDuplicate("game/level/sigil.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/cache.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/door.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/machine.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/power_switch.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/wall_buy.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/machine.gd", _AREA_DEPTH, _AREA_REASON),
-    AllowedDuplicate("game/station/wall_buy.gd", _AREA_DEPTH, _AREA_REASON),
-)
+ALLOWED_DUPLICATES: tuple[AllowedDuplicate, ...] = ()
 
 
 class Tree:

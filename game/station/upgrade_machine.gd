@@ -1,4 +1,3 @@
-@tool
 class_name UpgradeMachine
 extends Machine
 ## Upgrades the weapon in the hands one time. The price is Rules.UPGRADE_PRICE, because one machine exists.

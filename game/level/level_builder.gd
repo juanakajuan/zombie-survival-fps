@@ -97,7 +97,7 @@ func lamp(parent: Node, node_name: StringName, at: Vector3) -> Node3D:
 
 func wall_buy(parent: Node, node_name: StringName, weapon: WeaponDef, price: int, at: Transform3D) -> WallBuy:
 	var station: WallBuy = WallBuy.new()
-	station.weapon_id = weapon.id
+	station.weapon_def = weapon
 	station.price = price
 	_place(parent, node_name, station, at)
 	return station
