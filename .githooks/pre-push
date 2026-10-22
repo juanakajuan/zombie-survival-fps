@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_COMMON_DIR
+cd "$(git rev-parse --show-toplevel)"
+exec tools/gate

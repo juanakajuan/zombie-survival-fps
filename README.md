@@ -103,28 +103,37 @@ The player has four move states: GROUND, AIR, SLIDE, and MANTLE. A step of 0.35 
 | `tests/run.gd` | Finds every `tests/suites/*_test.gd` and runs each `test_` method. |
 | `tests/test_case.gd` | `TestCase`: the assertions and the fixtures that more than one suite uses. |
 | `tests/suites/` | The headless test suites, one file per area. |
-| `tests/run_checks.sh` | Runs all headless checks. |
+| `tools/gate` | Runs all headless checks. |
 | `tests/visual_smoke.gd` | Opens a window, plays the game for 3 seconds, and saves one frame. |
 
 ## Run the checks
 
 Run the commands from the project folder. They use the `godot` command for Godot 4.7.
 
-To run all headless checks, use this script. It needs bash.
+To run all headless checks, use the gate. It needs bash and Python 3.
 
 ```sh
-bash tests/run_checks.sh
+tools/gate
 ```
 
-The script does these steps:
+The shell, the pre-push hook, and CI run this one file. `tools/gate --full` is the same command.
 
-1. It imports the project with the editor.
-2. It parses each `.gd` file in `game/` and `tests/` with the strict warnings. The project treats untyped declarations, inferred declarations, and unsafe access as errors.
-3. It runs the test suite on Jolt Physics, which is the project default.
-4. It runs the test suite on Godot Physics. A temporary `override.cfg` file changes the physics engine.
-5. It starts the game for 600 frames.
+To run the gate before each push, turn the hook on once:
 
-If a step shows an `ERROR` or `WARNING` line, or if a test fails, the script stops and shows `FAIL`.
+```sh
+git config core.hooksPath .githooks
+```
+
+The gate does these steps:
+
+1. It runs the lint, with its fixtures and the commit rule over `origin/main..HEAD`. That rule needs a full clone with `origin/main`.
+2. It imports the project with the editor.
+3. It parses each tracked `.gd` file with the strict warnings. The project treats untyped declarations, inferred declarations, and unsafe access as errors.
+4. It runs the test suite on Jolt Physics, which is the project default, at a fixed 60 FPS and in real frames.
+5. It runs the test suite on Godot Physics in the same two modes. A scratch project in `tools/engines/` changes the physics engine.
+6. It starts the game for 600 frames.
+
+If a step shows an `ERROR` or `WARNING` line, or if a test fails, the gate stops and shows `FAIL`. CI runs the gate on each push and pull request with Godot 4.7.2.
 
 The test suite prints `PASS` or `FAIL` for each check, a `MEASURE` line for each measured value, and a `RESULT` line at the end. It exits with code 1 if a check fails. The game test plays two rounds in real time, so each suite run takes more than 30 seconds.
 
@@ -141,6 +150,7 @@ If you do not give a path, the file is `user://visual_smoke.png`.
 These checks passed with Godot 4.7.2 on Linux on 2026-10-14:
 
 - `bash tests/run_checks.sh` passed. The editor import and the parse of every script gave no errors and no warnings.
+- `tools/gate` passed on 2026-10-22. The lint, the editor import, the parse of every script, both physics engines in both timing modes, and the 600-frame start gave no errors and no warnings.
 - The test suite passed on Jolt Physics with 0 failures on 2026-10-21, after the mantle was added.
 - The test suite passed on Godot Physics with 0 failures on 2026-10-21, after the mantle was added.
 - The mantle tests cover a walk into a 1.0 m ledge with no jump, a jump press at that ledge, a 1.5 m ledge that blocks, a ledge with a ceiling too low for a crouched body, a ledge with a ceiling that fits only a crouched body, a short jump onto a ledge with jump held, a short jump with jump released, a jump at a 2.0 m ledge, the camera at 240 FPS during a mantle, and a scripted route with a literal end position.

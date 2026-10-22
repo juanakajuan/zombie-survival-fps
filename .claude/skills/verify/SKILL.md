@@ -121,7 +121,7 @@ Never use `pkill -f` with a pattern from this skill: the pattern also matches th
 - Round 1 starts 3 s after launch. Each zombie spawns at the nearest of 4 random picks that is 12 m or more from the player (the farthest pick if all are nearer). The picks come from the 8 Yard spawn points, plus 3 for each zone with an open door. From the player spawn, a zombie is 12 to 28.6 m away, and often 12 m: the spawn point at `0,0,18` is the nearest far pick. A round-1 zombie walks at 1.6 m/s, so it needs about 8 s from 12 m and 18 s from 28.6 m. Later rounds add joggers (3.2 m/s) and runners (5 m/s).
 - The player spawns at `0,0,6` and faces -Z. A cover block is 10 m ahead at z = -4. For movement tests, turn to +Z first (`look 1800 0`): that lane has no obstacle for 14 m, but zombies often spawn in it at `0,0,18`.
 - Lamp posts (0.2 m boxes) block `walk_to`. They stand at `±15,±15` in the Yard, at `30,0` and `52,0` in the Warehouse (on the line through the east door), and at `-10,-28` and `10,-55` in the Courtyard. Keep a waypoint line 1 m or more away from them.
-- The headless test suite (`bash tests/run_checks.sh`) and this skill are different proofs. Run both for a gameplay change.
+- The headless test suite (`tools/gate`) and this skill are different proofs. Run both for a gameplay change.
 
 ## Feature map
 

@@ -95,7 +95,7 @@ Then move and rename. The player is a part of the game now, not an addon:
 - `game/hud.gd`. `class_name Hud extends CanvasLayer`. Round number, points, ammo, health vignette, crosshair, hit marker, round banner, death screen, pause screen.
 - `tests/suites/*_test.gd`. The movement tests (renamed), plus the game tests below. `tests/run.gd` finds and runs every suite.
 - `tests/visual_smoke.gd`. A windowed launch of `game/main.tscn` that captures one frame.
-- `tests/run_checks.sh`. All headless checks.
+- `tools/gate`. All headless checks.
 
 ## Data shapes
 

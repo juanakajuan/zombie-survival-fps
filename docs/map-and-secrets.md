@@ -133,7 +133,7 @@ Door and power prompts use the existing prompt line. The cache and the switch sh
 
 ## Verification plan
 
-Headless tests (`tests/run_checks.sh`):
+Headless tests (`tools/gate`):
 
 - `Rules.pick_spawn` takes the nearest candidate at or beyond 12 m, and the farthest if all are closer.
 - `Arena.spawns()` has only Yard markers at first, and the Warehouse markers after `open_zone(&"warehouse")`.

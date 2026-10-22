@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -296,8 +297,13 @@ class CommitInfo:
         return CommitInfo(sha, message, flags, frozenset(names))
 
 
+def clean_env() -> dict[str, str]:
+    """Git exports GIT_DIR and related variables to hooks. A child git that inherits them acts on the hook's repository, not the one named by -C."""
+    return {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+
+
 def git(repo: Path, *args: str) -> str:
-    return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True).stdout
+    return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True, env=clean_env()).stdout
 
 
 def code_changes(diff: str) -> dict[str, bool]:
@@ -331,7 +337,7 @@ def describe(need: tuple[str, ...]) -> str:
 
 
 def has_verify_trailer(message: str) -> bool:
-    parsed = subprocess.run(["git", "interpret-trailers", "--parse"], input=message, capture_output=True, text=True, check=True).stdout
+    parsed = subprocess.run(["git", "interpret-trailers", "--parse"], input=message, capture_output=True, text=True, check=True, env=clean_env()).stdout
     return any(TRAILER.match(line) for line in parsed.splitlines())
 
 
@@ -489,7 +495,7 @@ def lint_l1(commit: CommitInfo, feature_map: FeatureMap) -> list[Finding]:
 
 
 def git_ok(repo: Path, *args: str) -> bool:
-    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True).returncode == 0
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, env=clean_env()).returncode == 0
 
 
 def resolve_range(repo: Path, commit_range: str | None) -> tuple[str | None, list[Finding]]:
@@ -560,7 +566,7 @@ def run_env_cases() -> tuple[list[str], int]:
         (source / "b.txt").write_text("b\n", encoding="utf-8")
         git(source, "add", "-A")
         git(source, "commit", "-q", "-m", "second")
-        subprocess.run(["git", "clone", "-q", "--depth", "1", source.as_uri(), str(base / "shallow")], check=True, capture_output=True)
+        subprocess.run(["git", "clone", "-q", "--depth", "1", source.as_uri(), str(base / "shallow")], check=True, capture_output=True, env=clean_env())
         cases: dict[str, tuple[Path, str]] = {
             "no base ref": (env_repo(base, "nobase", readme=True, branch="trunk"), "no origin/main or main ref"),
             "shallow clone": (base / "shallow", "the repository is shallow"),
@@ -577,6 +583,27 @@ def run_env_cases() -> tuple[list[str], int]:
             else:
                 failures += 1
                 out.append(f"FAIL lint env case {name}: expected `{expected or 'no finding'}`, got scope {scope} and findings: {messages}")
+        sentinel = env_repo(base, "sentinel", readme=True, branch="main")
+        sentinel_config = sentinel / ".git" / "config"
+        config_before = sentinel_config.read_text(encoding="utf-8")
+        hook_env = {"GIT_DIR": str(sentinel / ".git"), "GIT_WORK_TREE": str(sentinel), "GIT_INDEX_FILE": str(sentinel / ".git" / "index")}
+        saved = {key: os.environ.get(key) for key in hook_env}
+        os.environ.update(hook_env)
+        try:
+            env_repo(base, "inherited", readme=True, branch="main")
+        except subprocess.CalledProcessError:
+            pass
+        finally:
+            for key, value in saved.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+        if sentinel_config.read_text(encoding="utf-8") == config_before and (base / "inherited" / ".git").is_dir():
+            out.append("OK: lint env case inherited GIT_DIR: a temp repo ignores the hook's repository variables")
+        else:
+            failures += 1
+            out.append("FAIL lint env case inherited GIT_DIR: a temp repo wrote to the repository named by GIT_DIR. Run every git child with clean_env().")
         l1_cases: dict[str, tuple[Path, str]] = {
             "l1 with no Code column": (source, "no Code column with paths"),
             "l1 with no feature map file": (base / "nomap", "the feature map file is missing"),

@@ -19,7 +19,7 @@ else
 	missing="$(grep -rhoP '^class_name \K\w+' "$project/game" | while read -r name; do grep -q "&\"$name\"" "$cache" || echo "$name"; done | tr '\n' ' ')"
 	[[ -z "$missing" ]] && ok "project imported (class cache has every class_name)" || bad "class cache is stale, missing: ${missing}run 'godot --headless --path . --import'"
 fi
-[[ -e "$project/override.cfg" ]] && bad "override.cfg exists: it changes engine settings (tests/run_checks.sh may have left it)" || ok "no override.cfg"
+[[ -e "$project/override.cfg" ]] && bad "override.cfg exists: it changes engine settings (tools/gate may have left it)" || ok "no override.cfg"
 # Owner of an instance: the --path of its godot, or the project file of its kwin and dbus (run.sh writes it).
 # pgrep -x matches the executable name only, so this shell is never listed.
 found=0
