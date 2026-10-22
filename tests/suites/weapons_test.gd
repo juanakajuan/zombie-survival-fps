@@ -43,9 +43,7 @@ func test_loadout() -> void:
 
 
 func test_wall_buy_offer() -> void:
-	var wall: WallBuy = WallBuy.new()
-	wall.weapon_id = &"smg"
-	wall.price = 1000
+	var wall: WallBuy = WallBuy.new(Arsenal.smg(), 1000)
 	var loadout: Loadout = Loadout.new(Arsenal.pistol())
 	ok(offer_text(wall.offer(loadout, Perks.new())) == "WEAPON 1000 \"Buy SMG\" smg" and loadout_text(loadout) == "*pistol 8/80", "Without the SMG the wall offers the SMG for 1000, and the offer changes nothing")
 	loadout.give(Arsenal.smg())

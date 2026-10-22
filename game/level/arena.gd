@@ -15,6 +15,13 @@ var machines: Array[Machine] = []
 var box: MysteryBox = null
 
 
+static func create() -> Arena:
+	var arena: Arena = Arena.new()
+	arena.name = &"Arena"
+	ArenaLayout.build(LevelBuilder.new(arena))
+	return arena
+
+
 func _ready() -> void:
 	for group: Node in $ZombieSpawns.get_children():
 		var points: Array[Vector3] = []

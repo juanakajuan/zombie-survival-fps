@@ -1,15 +1,14 @@
-@tool
 class_name PerkMachine
 extends Machine
 
-@export var perk: Perks.Kind = Perks.Kind.MENDER:
-	set(kind):
-		perk = kind
-		_build()
-@export_range(0, 10000, 10) var price: int = 0:
-	set(cost):
-		price = cost
-		_build()
+var perk: Perks.Kind
+var price: int
+
+
+func _init(machine_perk: Perks.Kind, perk_price: int) -> void:
+	super()
+	perk = machine_perk
+	price = perk_price
 
 
 func caption() -> String:

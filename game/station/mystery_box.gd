@@ -1,4 +1,3 @@
-@tool
 class_name MysteryBox
 extends Station
 ## The random weapon box. Arena puts it on a crate body on Layers.WORLD, so the navigation bake cuts the crate out. The origin is the crate center.
@@ -29,11 +28,7 @@ var _display: Node3D
 var _models: Dictionary[StringName, Node3D] = {}
 
 
-## The children have no owner, so the editor does not save them in the scene.
 func _ready() -> void:
-	if Engine.is_editor_hint():
-		set_process(false)
-		set_physics_process(false)
 	var shape: BoxShape3D = BoxShape3D.new()
 	shape.size = AREA_SIZE
 	var collision: CollisionShape3D = CollisionShape3D.new()

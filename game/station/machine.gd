@@ -1,4 +1,3 @@
-@tool
 @abstract
 class_name Machine
 extends Station
@@ -13,13 +12,54 @@ const OFF_COLOR: Color = Color(0.12, 0.12, 0.13)
 var powered: bool = false:
 	set(on):
 		powered = on
-		_build()
-## The children that _build() adds. They have no owner, so the editor does not save them in the scene.
-var _built: Array[Node] = []
+		if is_node_ready():
+			_show_power()
+
+var _strip_material: StandardMaterial3D
+var _label: Label3D
+var _glow: OmniLight3D
 
 
 func _ready() -> void:
-	_build()
+	var shape: BoxShape3D = BoxShape3D.new()
+	shape.size = Vector3(SLAB_SIZE.x, SLAB_SIZE.y, AREA_DEPTH)
+	var collision: CollisionShape3D = CollisionShape3D.new()
+	collision.shape = shape
+	collision.position = Vector3(0.0, 0.0, AREA_DEPTH * 0.5)
+	add_child(collision)
+	var slab_mesh: BoxMesh = BoxMesh.new()
+	slab_mesh.size = SLAB_SIZE
+	var slab_material: StandardMaterial3D = StandardMaterial3D.new()
+	slab_material.albedo_color = BODY_COLOR
+	slab_material.roughness = 0.6
+	slab_material.metallic = 0.5
+	var slab: MeshInstance3D = MeshInstance3D.new()
+	slab.mesh = slab_mesh
+	slab.material_override = slab_material
+	slab.position = Vector3(0.0, 0.0, SLAB_SIZE.z * 0.5)
+	add_child(slab)
+	var strip_mesh: BoxMesh = BoxMesh.new()
+	strip_mesh.size = Vector3(SLAB_SIZE.x * 0.8, 0.12, 0.02)
+	_strip_material = StandardMaterial3D.new()
+	_strip_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var strip: MeshInstance3D = MeshInstance3D.new()
+	strip.mesh = strip_mesh
+	strip.material_override = _strip_material
+	strip.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	strip.position = Vector3(0.0, SLAB_SIZE.y * 0.5 - 0.25, SLAB_SIZE.z + 0.011)
+	add_child(strip)
+	_label = Label3D.new()
+	_label.text = caption()
+	_label.outline_size = 0
+	_label.pixel_size = 0.004
+	_label.font_size = 48
+	_label.position = Vector3(0.0, 0.4, SLAB_SIZE.z + 0.012)
+	add_child(_label)
+	_glow = OmniLight3D.new()
+	_glow.omni_range = 3.5
+	_glow.position = Vector3(0.0, 0.0, SLAB_SIZE.z + 0.6)
+	add_child(_glow)
+	_show_power()
 
 
 func offer(loadout: Loadout, perks: Perks) -> Station.Offer:
@@ -38,57 +78,9 @@ func offer(loadout: Loadout, perks: Perks) -> Station.Offer:
 @abstract func glow_color() -> Color
 
 
-func _build() -> void:
-	if not is_node_ready():
-		return
-	for node: Node in _built:
-		node.free()
-	_built.clear()
-	var shape: BoxShape3D = BoxShape3D.new()
-	shape.size = Vector3(SLAB_SIZE.x, SLAB_SIZE.y, AREA_DEPTH)
-	var collision: CollisionShape3D = CollisionShape3D.new()
-	collision.shape = shape
-	collision.position = Vector3(0.0, 0.0, AREA_DEPTH * 0.5)
-	_add(collision)
-	var slab_mesh: BoxMesh = BoxMesh.new()
-	slab_mesh.size = SLAB_SIZE
-	var slab_material: StandardMaterial3D = StandardMaterial3D.new()
-	slab_material.albedo_color = BODY_COLOR
-	slab_material.roughness = 0.6
-	slab_material.metallic = 0.5
-	var slab: MeshInstance3D = MeshInstance3D.new()
-	slab.mesh = slab_mesh
-	slab.material_override = slab_material
-	slab.position = Vector3(0.0, 0.0, SLAB_SIZE.z * 0.5)
-	_add(slab)
+func _show_power() -> void:
 	var color: Color = glow_color() if powered else OFF_COLOR
-	var strip_mesh: BoxMesh = BoxMesh.new()
-	strip_mesh.size = Vector3(SLAB_SIZE.x * 0.8, 0.12, 0.02)
-	var strip_material: StandardMaterial3D = StandardMaterial3D.new()
-	strip_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	strip_material.albedo_color = color
-	var strip: MeshInstance3D = MeshInstance3D.new()
-	strip.mesh = strip_mesh
-	strip.material_override = strip_material
-	strip.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	strip.position = Vector3(0.0, SLAB_SIZE.y * 0.5 - 0.25, SLAB_SIZE.z + 0.011)
-	_add(strip)
-	var label: Label3D = Label3D.new()
-	label.text = caption()
-	label.modulate = color
-	label.outline_size = 0
-	label.pixel_size = 0.004
-	label.font_size = 48
-	label.position = Vector3(0.0, 0.4, SLAB_SIZE.z + 0.012)
-	_add(label)
-	var glow: OmniLight3D = OmniLight3D.new()
-	glow.light_color = color
-	glow.light_energy = 1.2 if powered else 0.0
-	glow.omni_range = 3.5
-	glow.position = Vector3(0.0, 0.0, SLAB_SIZE.z + 0.6)
-	_add(glow)
-
-
-func _add(node: Node) -> void:
-	add_child(node)
-	_built.append(node)
+	_strip_material.albedo_color = color
+	_label.modulate = color
+	_glow.light_color = color
+	_glow.light_energy = 1.2 if powered else 0.0

@@ -3,9 +3,7 @@ extends Node3D
 
 const SPAWN_CANDIDATES: int = 4
 
-const ARENA_SCENE: PackedScene = preload("res://game/level/arena.tscn")
-
-var arena: Arena = ARENA_SCENE.instantiate() as Arena
+var arena: Arena = Arena.create()
 var player: Player = Player.new()
 var weapon: Weapon = Weapon.new()
 var hud: Hud = Hud.new()

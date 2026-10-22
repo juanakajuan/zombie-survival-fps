@@ -4,7 +4,7 @@
 
 A round-based survival FPS for Godot 4.7, in GDScript only. The player fights waves of undead. Each round has more zombies, and the zombies have more health and more speed. The player earns points for hits and kills. The game ends when the player dies. The score is the number of rounds the player survived.
 
-The world and its visuals are in scenes: `game/level/arena.tscn` holds the geometry, the materials, the lights, the stations, and the spawn markers, so the map shows in the Godot editor and you can edit it by hand. The rules, the player, the weapons, the zombies, the input actions, and the UI stay in code. The game uses no external assets. "World in scenes, rules in code" below gives the reasons.
+The world is code: `game/level/arena_layout.gd` makes the geometry, the materials, the lights, the stations, and the spawn markers with one typed `LevelBuilder` call per block, lamp, station, group, and marker. The rules, the player, the weapons, the zombies, the input actions, and the UI are code too. The game uses no external assets. "World in code" below gives the reasons.
 
 ## Milestones
 
@@ -15,23 +15,23 @@ The world and its visuals are in scenes: `game/level/arena.tscn` holds the geome
 
 Milestone 1 must not add speculative hooks for milestones 2 to 4. It must keep two shapes that the later milestones need: points are a balance that can go down (`spend`), and a weapon is data (`WeaponDef`) and not code.
 
-## World in scenes, rules in code
+## World in code
 
-Milestones 1 and 2 built the whole world in code. The Godot editor then showed an empty viewport, and a map change was a change to coordinates in `arena.gd`. The arena is now a scene. The decision:
+The arena was a scene from milestone 3 to the agent-friendly architecture work. A scene stores a perk as an integer, a weapon as a string id, and a zone as a string id. A perk or zone typo loaded with no error and showed only when a test exercised that exact station. A weapon id typo passed the import and printed an error at run time, when the setter found no weapon. The arena is now code. The decision:
 
-- **In scenes:** geometry, collision, materials, lights, the environment, spawn markers, and the placement of stations. A person edits these by sight in the editor.
-- **In code:** `Rules`, `RoundDirector`, `Points`, weapons, zombies, the player, the HUD, input actions, and the station visuals.
-- **Station visuals:** `WallBuy` and `MysteryBox` are `@tool` scripts. Their `_ready()` builds the visuals from `WeaponDef` data in the game and in the editor: the wall buy panel, its chalk drawing and caption, the box glow, and the interact shapes. These children have no owner, so the editor shows them but does not save them in the scene. A change to `weapon_id` or `price` in the inspector draws the panel again. In the editor, `MysteryBox` turns off `_process` and `_physics_process`, so it does not roll or spin. `Station` is `@tool` too, so its `_init()` sets the interact layer in the editor as it does in the game. `Arsenal` and `WeaponDef` are not `@tool`: the editor calls their static functions and makes `WeaponDef` objects with no problem.
-- **Stations:** a wall buy in the scene sets two exported fields, `weapon_id` (an `Arsenal` id) and `price`. `Arena` finds every `Station` node, so a new wall buy needs no code change.
-- **Navigation:** the scene stores the `NavigationMesh` settings with no polygons, and `Arena` bakes at `_ready()`. A mesh baked in the editor and saved goes stale after the next hand edit of the geometry. A bake at run time always matches the scene. The editor "Bake NavigationMesh" button still works, to look at the mesh.
-- **Rejected:** an `@tool` arena script that builds the nodes in the editor. The nodes show, but they are not saved, so a person cannot edit them. The station visuals use `@tool` because a person does not edit them by hand: they come from `WeaponDef` data, and a person edits only `weapon_id`, `price`, and the station transform.
+- **`LevelBuilder`** has one typed constructor per kind of node: `block`, `lamp`, `wall_buy(parent, name, weapon: WeaponDef, price, at)`, `perk_machine(parent, name, perk: Perks.Kind, price, at)`, `door(parent, name, zone: LevelBuilder.Zone, price, at)`, `power_switch`, `mystery_box`, `secret`, `sigil`, `cache`, `spawn_group`, and `marker`. A wrong perk, weapon, or zone is a parse error with a file and a line, and the gate stops at its import step.
+- **`ArenaLayout.build`** calls the constructors once per block, lamp, station, group, and marker. A block call makes the body, its shape, and its mesh. It is the one place that says where each thing is. A block is one call with one size, so its collision box and its mesh box cannot differ.
+- **`Arena.create()`** makes an `Arena`, runs the layout on it, and returns it. `Game` and the tests call it. Each node gets the arena as its owner, so `find_children` finds the stations and the spawn markers.
+- **Stations** build their children once in `_ready()` from plain fields that the builder sets before the node enters the tree. A state change (power, a lit sigil, an open door, a taken cache) changes the color of the parts it keeps, or frees the children. No station is a `@tool` script.
+- **Navigation:** the layout sets the `NavigationMesh` settings with no polygons, and `Arena` bakes at `_ready()`, so the mesh always matches the geometry.
+- **Rotated transforms** stay raw `Transform3D` values, with the float bits the scene had, so the code build gives the same nodes and values as the scene did.
 
 Each static body stores a `BoxShape3D` and a `BoxMesh` of the same size. A hand edit can change one and not the other, so a test checks that the two sizes are equal and that each body is on `Layers.WORLD`.
 
 ## Usage
 
 ```gdscript
-# game/main.tscn has one node with game/game.gd. Game instances game/level/arena.tscn and builds the rest:
+# game/main.tscn has one node with game/game.gd. Game calls Arena.create() and builds the rest:
 var game: Game = Game.new()
 get_tree().root.add_child(game)
 
@@ -88,9 +88,9 @@ Then move and rename. The player is a part of the game now, not an addon:
 - `game/weapon/weapon_def.gd`. `class_name WeaponDef extends Resource`. Data for one weapon.
 - `game/weapon/weapon.gd`. `class_name Weapon extends Node3D`. A child of the player camera. Fire, reload, hitscan, and a box view model.
 - `game/zombie/zombie.gd`. `class_name Zombie extends CharacterBody3D`. Chase, attack, die.
-- `game/level/arena.tscn`. The map scene: floor, walls, cover blocks, the platform with stairs and ramp, lamps, the sky and moon, the three wall buys, the box crate with the box, the `PlayerSpawn` marker, and the `ZombieSpawns` markers. All static bodies are under the `Navigation` region.
-- `game/level/arena.gd`. `class_name Arena extends Node3D`. The script of `arena.tscn`. It reads the spawn markers and the stations, and bakes the navigation mesh at `_ready()`.
-- `game/level/lamp.tscn`. One lamp: a post, a bulb, and a light. The arena has four instances.
+- `game/level/arena_layout.gd`. `class_name ArenaLayout`. The map: floor, walls, cover blocks, the platform with stairs and ramp, lamps, the sky and moon, the stations, the `PlayerSpawn` marker, and the `ZombieSpawns` markers, one `LevelBuilder` call each. The floor, the walls, the cover blocks, the platform, and the lamps go under the `Navigation` region. The door blockers, the sigils, and the secret panel are outside it, so the baked mesh is continuous through each gap.
+- `game/level/level_builder.gd`. `class_name LevelBuilder`. One typed constructor per kind of node. `lamp` makes a post, a bulb, and a light.
+- `game/level/arena.gd`. `class_name Arena extends Node3D`. `Arena.create()` builds the map. `_ready()` reads the spawn markers and the stations, and bakes the navigation mesh.
 - `game/level/grid.gdshader` and `game/level/materials/*.tres`. The grid shader and one material for each surface color.
 - `game/hud.gd`. `class_name Hud extends CanvasLayer`. Round number, points, ammo, health vignette, crosshair, hit marker, round banner, death screen, pause screen.
 - `tests/suites/*_test.gd`. The movement tests (renamed), plus the game tests below. `tests/run.gd` finds and runs every suite.
@@ -276,7 +276,7 @@ func take_damage(amount: float) -> void   # no effect when not alive. At 0: aliv
 Collision layers: 1 world, 2 player, 3 zombies. The player collides with 1 and 3. Zombies collide with 1 and 2. The weapon ray uses mask 1 and 3.
 
 ```gdscript
-class_name Arena extends Node3D   # the script of game/level/arena.tscn
+class_name Arena extends Node3D   # Arena.create() builds it from game/level/arena_layout.gd
 
 var player_spawn: Transform3D           # from the PlayerSpawn marker
 var zombie_spawns: Array[Vector3]       # from the markers under ZombieSpawns
@@ -287,7 +287,7 @@ var box: MysteryBox
 func _ready() -> void   # reads the markers and does a synchronous navigation bake, before the first physics tick
 ```
 
-`Game` and the tests make the arena with `Game.ARENA_SCENE.instantiate()`. All fields are set when the arena enters the tree.
+`Game` and the tests make the arena with `Arena.create()`. All fields are set when the arena enters the tree.
 
 The arena is a 40 m by 40 m yard with outer walls, cover blocks, one raised platform with stairs and a ramp, and eight zombie spawn points near the walls. `Game` picks four random spawn points. `Rules.pick_spawn` takes the one nearest to the player that is at least `SPAWN_MIN_DISTANCE` (12 m) away, so zombies do not appear in view at close range. If all four are closer than 12 m, it takes the farthest one.
 

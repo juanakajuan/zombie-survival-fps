@@ -95,8 +95,8 @@ Two smaller choices:
 New files:
 
 - `game/perks.gd`. `class_name Perks extends RefCounted`. The owned set, the `Kind` enum, and the static name and color for each kind.
-- `game/station/perk_machine.gd`. `class_name PerkMachine extends Station`. A `@tool` script, as `WallBuy` is.
-- `game/station/upgrade_machine.gd`. `class_name UpgradeMachine extends Station`. A `@tool` script.
+- `game/station/perk_machine.gd`. `class_name PerkMachine extends Station`. A `@tool` script, as `WallBuy` is. (Since the level-in-code change: no `@tool`, and `PerkMachine._init(perk, price)` takes both values.)
+- `game/station/upgrade_machine.gd`. `class_name UpgradeMachine extends Station`. A `@tool` script (no `@tool` since the level-in-code change).
 
 Changed files:
 
@@ -109,7 +109,7 @@ Changed files:
 - `game/player/player.gd`. Adds `perks`. Reads the maximum health and the regeneration numbers from `Rules`.
 - `game/game.gd`. Owns one `Perks`, gives it to the player and the weapon, and passes it to `offer()` and `accept()`.
 - `game/hud.gd`. Adds a perk row.
-- `game/level/arena.tscn`. Holds the four perk machines and the upgrade machine.
+- `game/level/arena.tscn`. Holds the four perk machines and the upgrade machine. (Since the level-in-code change, `game/level/arena_layout.gd` holds them as `b.perk_machine(machines, name, perk, price, at)` calls on a `LevelBuilder`.)
 - `tests/suites/perks_test.gd` and `test_game_perks` in `tests/suites/game_test.gd`. The tests in the verification plan.
 
 ## Data shapes

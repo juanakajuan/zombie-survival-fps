@@ -1,0 +1,1 @@
+The station scripts and game/level/sigil.gd at 73ee74c. WallBuy, PerkMachine (through Machine, which has no _init), Door, and Cache call super() in _init. Sigil defines _init and extends StaticBody3D, an engine class with no script in game/, so no finding. None may be flagged.

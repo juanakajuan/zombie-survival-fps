@@ -66,15 +66,15 @@ Choices: **A**, **A**, **B**.
 
 New:
 
-- `game/station/door.gd`. `class_name Door extends Station`, `@tool`. Exports `zone` (`StringName`) and `price`. Builds a blocker (`StaticBody3D` on `Layers.WORLD`), a dark slab, and a price label, in `_ready()`. Signal `opened(zone: StringName)`. `accept()` frees the blocker and hides the slab.
-- `game/station/power_switch.gd`. `class_name PowerSwitch extends Station`, `@tool`. Free. Signal `switched_on`. One use.
-- `game/station/cache.gd`. `class_name Cache extends Station`, `@tool`. Free, one use. Hidden and not in the interact ray until `reveal()` is called.
-- `game/level/sigil.gd`. `class_name Sigil extends StaticBody3D`, `@tool`. A glowing mark. `light()` turns it on. Signal `lit`.
+- `game/station/door.gd`. `class_name Door extends Station`, `@tool`. Exports `zone` (`StringName`) and `price`. (Since the level-in-code change: no `@tool`, and `Door._init(zone, price)` takes both values.) Builds a blocker (`StaticBody3D` on `Layers.WORLD`), a dark slab, and a price label, in `_ready()`. Signal `opened(zone: StringName)`. `accept()` frees the blocker and hides the slab.
+- `game/station/power_switch.gd`. `class_name PowerSwitch extends Station`, `@tool` (no `@tool` since the level-in-code change). Free. Signal `switched_on`. One use.
+- `game/station/cache.gd`. `class_name Cache extends Station`, `@tool` (no `@tool` since the level-in-code change). Free, one use. Hidden and not in the interact ray until `reveal()` is called.
+- `game/level/sigil.gd`. `class_name Sigil extends StaticBody3D`, `@tool` (no `@tool` since the level-in-code change). A glowing mark. `light()` turns it on. Signal `lit`.
 - `game/level/secret.gd`. `class_name Secret extends Node3D`. Counts the lit sigils of its children, moves the panel away at 3, and calls `reveal()` on the cache.
 
 Changed:
 
-- `game/level/arena.tscn`. Adds the Warehouse and the Courtyard, the two doors, the power switch, the sigils, the panel, the cache, and the spawn markers. Spawn markers go under one `Node3D` for each zone (`ZombieSpawns/Yard`, `ZombieSpawns/Warehouse`, `ZombieSpawns/Courtyard`). Doors and the panel are outside `Navigation`.
+- `game/level/arena.tscn` (now `game/level/arena_layout.gd`, built by `LevelBuilder`). Adds the Warehouse and the Courtyard, the two doors, the power switch, the sigils, the panel, the cache, and the spawn markers. Spawn markers go under one `Node3D` for each zone (`ZombieSpawns/Yard`, `ZombieSpawns/Warehouse`, `ZombieSpawns/Courtyard`). Doors and the panel are outside `Navigation`.
 - `game/level/arena.gd`. Reads spawns by zone. `open_zone(zone)` adds a zone. `spawns() -> Array[Vector3]` gives the open ones. Finds the doors, the power switch, and the secret.
 - `game/station/machine.gd`. Adds `powered`. `offer()` returns NONE with the label "No power" when off, and calls the new abstract `_offer()` when on. The glow is dark when off. `PerkMachine` and `UpgradeMachine` rename `offer` to `_offer`.
 - `game/station/station.gd`. Adds `Offer.Kind.DOOR`, `POWER`, and `CACHE`.

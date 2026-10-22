@@ -197,7 +197,7 @@ func offer_text(offer: Station.Offer) -> String:
 ## The navigation map syncs on a worker thread, and a path query alone can answer from the previous level's stale map.
 ## An owner query before the first sync is an engine error, so the loop waits for that sync first.
 func make_arena() -> Arena:
-	var arena: Arena = Game.ARENA_SCENE.instantiate() as Arena
+	var arena: Arena = Arena.create()
 	tree.root.add_child(arena)
 	var map: RID = arena.get_world_3d().navigation_map
 	var deadline: int = Time.get_ticks_msec() + 5000

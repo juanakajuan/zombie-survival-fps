@@ -8,6 +8,8 @@ L2b  a key of the verify driver's _state() is missing from the State fields line
 L3   a doc comment names its caller, or the same doc comment sits in two files.
 L4   a test asserts a pinned read: a collision bit, a binding count, or a node list index.
      It reads one line. A read split over several lines, or held in a local variable first, is not caught.
+L5   a script under game/ defines _init and does not call super() in it, and a parent script under game/
+     (by class_name through the extends chain) defines _init. GDScript skips the parent _init in that case.
 
 A fixture file ends in .fixture so Godot and the parse check skip it.
 """
@@ -33,7 +35,7 @@ DRIVER = VERIFY + "/driver.gd"
 SKILL = VERIFY + "/SKILL.md"
 
 ANY_FEATURE = "<any feature file or SKILL.md>"
-L1_IGNORED = (".uid", ".gdshader", ".tres", "lamp.tscn", "game/layers.gd", "game/main.tscn")
+L1_IGNORED = (".uid", ".gdshader", ".tres", "game/layers.gd", "game/main.tscn")
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 TRAILER = re.compile(r"^Verify-map: unchanged \(.+\)$")
 
@@ -103,29 +105,6 @@ class Finding:
         return f"{self.rule}{' ' + self.kind if self.kind else ''} {self.path}:{self.line}"
 
 
-@dataclass(frozen=True)
-class AllowedDuplicate:
-    path: str
-    text: str
-    reason: str
-
-
-_BUILD_CHILDREN = "The children that _build() adds. They have no owner, so the editor does not save them in the scene."
-_AREA_DEPTH = "The interact area stands out from the wall, so the ray finds it before the wall."
-_BUILD_REASON = "The same doc comment sits on the _built variable of each script that has a _build(). PR 8 removes every entry of this table and its _built variables."
-_AREA_REASON = "The same doc comment sits on the AREA_DEPTH constant of machine.gd and wall_buy.gd. PR 8 removes every entry of this table and keeps one copy."
-ALLOWED_DUPLICATES: tuple[AllowedDuplicate, ...] = (
-    AllowedDuplicate("game/level/sigil.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/cache.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/door.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/machine.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/power_switch.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/wall_buy.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/machine.gd", _AREA_DEPTH, _AREA_REASON),
-    AllowedDuplicate("game/station/wall_buy.gd", _AREA_DEPTH, _AREA_REASON),
-)
-
-
 class Tree:
     def __init__(self, root: Path, suffix: str = "") -> None:
         self.root = root
@@ -163,7 +142,7 @@ def split_comment(text: str) -> str | None:
     return None
 
 
-def lint_l3(tree: Tree, allowed: tuple[AllowedDuplicate, ...]) -> list[Finding]:
+def lint_l3(tree: Tree) -> list[Finding]:
     findings: list[Finding] = []
     sites: dict[str, list[tuple[str, int]]] = defaultdict(list)
     for path in tree.paths("game/**/*.gd") + [p for p in [DRIVER] if tree.lines(p) is not None]:
@@ -174,19 +153,12 @@ def lint_l3(tree: Tree, allowed: tuple[AllowedDuplicate, ...]) -> list[Finding]:
             match = DOC_COMMENT.match(text)
             if match and len(match.group(1)) >= MIN_DUPLICATE_LENGTH:
                 sites[match.group(1)].append((path, number))
-    permitted = {(a.path, a.text) for a in allowed}
     for text, places in sites.items():
         if len({path for path, _ in places}) < 2:
             continue
         for path, number in places:
-            if (path, text) in permitted:
-                continue
             others = ", ".join(f"{p}:{n}" for p, n in places if (p, n) != (path, number))
             findings.append(Finding("L3", path, number, f"the doc comment is the same as in {others} (## {text})", "Delete the copies, or state a why that is specific to this line.", "duplicate"))
-    seen_texts = {(path, text) for text, places in sites.items() for path, _ in places}
-    for entry in allowed:
-        if (entry.path, entry.text) not in seen_texts:
-            findings.append(Finding("L3", entry.path, 1, "an ALLOWED_DUPLICATES entry matches no comment", "Delete the entry from ALLOWED_DUPLICATES in tools/lint.py.", "allow"))
     return sorted(findings, key=lambda f: (f.path, f.line, f.kind))
 
 
@@ -204,6 +176,57 @@ def lint_l4(tree: Tree) -> list[Finding]:
 
 STATE_FUNC = re.compile(r"^(?:static\s+)?func _state\(")
 TOP_LEVEL = re.compile(r"^(?:(?:static\s+)?(?:func|var|const|class|signal|enum)\b|@)")
+CLASS_NAME = re.compile(r"^class_name\s+(\w+)")
+EXTENDS = re.compile(r"^(?:class_name\s+\w+\s+)?extends\s+(\w+)")
+INIT_FUNC = re.compile(r"^func _init\(")
+SUPER_INIT = re.compile(r"\bsuper(?:\._init)?\(")
+
+
+@dataclass(frozen=True)
+class Script:
+    path: str
+    class_name: str | None
+    parent: str | None
+    init_line: int | None
+    init_calls_super: bool
+
+
+def read_script(path: str, lines: list[str]) -> Script:
+    class_name = next((m.group(1) for text in lines if (m := CLASS_NAME.match(text))), None)
+    parent = next((m.group(1) for text in lines if (m := EXTENDS.match(text))), None)
+    start = next((i for i, text in enumerate(lines) if INIT_FUNC.match(text)), None)
+    calls_super = False
+    if start is not None:
+        for index in range(start + 1, len(lines)):
+            if TOP_LEVEL.match(lines[index]):
+                break
+            calls_super = calls_super or SUPER_INIT.search(lines[index]) is not None
+    return Script(path, class_name, parent, None if start is None else start + 1, calls_super)
+
+
+def init_ancestor(script: Script, by_class: dict[str, Script]) -> Script | None:
+    seen: set[str] = set()
+    parent = script.parent
+    while parent is not None and parent in by_class and parent not in seen:
+        seen.add(parent)
+        ancestor = by_class[parent]
+        if ancestor.init_line is not None:
+            return ancestor
+        parent = ancestor.parent
+    return None
+
+
+def lint_l5(tree: Tree) -> list[Finding]:
+    scripts = [read_script(path, tree.lines(path) or []) for path in tree.paths("game/**/*.gd")]
+    by_class = {s.class_name: s for s in scripts if s.class_name is not None}
+    findings: list[Finding] = []
+    for script in scripts:
+        if script.init_line is None or script.init_calls_super:
+            continue
+        ancestor = init_ancestor(script, by_class)
+        if ancestor is not None:
+            findings.append(Finding("L5", script.path, script.init_line, f"_init does not call super(), and the parent {ancestor.class_name} ({ancestor.path}) defines _init, which GDScript then skips", "Add super() as the first line of _init, so the parent sets its fields.", str(ancestor.class_name)))
+    return findings
 
 
 def state_keys(driver: list[str]) -> list[tuple[str, int]]:
@@ -265,8 +288,8 @@ def lint_l2b(tree: Tree, must_exist: bool) -> list[Finding]:
     ]
 
 
-def lint_tree(tree: Tree, allowed: tuple[AllowedDuplicate, ...], must_exist: bool) -> list[Finding]:
-    return lint_l2b(tree, must_exist) + lint_l3(tree, allowed) + lint_l4(tree) + lint_l1_map(tree)
+def lint_tree(tree: Tree, must_exist: bool) -> list[Finding]:
+    return lint_l2b(tree, must_exist) + lint_l3(tree) + lint_l4(tree) + lint_l5(tree) + lint_l1_map(tree)
 
 
 @dataclass(frozen=True)
@@ -527,7 +550,7 @@ def run_fixtures(feature_map: FeatureMap) -> tuple[list[str], int]:
             if (case / "commit.json").is_file():
                 found += lint_l1(CommitInfo.from_json((case / "commit.json").read_text(encoding="utf-8")), feature_map)
             if (case / "tree").is_dir():
-                found += lint_tree(Tree(case / "tree", FIXTURE_SUFFIX), (), must_exist=False)
+                found += lint_tree(Tree(case / "tree", FIXTURE_SUFFIX), must_exist=False)
             got = {f.key(): f for f in found}
             problems = [f"FAIL lint fixture {name}: expected {k} and the rule did not report it. The rule no longer catches this bad commit." for k in sorted(expected - got.keys())]
             problems += [f"FAIL lint fixture {name}: reported {k}, which expect.txt does not list. Fix the rule, or list the finding in expect.txt." for k in sorted(got.keys() - expected)]
@@ -619,7 +642,7 @@ def run_env_cases() -> tuple[list[str], int]:
 
 
 def cmd_check(repo: Path, commit_range: str | None) -> int:
-    findings = lint_tree(Tree(repo), ALLOWED_DUPLICATES, must_exist=True)
+    findings = lint_tree(Tree(repo), must_exist=True)
     feature_map = load_feature_map(Tree(repo))
     scope, problems = resolve_range(repo, commit_range)
     findings += problems
@@ -637,7 +660,7 @@ def cmd_check(repo: Path, commit_range: str | None) -> int:
         print(finding.render())
     if findings:
         return 1
-    print(f"OK: lint (L1m, L2b, L3, L4 on the tree; L1 on {checked} commit(s) in {scope}{'; the range is empty, so HEAD adds nothing over its base' if checked == 0 else ''})")
+    print(f"OK: lint (L1m, L2b, L3, L4, L5 on the tree; L1 on {checked} commit(s) in {scope}{'; the range is empty, so HEAD adds nothing over its base' if checked == 0 else ''})")
     lines, failures = run_fixtures(feature_map)
     env_lines, env_failures = run_env_cases()
     print("\n".join(lines + env_lines))
