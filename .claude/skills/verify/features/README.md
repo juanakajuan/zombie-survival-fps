@@ -35,6 +35,6 @@ This directory is the maintained source for verifying what a player can do in Zo
 | Perks and upgrades: perk machines, upgrade machine | [perks.md](perks.md) | `scenarios/perks.txt` (`No power` prompts only) | `game/weapon/`, `game/station/`, `game/station/power_switch.gd`, `game/station/perk_machine.gd`, `game/station/upgrade_machine.gd`, `game/station/machine.gd`, `game/perks.gd`, `game/level/` |
 | Doors, power, and the secret | [doors.md](doors.md) | `scenarios/doors.txt` (door prompts only) | `game/station/`, `game/station/door.gd`, `game/station/power_switch.gd`, `game/station/cache.gd`, `game/level/`, `game/level/secret.gd`, `game/level/sigil.gd` |
 | Arena layout | [README.md](README.md) | none | `game/level/` |
-| Shared code: any feature file or SKILL.md | [SKILL.md](../SKILL.md) | none | `game/hud.gd`, `game/game.gd`, `game/rules.gd` |
+| Shared code: any feature file or SKILL.md | [SKILL.md](../SKILL.md) | none | `game/hud.gd`, `game/game.gd`, `game/game_config.gd`, `game/rules.gd` |
 
 The Code column is the map that rule L1 of `tools/lint.py` reads. A commit that changes a path in the column must change each feature file that lists the path, or carry a `Verify-map: unchanged (<reason>)` trailer. The longest matching path wins. Rule L1m fails when a path in the column does not exist.
