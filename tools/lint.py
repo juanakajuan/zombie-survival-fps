@@ -8,6 +8,8 @@ L2b  a key of the verify driver's _state() is missing from the State fields line
 L3   a doc comment names its caller, or the same doc comment sits in two files.
 L4   a test asserts a pinned read: a collision bit, a binding count, or a node list index.
      It reads one line. A read split over several lines, or held in a local variable first, is not caught.
+L5   a script under game/ defines _init and does not call super() in it, and a parent script under game/
+     (by class_name through the extends chain) defines _init. GDScript skips the parent _init in that case.
 
 A fixture file ends in .fixture so Godot and the parse check skip it.
 """
@@ -174,6 +176,57 @@ def lint_l4(tree: Tree) -> list[Finding]:
 
 STATE_FUNC = re.compile(r"^(?:static\s+)?func _state\(")
 TOP_LEVEL = re.compile(r"^(?:(?:static\s+)?(?:func|var|const|class|signal|enum)\b|@)")
+CLASS_NAME = re.compile(r"^class_name\s+(\w+)")
+EXTENDS = re.compile(r"^(?:class_name\s+\w+\s+)?extends\s+(\w+)")
+INIT_FUNC = re.compile(r"^func _init\(")
+SUPER_INIT = re.compile(r"\bsuper(?:\._init)?\(")
+
+
+@dataclass(frozen=True)
+class Script:
+    path: str
+    class_name: str | None
+    parent: str | None
+    init_line: int | None
+    init_calls_super: bool
+
+
+def read_script(path: str, lines: list[str]) -> Script:
+    class_name = next((m.group(1) for text in lines if (m := CLASS_NAME.match(text))), None)
+    parent = next((m.group(1) for text in lines if (m := EXTENDS.match(text))), None)
+    start = next((i for i, text in enumerate(lines) if INIT_FUNC.match(text)), None)
+    calls_super = False
+    if start is not None:
+        for index in range(start + 1, len(lines)):
+            if TOP_LEVEL.match(lines[index]):
+                break
+            calls_super = calls_super or SUPER_INIT.search(lines[index]) is not None
+    return Script(path, class_name, parent, None if start is None else start + 1, calls_super)
+
+
+def init_ancestor(script: Script, by_class: dict[str, Script]) -> Script | None:
+    seen: set[str] = set()
+    parent = script.parent
+    while parent is not None and parent in by_class and parent not in seen:
+        seen.add(parent)
+        ancestor = by_class[parent]
+        if ancestor.init_line is not None:
+            return ancestor
+        parent = ancestor.parent
+    return None
+
+
+def lint_l5(tree: Tree) -> list[Finding]:
+    scripts = [read_script(path, tree.lines(path) or []) for path in tree.paths("game/**/*.gd")]
+    by_class = {s.class_name: s for s in scripts if s.class_name is not None}
+    findings: list[Finding] = []
+    for script in scripts:
+        if script.init_line is None or script.init_calls_super:
+            continue
+        ancestor = init_ancestor(script, by_class)
+        if ancestor is not None:
+            findings.append(Finding("L5", script.path, script.init_line, f"_init does not call super(), and the parent {ancestor.class_name} ({ancestor.path}) defines _init, which GDScript then skips", "Add super() as the first line of _init, so the parent sets its fields.", str(ancestor.class_name)))
+    return findings
 
 
 def state_keys(driver: list[str]) -> list[tuple[str, int]]:
@@ -236,7 +289,7 @@ def lint_l2b(tree: Tree, must_exist: bool) -> list[Finding]:
 
 
 def lint_tree(tree: Tree, must_exist: bool) -> list[Finding]:
-    return lint_l2b(tree, must_exist) + lint_l3(tree) + lint_l4(tree) + lint_l1_map(tree)
+    return lint_l2b(tree, must_exist) + lint_l3(tree) + lint_l4(tree) + lint_l5(tree) + lint_l1_map(tree)
 
 
 @dataclass(frozen=True)
@@ -607,7 +660,7 @@ def cmd_check(repo: Path, commit_range: str | None) -> int:
         print(finding.render())
     if findings:
         return 1
-    print(f"OK: lint (L1m, L2b, L3, L4 on the tree; L1 on {checked} commit(s) in {scope}{'; the range is empty, so HEAD adds nothing over its base' if checked == 0 else ''})")
+    print(f"OK: lint (L1m, L2b, L3, L4, L5 on the tree; L1 on {checked} commit(s) in {scope}{'; the range is empty, so HEAD adds nothing over its base' if checked == 0 else ''})")
     lines, failures = run_fixtures(feature_map)
     env_lines, env_failures = run_env_cases()
     print("\n".join(lines + env_lines))
