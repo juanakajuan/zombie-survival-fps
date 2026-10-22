@@ -22,11 +22,38 @@ func _init() -> void:
 	collision_layer = 0
 
 
+func _ready() -> void:
+	if revealed and not is_taken:
+		_build()
+
+
 func reveal() -> void:
 	if revealed:
 		return
 	revealed = true
 	collision_layer = Layers.INTERACT
+	if is_node_ready():
+		_build()
+
+
+func offer(_loadout: Loadout, _perks: Perks) -> Station.Offer:
+	if not revealed or is_taken:
+		return Station.Offer.new(Station.Offer.Kind.NONE, 0, "")
+	return Station.Offer.new(Station.Offer.Kind.CACHE, 0, "Take the cache")
+
+
+func accept(chosen: Station.Offer, _weapon: Weapon, _perks: Perks) -> void:
+	if chosen.kind != Station.Offer.Kind.CACHE or is_taken:
+		return
+	is_taken = true
+	if revealed and is_node_ready():
+		_collision.free()
+		_box.free()
+		_glow.free()
+	taken.emit()
+
+
+func _build() -> void:
 	var shape: BoxShape3D = BoxShape3D.new()
 	shape.size = AREA_SIZE
 	_collision = CollisionShape3D.new()
@@ -50,19 +77,3 @@ func reveal() -> void:
 	_glow.omni_range = 4.0
 	_glow.position = Vector3(0.0, 0.3, 0.8)
 	add_child(_glow)
-
-
-func offer(_loadout: Loadout, _perks: Perks) -> Station.Offer:
-	if not revealed or is_taken:
-		return Station.Offer.new(Station.Offer.Kind.NONE, 0, "")
-	return Station.Offer.new(Station.Offer.Kind.CACHE, 0, "Take the cache")
-
-
-func accept(chosen: Station.Offer, _weapon: Weapon, _perks: Perks) -> void:
-	if chosen.kind != Station.Offer.Kind.CACHE or is_taken:
-		return
-	is_taken = true
-	_collision.free()
-	_box.free()
-	_glow.free()
-	taken.emit()

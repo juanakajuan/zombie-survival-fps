@@ -27,6 +27,8 @@ func _init(door_zone: StringName, door_price: int) -> void:
 
 
 func _ready() -> void:
+	if is_open:
+		return
 	var area_shape: BoxShape3D = BoxShape3D.new()
 	area_shape.size = Vector3(GAP_SIZE.x, GAP_SIZE.y, AREA_DEPTH)
 	_area = CollisionShape3D.new()
@@ -74,7 +76,8 @@ func accept(chosen: Station.Offer, _weapon: Weapon, _perks: Perks) -> void:
 		return
 	is_open = true
 	collision_layer = 0
-	_area.free()
-	_blocker.free()
-	_label.free()
+	if is_node_ready():
+		_area.free()
+		_blocker.free()
+		_label.free()
 	opened.emit(zone)
