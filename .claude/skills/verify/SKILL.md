@@ -37,9 +37,18 @@ Run from the project root:
 
 The optional second argument sets the evidence directory. The default is `.verify/<date>-<time>-<scenario>/`.
 
+Options go after the scenario and the evidence directory:
+
+- `--seed <n>` seeds the zombie spawn generator, so two runs spawn the same zombies at the same points. The default is a random seed. Pistol spread stays random.
+- `--invulnerable` makes the player take no damage. `health` stays at 100, so a scenario can fight for a whole round. Use it for scenarios that test rounds or buys. Do not use it when the scenario proves damage or death.
+
+Both options set `GameConfig` in the driver before the game starts. They are off by default, and nothing else sets them.
+
+`run.sh` runs `godot --headless --path . --import` first, so a new `class_name` is in the class cache. The environment variable `VERIFY_TIMEOUT` sets the limit for the game run in seconds. The default is 300. At the limit `run.sh` stops Godot and prints `RESULT: FAIL (timeout after <n> s: the driver never printed VERIFY DONE; read godot.log for the SCRIPT ERROR)`. A script error in the driver, for example, stops the driver before it prints `VERIFY DONE`.
+
 - Ready signal: `VERIFY READY` in the output. The main scene is in the tree at that time.
 - End: `VERIFY DONE failures=<n>`, then `RESULT: PASS` or `RESULT: FAIL (exit <code>)` and the evidence path.
-- Exit code: 0 for PASS, 1 for a failed step, 2 for a launch problem.
+- Exit code: 0 for PASS, 1 for a failed step or a timeout, 2 for a launch problem.
 - Teardown is automatic. A `trap` stops Godot and KWin by PID on exit, on Ctrl+C, and on `kill`.
 
 There is no long-lived instance. To prove a new behavior, write a scenario file (in the scratchpad, or in `scenarios/` if it is worth keeping) and run it.
@@ -66,7 +75,7 @@ One command on each line. `#` starts a comment line. The run stops at the first 
 
 State fields: `phase` (`STARTING`, `ACTIVE`, `INTERMISSION`, `GAME_OVER`), `round`, `to_spawn`, `zombies_alive`, `nearest_zombie_m` (999 when no zombie is alive), `points`, `earned`, `magazine` and `reserve` (of the weapon in the hands), `weapon` (`READY`, `COOLDOWN`, `RELOADING`, `MELEE`, `SWITCHING`), `weapon_name`, `slots` (for example `Pistol,*SMG`, with `*` on the weapon in the hands), `box` (`IDLE`, `ROLLING`, `OFFERING`), `health`, `player_alive`, `move_state` (`GROUND`, `AIR`, `SLIDE`, `MANTLE`), `stance` (`STAND`, `CROUCH`), `speed` (horizontal m/s), `position`, `yaw_deg`, `paused`, `mouse_captured`, `fps`, `ticks_ms`, and the HUD text the player sees: `hud_round`, `hud_points`, `hud_ammo`, `hud_weapon`, `hud_prompt` (empty when hidden), `hud_perks` (the owned perk names under the points, comma-separated, empty when none), `hud_banner` (empty when faded), `hud_death`, `hud_death_text`, `hud_pause`.
 
-To add a field or a command, edit `driver.gd`. The project treats untyped and unsafe GDScript as errors, so keep all declarations typed. Check the parse with:
+To add a field or a command, edit `driver.gd`. Print an enum value with `_enum_name`, which reports an error for a value that is not in the enum. Do not copy the enum names into the driver. The project treats untyped and unsafe GDScript as errors, so keep all declarations typed. Check the parse with:
 
 ```bash
 godot --headless --path . --check-only -s res://.claude/skills/verify/driver.gd
@@ -86,7 +95,7 @@ Each run writes these files to its evidence directory:
 
 Proof standards:
 
-- Drive the real player path: keys, mouse buttons, and mouse motion. Do not set `Weapon.trigger_held`, call `take_damage`, or use other test hooks from a scenario. The headless suite in `tests/` already does that.
+- Drive the real player path: keys, mouse buttons, and mouse motion. Do not set `Weapon.trigger_held`, call `take_damage`, or use other test hooks from a scenario. `--seed` and `--invulnerable` are the only hooks, and they are run options, not scenario commands. The headless suite in `tests/` already does that.
 - Capture the action and the result: a `state` or `expect` before the action, a `shot` during it, and `expect` lines after it.
 - Assert what the player sees (`hud_*` fields and screenshots) and the game state behind it (`points`, `magazine`, `phase`). A HUD that shows a value the game does not have is a bug.
 - Look at the screenshots. Use the Read tool on the PNG. An `expect` does not prove that the frame shows the right thing.
@@ -100,7 +109,7 @@ Proof standards:
 .claude/skills/verify/cleanup.sh
 ```
 
-It stops only processes named `godot` that run `verify/driver.gd`, and processes named `kwin_wayland` with a `zsfps-verify-` socket. It never stops the user's own Godot editor or desktop KWin. It removes stale sockets. It keeps `.verify/`. To delete old evidence, remove `.verify/<run>` by hand.
+It stops only the instances that were started from its own worktree: the `godot` that runs `verify/driver.gd` with this worktree as `--path`, and the `kwin_wayland` and `dbus-daemon` of a `zsfps-verify-` instance whose `project` file names this worktree. A run in another worktree keeps running. It never stops the user's own Godot editor or desktop KWin. It removes the stale sockets of its own instances. It keeps `.verify/`. To delete old evidence, remove `.verify/<run>` by hand.
 
 Never use `pkill -f` with a pattern from this skill: the pattern also matches the shell that runs the command, and that shell is then killed.
 
