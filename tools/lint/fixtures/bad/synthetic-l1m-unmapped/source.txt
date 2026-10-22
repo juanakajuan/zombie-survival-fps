@@ -1,0 +1,1 @@
+SYNTHETIC. A file under game/ that no Code path covers and L1_IGNORED does not list.

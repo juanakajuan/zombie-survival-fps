@@ -1,0 +1,1 @@
+SYNTHETIC. Rows in GFM forms the parser must read: an escaped pipe, a ./ link, a subfolder link, and a table with its columns in another order and a styled header. Each row names a missing path, so a finding proves the row was read.

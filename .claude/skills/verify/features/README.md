@@ -37,4 +37,4 @@ This directory is the maintained source for verifying what a player can do in Zo
 | Arena layout | [README.md](README.md) | none | `game/level/` |
 | Shared code: any feature file or SKILL.md | [SKILL.md](../SKILL.md) | none | `game/hud.gd`, `game/game.gd`, `game/game_config.gd`, `game/rules.gd` |
 
-The Code column is the map that rule L1 of `tools/lint.py` reads. A commit that changes a path in the column must change each feature file that lists the path, or carry a `Verify-map: unchanged (<reason>)` trailer. The longest matching path wins. Rule L1m fails when a path in the column does not exist.
+The Code column is the map that rule L1 of `tools/lint.py` reads. A commit that changes a path in the column must change each feature file that lists the path, or carry a `Verify-map: unchanged (<reason>)` trailer. The longest matching path wins. Rule L1m fails when a table row cannot be read, when a path in the column does not exist, and when a file under `game/` has no Code path and is not in `L1_IGNORED` in `tools/lint.py`. Write a pipe inside a cell as `\|`.

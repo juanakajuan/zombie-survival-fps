@@ -1,0 +1,11 @@
+# Map
+
+| Feature | File | Scenario | Code |
+|---|---|---|---|
+| Pistol \| knife | [pistol.md](pistol.md) | `scenarios/pistol.txt` | `game/weapon/`, `game/weapon/gone1.gd` |
+| Dot link | [melee.md](./melee.md) | none | `game/weapon/gone2.gd` |
+| Subfolder link | [deep.md](deep/deep.md) | none | `game/weapon/gone3.gd` |
+
+| Code | Feature | **File** |
+|---|---|---|
+| `game/weapon/gone4.gd` | Reordered | [buys.md](buys.md) |
