@@ -1,0 +1,3 @@
+	ok(get_tree().get_nodes_in_group("zombies")[0].health == 150.0, "group index")
+	ok(InputMap.action_get_events("jump").is_empty() == false, "has a binding")
+	ok(wall.collision_layer == 1 and stations[0] == null, "two hits on one line")

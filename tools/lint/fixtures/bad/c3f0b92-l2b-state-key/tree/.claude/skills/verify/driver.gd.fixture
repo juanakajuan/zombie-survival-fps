@@ -1,0 +1,43 @@
+func _state() -> Dictionary:
+	var game: Game = _game()
+	var nearest: Zombie = _nearest_zombie()
+	var live: int = 0
+	for child: Node in game.zombies.get_children():
+		if (child as Zombie).state != Zombie.State.DEAD:
+			live += 1
+	return {
+		"phase": PHASES[game.director.phase],
+		"round": game.director.round_number,
+		"to_spawn": game.director.to_spawn,
+		"zombies_alive": live,
+		"nearest_zombie_m": snappedf(game.player.global_position.distance_to(nearest.global_position), 0.01) if nearest != null else NO_ZOMBIE_DISTANCE,
+		"points": game.points.balance,
+		"earned": game.points.earned,
+		"magazine": game.weapon.current().magazine,
+		"reserve": game.weapon.current().reserve,
+		"weapon": WEAPON_STATES[game.weapon.state],
+		"weapon_name": game.weapon.current().def.display_name,
+		"slots": _slots(game.weapon.loadout),
+		"box": BOX_PHASES[game.arena.box.phase],
+		"health": snappedf(game.player.health, 0.1),
+		"player_alive": game.player.alive,
+		"move_state": MOVE_STATES[game.player.move_state],
+		"stance": STANCES[game.player.stance],
+		"speed": snappedf(game.player.horizontal_speed(), 0.01),
+		"position": "%.2f,%.2f,%.2f" % [game.player.global_position.x, game.player.global_position.y, game.player.global_position.z],
+		"yaw_deg": snappedf(rad_to_deg(game.player.yaw), 0.1),
+		"paused": paused,
+		"fps": Engine.get_frames_per_second(),
+		"ticks_ms": Time.get_ticks_msec(),
+		"mouse_captured": Input.mouse_mode == Input.MOUSE_MODE_CAPTURED,
+		"hud_round": game.hud.round_label.text,
+		"hud_points": game.hud.points_label.text,
+		"hud_ammo": game.hud.ammo_label.text,
+		"hud_weapon": game.hud.weapon_label.text,
+		"hud_perks": ",".join(game.hud.perk_box.get_children().map(func(label: Node) -> String: return (label as Label).text)),
+		"hud_prompt": game.hud.prompt_label.text if game.hud.prompt_label.visible else "",
+		"hud_banner": game.hud.banner.text if game.hud.banner.modulate.a > 0.0 else "",
+		"hud_death": game.hud.death_screen.visible,
+		"hud_death_text": game.hud.death_text.text if game.hud.death_screen.visible else "",
+		"hud_pause": game.hud.pause_screen.visible,
+	}

@@ -1,0 +1,1 @@
+	ok(shots[0] == 4, "Without Rapid the SMG fires 4 shots in 17 ticks")

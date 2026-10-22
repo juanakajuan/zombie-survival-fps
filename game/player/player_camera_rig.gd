@@ -53,7 +53,6 @@ func add_step(height: float) -> void:
 	_pending_step += height
 
 
-## Called by the body at the end of each physics tick.
 ## The step also goes into the previous origin, so the lerp does not spread it over the tick. Only the offset decay smooths it.
 func record_tick() -> void:
 	_previous_origin = _current_origin + Vector3(0.0, _pending_step, 0.0)

@@ -1,0 +1,1 @@
+SYNTHETIC. Passive caller comments and one inline comment. The last line holds the words in a string and must not be flagged.

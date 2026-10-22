@@ -1,0 +1,4 @@
+L1 buys.md game/station/mystery_box.gd:1
+L1 buys.md+melee.md+pistol.md game/weapon/arsenal.gd:1
+L1 buys.md+movement.md game/level/arena.tscn:1
+L1 movement.md game/player/player.gd:1

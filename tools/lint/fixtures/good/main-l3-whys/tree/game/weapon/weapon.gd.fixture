@@ -1,0 +1,2 @@
+## Kept until the weapon is READY, then cleared, so a press during the cooldown is not lost.
+var reload_requested: bool = false

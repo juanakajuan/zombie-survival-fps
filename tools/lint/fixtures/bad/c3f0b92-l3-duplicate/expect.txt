@@ -1,0 +1,4 @@
+L3 caller game/player/player.gd:43
+L3 duplicate game/player/player.gd:43
+L3 caller game/weapon/weapon.gd:23
+L3 duplicate game/weapon/weapon.gd:23

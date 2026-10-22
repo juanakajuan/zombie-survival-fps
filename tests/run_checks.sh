@@ -59,6 +59,12 @@ if [[ -e override.cfg ]]; then
 	exit 1
 fi
 
+if ! command -v python3 >/dev/null; then
+	echo "FAIL: lint needs python3. Install Python 3, then run the checks again."
+	exit 1
+fi
+python3 tools/lint.py
+
 fail_on_output "import" godot --headless --path . --import
 fail_on_output "parse every tracked script" godot --headless --path . -s tests/parse_all.gd
 

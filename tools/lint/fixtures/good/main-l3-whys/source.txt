@@ -1,0 +1,1 @@
+Real lines of game/ at 86e4342, with no padding: door.gd lines 25 and 26, weapon.gd lines 28 and 29. Each doc comment appears in one file only, so none may be flagged.

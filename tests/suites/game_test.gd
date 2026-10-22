@@ -123,6 +123,14 @@ func prompt_text(game: Game) -> String:
 	return game.hud.prompt_label.text if game.hud.prompt_label.visible else ""
 
 
+func perk_row_texts(game: Game) -> PackedStringArray:
+	var texts: PackedStringArray = PackedStringArray()
+	for child: Node in game.hud.perk_box.get_children():
+		if child is Label:
+			texts.append((child as Label).text)
+	return texts
+
+
 func send_wheel(button: MouseButton) -> void:
 	for pressed: bool in [true, false]:
 		var event: InputEventMouseButton = InputEventMouseButton.new()
@@ -200,7 +208,7 @@ func test_game_perks() -> void:
 	await ticks(3)
 	ok(prompt_text(game) == "E  Buy Mender  1500" and game.interact() and game.points.balance == 0, "At the Mender machine the prompt is \"E  Buy Mender  1500\", and the press takes 1500 points")
 	await ticks(1)
-	ok(game.perks.has(Perks.Kind.MENDER) and game.hud.perk_box.get_child_count() == 1 and (game.hud.perk_box.get_child(0) as Label).text == "Mender", "The perk row shows Mender")
+	ok(game.perks.has(Perks.Kind.MENDER) and perk_row_texts(game) == PackedStringArray(["Mender"]), "The perk row shows Mender")
 	ok(prompt_text(game) == "Mender owned" and not game.interact(), "A second press at an owned perk does nothing")
 	game.player.teleport(Vector3(-18.45, 0.0, -8.0), PI * 0.5)
 	game.points.earn(3000)

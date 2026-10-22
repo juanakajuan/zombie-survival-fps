@@ -1,0 +1,20 @@
+{
+  "changed": {
+    "game/player/player.gd": true,
+    "game/player/player_settings.gd": true
+  },
+  "feature_files": [
+    "README.md",
+    "buys.md",
+    "death-restart.md",
+    "doors.md",
+    "melee.md",
+    "movement.md",
+    "pause.md",
+    "perks.md",
+    "pistol.md",
+    "rounds.md"
+  ],
+  "message": "feat(player): add a mantle move state\n\nVerify-map: unchanged (fixture: tests the trailer matcher)\n",
+  "sha": "daccabc"
+}

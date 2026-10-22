@@ -1,0 +1,1 @@
+The _state() function of .claude/skills/verify/driver.gd and the State fields line of SKILL.md at c3f0b92.

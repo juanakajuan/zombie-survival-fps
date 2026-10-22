@@ -1,0 +1,2 @@
+## The children that _build() adds. They have no owner, so the editor does not save them in the scene.
+var _built: Array[Node] = []
