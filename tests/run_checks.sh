@@ -17,32 +17,39 @@ fail_on_output() {
 }
 
 run_suite() {
-	local engine="$1"
+	local label="$1" expected_engine="$2" overlay="$3"
+	shift 3
 	local output
 	local status=0
-	output="$(godot --headless --path . -s tests/test_runner.gd 2>&1)" || status=$?
-	echo "Test suite on $engine:"
+	output="$(godot --headless "$@" 2>&1)" || status=$?
+	echo "Test suite, $label:"
 	grep -E 'RESULT|FAIL|SCRIPT ERROR' <<<"$output" || true
 	if grep -E 'leaked at exit|still in use at exit' <<<"$output"; then
-		echo "FAIL: the test suite ($engine) leaked objects at exit. Free each node a test makes: await finish(level) for a level, or call .free() on a node that never entered the tree."
+		echo "FAIL: the test suite ($label) leaked objects at exit. Free each node a test makes: await finish(level) for a level, or call .free() on a node that never entered the tree."
 		exit 1
 	fi
 	local unexpected
 	unexpected="$(grep -E '^(ERROR|WARNING)' <<<"$output" | grep -v '^ERROR: FAIL: ' || true)"
 	if [[ -n $unexpected ]]; then
 		echo "$unexpected"
-		echo "FAIL: the test suite ($engine) printed errors or warnings."
+		echo "FAIL: the test suite ($label) printed errors or warnings."
+		exit 1
+	fi
+	local actual_engine
+	actual_engine="$(sed -n 's/^Physics engine setting: //p' <<<"$output")"
+	if [[ $actual_engine != "$expected_engine" ]]; then
+		echo "FAIL: the test suite ($label) ran on \"$actual_engine\", expected \"$expected_engine\". Fix 3d/physics_engine in $overlay/override.cfg."
 		exit 1
 	fi
 	local reported counted
 	reported="$(sed -n 's/^RESULT: [0-9]* checks, \([0-9]*\) failures.*/\1/p' <<<"$output")"
 	counted="$(grep -c '^ERROR: FAIL: ' <<<"$output" || true)"
 	if [[ $counted != "$reported" && -n $reported ]]; then
-		echo "FAIL: the test suite ($engine) printed $counted FAIL: errors, but RESULT counts $reported failures. Only a failed check may print FAIL:."
+		echo "FAIL: the test suite ($label) printed $counted FAIL: errors, but RESULT counts $reported failures. Only a failed check may print FAIL:."
 		exit 1
 	fi
 	if [[ $status -ne 0 ]] || grep -q 'SCRIPT ERROR' <<<"$output" || ! grep -q 'RESULT: [0-9]* checks, 0 failures' <<<"$output"; then
-		echo "FAIL: test suite on $engine"
+		echo "FAIL: test suite ($label)"
 		exit 1
 	fi
 }
@@ -55,11 +62,15 @@ fi
 fail_on_output "import" godot --headless --path . --import
 fail_on_output "parse every tracked script" godot --headless --path . -s tests/parse_all.gd
 
-run_suite "Jolt Physics"
+check_engine() {
+	local engine="$1" expected_engine="$2"
+	local overlay="tools/engines/$engine"
+	fail_on_output "import ($engine overlay)" godot --headless --path "$overlay" --import
+	run_suite "$engine, fixed 60 FPS" "$expected_engine" "$overlay" --path "$overlay" --fixed-fps 60 -s tests/test_runner.gd -- --skip-real-frames
+	run_suite "$engine, real frames" "$expected_engine" "$overlay" --path "$overlay" -s tests/test_runner.gd -- --real-frames
+}
 
-trap 'rm -f override.cfg' EXIT
-printf '[physics]\n\n3d/physics_engine="GodotPhysics3D"\n' >override.cfg
-run_suite "Godot Physics"
-rm -f override.cfg
+check_engine jolt "Jolt Physics"
+check_engine godot_physics "GodotPhysics3D"
 
 fail_on_output "launch the game for 600 frames" godot --headless --path . --quit-after 600
