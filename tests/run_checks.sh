@@ -59,8 +59,8 @@ fail_on_output "parse every tracked script" godot --headless --path . -s tests/p
 for engine in jolt godot_physics; do
 	overlay="tools/engines/$engine"
 	fail_on_output "import ($engine overlay)" godot --headless --path "$overlay" --import
-	run_suite "$engine, fixed 60 FPS" --path "$overlay" --fixed-fps 60 -s tests/test_runner.gd -- --skip-real-frames
-	run_suite "$engine, real frames" --path "$overlay" -s tests/test_runner.gd -- --real-frames
+	run_suite "$engine, fixed 60 FPS" --path "$overlay" --fixed-fps 60 -s tests/run.gd -- --skip-real-frames
+	run_suite "$engine, real frames" --path "$overlay" -s tests/run.gd -- --real-frames
 done
 
 fail_on_output "launch the game for 600 frames" godot --headless --path . --quit-after 600
