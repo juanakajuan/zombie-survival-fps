@@ -33,9 +33,7 @@ func test_perks() -> void:
 	ok(slot_text(loadout.current()) == "pistol 12/120" and loadout.find(&"pistol").def.tier == 1, "Slot.upgrade() fills the slot at the new sizes and find() still finds it")
 	loadout.give(Arsenal.pistol())
 	ok(loadout.current().def.tier == 1, "give() of a weapon that the player has keeps its upgrade")
-	var machine: PerkMachine = PerkMachine.new()
-	machine.perk = Perks.Kind.TOUGH
-	machine.price = 3000
+	var machine: PerkMachine = PerkMachine.new(Perks.Kind.TOUGH, 3000)
 	machine.powered = true
 	var owned: Perks = Perks.new()
 	ok(offer_text(machine.offer(loadout, owned)) == "PERK 3000 \"Buy Tough\" -", "A perk machine offers the perk for its price")

@@ -1,6 +1,6 @@
 class_name LevelBuilder
 extends RefCounted
-## Each node gets the level root as owner, because find_children skips nodes that have no owner.
+## Every node gets the level root as owner, because find_children skips nodes that have no owner.
 
 enum Zone { YARD, WAREHOUSE, COURTYARD }
 
@@ -14,11 +14,6 @@ const LAMP_POST_SIZE: Vector3 = Vector3(0.2, 3.5, 0.2)
 const LAMP_BULB_SIZE: Vector3 = Vector3(0.4, 0.25, 0.4)
 const LAMP_COLOR: Color = Color(1, 0.72, 0.4, 1)
 
-static var _post_shape: BoxShape3D = _box_shape(LAMP_POST_SIZE)
-static var _post_mesh: BoxMesh = _box_mesh(LAMP_POST_SIZE)
-static var _bulb_mesh: BoxMesh = _box_mesh(LAMP_BULB_SIZE)
-static var _bulb_material: StandardMaterial3D = _unshaded(LAMP_COLOR)
-
 var root: Node3D
 
 
@@ -31,10 +26,12 @@ static func zone_id(zone: Zone) -> StringName:
 	return StringName(key.to_lower())
 
 
-func add(parent: Node, node: Node) -> Node:
+func add(parent: Node, node: Node) -> void:
+	if parent.has_node(NodePath(node.name)):
+		push_error("LevelBuilder: %s already has a child named \"%s\"." % [root.get_path_to(parent), node.name])
+		return
 	parent.add_child(node)
 	node.owner = root
-	return node
 
 
 func group(parent: Node, node_name: StringName) -> Node3D:
@@ -64,47 +61,31 @@ func block(parent: Node, node_name: StringName, size: Vector3, at: Transform3D, 
 func lamp(parent: Node, node_name: StringName, at: Vector3) -> Node3D:
 	var lamp_root: Node3D = group(parent, node_name)
 	lamp_root.position = at
-	var post: StaticBody3D = StaticBody3D.new()
-	post.name = "Post"
-	post.position = Vector3(0, 1.75, 0)
-	_add_owned(lamp_root, lamp_root, post)
-	var shape_node: CollisionShape3D = CollisionShape3D.new()
-	shape_node.name = "Shape"
-	shape_node.shape = _post_shape
-	_add_owned(post, lamp_root, shape_node)
-	var post_mesh_node: MeshInstance3D = MeshInstance3D.new()
-	post_mesh_node.name = "Mesh"
-	post_mesh_node.material_override = WALL
-	post_mesh_node.mesh = _post_mesh
-	_add_owned(post, lamp_root, post_mesh_node)
+	block(lamp_root, &"Post", LAMP_POST_SIZE, Transform3D(Basis.IDENTITY, Vector3(0, 1.75, 0)), WALL)
 	var bulb: MeshInstance3D = MeshInstance3D.new()
 	bulb.name = "Bulb"
 	bulb.position = Vector3(0, 3.6, 0)
-	bulb.material_override = _bulb_material
-	bulb.mesh = _bulb_mesh
-	_add_owned(lamp_root, lamp_root, bulb)
+	bulb.material_override = _unshaded(LAMP_COLOR)
+	bulb.mesh = _box_mesh(LAMP_BULB_SIZE)
+	add(lamp_root, bulb)
 	var light: OmniLight3D = OmniLight3D.new()
 	light.name = "Light"
 	light.position = Vector3(0, 3.3, 0)
 	light.light_color = LAMP_COLOR
 	light.light_energy = 2.0
 	light.omni_range = 14.0
-	_add_owned(lamp_root, lamp_root, light)
+	add(lamp_root, light)
 	return lamp_root
 
 
 func wall_buy(parent: Node, node_name: StringName, weapon: WeaponDef, price: int, at: Transform3D) -> WallBuy:
-	var station: WallBuy = WallBuy.new()
-	station.weapon_def = weapon
-	station.price = price
+	var station: WallBuy = WallBuy.new(weapon, price)
 	_place(parent, node_name, station, at)
 	return station
 
 
 func perk_machine(parent: Node, node_name: StringName, perk: Perks.Kind, price: int, at: Transform3D) -> PerkMachine:
-	var station: PerkMachine = PerkMachine.new()
-	station.perk = perk
-	station.price = price
+	var station: PerkMachine = PerkMachine.new(perk, price)
 	_place(parent, node_name, station, at)
 	return station
 
@@ -116,9 +97,7 @@ func upgrade_machine(parent: Node, node_name: StringName, at: Transform3D) -> Up
 
 
 func door(parent: Node, node_name: StringName, zone: Zone, price: int, at: Transform3D) -> Door:
-	var station: Door = Door.new()
-	station.zone = zone_id(zone)
-	station.price = price
+	var station: Door = Door.new(zone_id(zone), price)
 	_place(parent, node_name, station, at)
 	return station
 
@@ -172,11 +151,6 @@ func _place(parent: Node, node_name: StringName, station: Station, at: Transform
 	station.name = node_name
 	station.transform = at
 	add(parent, station)
-
-
-func _add_owned(parent: Node, owner_node: Node, node: Node) -> void:
-	parent.add_child(node)
-	node.owner = owner_node
 
 
 static func _box_shape(size: Vector3) -> BoxShape3D:

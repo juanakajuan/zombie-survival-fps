@@ -36,7 +36,7 @@ static func build(b: LevelBuilder) -> void:
 	navigation.name = &"Navigation"
 	var navigation_mesh: NavigationMesh = NavigationMesh.new()
 	navigation_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
-	navigation_mesh.geometry_collision_mask = 1
+	navigation_mesh.geometry_collision_mask = Layers.WORLD
 	navigation_mesh.cell_height = 0.1
 	navigation_mesh.agent_height = 1.8
 	navigation_mesh.agent_max_climb = 0.2

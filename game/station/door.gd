@@ -1,6 +1,7 @@
 class_name Door
 extends Station
 ## A door in a wall gap. The player buys it one time. Its origin is the gap center, and its +Z axis points toward the zone that is open.
+## accept() frees every child, so nothing else may add a child to a Door.
 
 signal opened(zone: StringName)
 
@@ -11,9 +12,15 @@ const SLAB_COLOR: Color = Color(0.2, 0.1, 0.07)
 const CAPTION_COLOR: Color = Color(1.0, 0.7, 0.35)
 
 ## The id of the zone that this door opens. It is the lower case name of a node under ZombieSpawns.
-var zone: StringName = &""
-var price: int = 0
+var zone: StringName
+var price: int
 var is_open: bool = false
+
+
+func _init(door_zone: StringName, door_price: int) -> void:
+	super()
+	zone = door_zone
+	price = door_price
 
 
 func _ready() -> void:

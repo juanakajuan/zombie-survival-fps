@@ -1,6 +1,7 @@
 class_name Cache
 extends Station
 ## A free reward behind the secret panel. It cannot be used until reveal(). The player takes it one time.
+## accept() frees every child, so nothing else may add a child to a Cache.
 
 signal taken
 
@@ -13,7 +14,8 @@ var revealed: bool = false
 var is_taken: bool = false
 
 
-func _ready() -> void:
+func _init() -> void:
+	super()
 	collision_layer = 0
 
 

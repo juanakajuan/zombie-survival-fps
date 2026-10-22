@@ -9,7 +9,13 @@ const DRAWING_SCALE: float = 3.0
 const AREA_DEPTH: float = 0.3
 
 var weapon_def: WeaponDef
-var price: int = 0
+var price: int
+
+
+func _init(weapon: WeaponDef, weapon_price: int) -> void:
+	super()
+	weapon_def = weapon
+	price = weapon_price
 
 
 func _ready() -> void:
