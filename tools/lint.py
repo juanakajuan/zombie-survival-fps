@@ -33,7 +33,7 @@ DRIVER = VERIFY + "/driver.gd"
 SKILL = VERIFY + "/SKILL.md"
 
 ANY_FEATURE = "<any feature file or SKILL.md>"
-L1_IGNORED = (".uid", ".gdshader", ".tres", "lamp.tscn", "game/layers.gd", "game/main.tscn")
+L1_IGNORED = (".uid", ".gdshader", ".tres", "game/layers.gd", "game/main.tscn")
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 TRAILER = re.compile(r"^Verify-map: unchanged \(.+\)$")
 
