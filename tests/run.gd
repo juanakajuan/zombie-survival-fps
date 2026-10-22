@@ -1,9 +1,4 @@
 extends SceneTree
-## Runs every test_ method of every tests/suites/*_test.gd on a new TestCase instance.
-## Usage: godot --headless --path . --fixed-fps 60 -s tests/run.gd -- --skip-real-frames
-##        godot --headless --path . -s tests/run.gd -- --real-frames
-## A suite named *_real_frames_test.gd runs only with real frames, because its checks
-## need rendered frames between physics ticks. Every other suite runs at the fixed rate.
 
 const SUITES_DIR: String = "res://tests/suites"
 const REAL_FRAMES_SUFFIX: String = "_real_frames_test.gd"
@@ -41,12 +36,11 @@ func suite_paths() -> PackedStringArray:
 	return paths
 
 
-## The list also holds inherited methods, so only the test_ prefix selects a test.
 func test_methods(script: GDScript) -> PackedStringArray:
 	var names: PackedStringArray = []
 	for method: Dictionary in script.get_script_method_list():
 		var name: String = method["name"]
-		if name.begins_with("test_") and not names.has(name):
+		if name.begins_with("test_"):
 			names.append(name)
 	return names
 

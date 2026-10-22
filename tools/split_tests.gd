@@ -1,8 +1,4 @@
 extends SceneTree
-## Moves each test_ function of the old tests/test_runner.gd into tests/suites/<area>_test.gd.
-## Usage: godot --headless --path . -s tools/split_tests.gd -- <test_runner.gd> <output dir>
-## A helper that only one suite calls moves with that suite. A helper that several suites call
-## must already be in tests/test_case.gd, or this script stops and names it.
 
 const TEST_CASE_PATH: String = "res://tests/test_case.gd"
 
@@ -18,7 +14,6 @@ const SUITES: Dictionary[String, Array] = {
 	"game_test.gd": ["test_game", "test_game_melee", "test_game_stations", "test_game_perks", "test_doors", "test_power", "test_secret"],
 }
 
-## Each entry rewrites a name the old runner had on itself to the name TestCase gives it.
 const REWRITES: Dictionary[String, String] = {
 	"\\bcheck\\(": "ok(",
 	"\\bframes\\(": "ticks(",
@@ -58,7 +53,7 @@ func absolute(path: String) -> String:
 
 
 func split(source: String, out_dir: String) -> PackedStringArray:
-	var blocks: Array[Block] = parse_blocks(source)
+	var blocks: Array[Block] = parse_func_blocks(source)
 	var by_name: Dictionary[String, Block] = {}
 	for block: Block in blocks:
 		by_name[block.name] = block
@@ -116,8 +111,7 @@ func split(source: String, out_dir: String) -> PackedStringArray:
 	return problems
 
 
-## Each top-level func with the ## lines above it, in source order. The header before the first func is dropped.
-func parse_blocks(source: String) -> Array[Block]:
+func parse_func_blocks(source: String) -> Array[Block]:
 	var blocks: Array[Block] = []
 	var lines: PackedStringArray = source.split("\n")
 	var pending: PackedStringArray = []
@@ -148,7 +142,6 @@ func parse_blocks(source: String) -> Array[Block]:
 	return blocks
 
 
-## The helpers a test reaches, directly or through another helper that is not in TestCase.
 func helpers_reached(test: Block, by_name: Dictionary[String, Block], test_case_functions: PackedStringArray) -> PackedStringArray:
 	var reached: PackedStringArray = []
 	var queue: PackedStringArray = test.calls.duplicate()

@@ -1,6 +1,5 @@
 class_name TestCase
 extends RefCounted
-## One instance runs one test_ method, so state on it cannot reach the next test.
 
 const TICK: float = 1.0 / 60.0
 
@@ -39,7 +38,6 @@ func ticks(count: int) -> void:
 		await tree.physics_frame
 
 
-## The runner frees an owned node after the test, so a node that never enters the tree is not an orphan.
 func own(node: Node) -> Node:
 	_owned.append(node)
 	return node
@@ -218,7 +216,6 @@ func make_zombie(level: Node3D, at: Vector3, start_health: float, move_speed: fl
 	return zombie
 
 
-## A zombie whose target is a marker at its own feet stands still in ATTACK.
 func make_still_zombie(level: Node3D, at: Vector3, start_health: float = 150.0) -> Zombie:
 	var marker: Marker3D = Marker3D.new()
 	marker.position = at
@@ -226,7 +223,6 @@ func make_still_zombie(level: Node3D, at: Vector3, start_health: float = 150.0) 
 	return make_zombie(level, at, start_health, 1.6, marker)
 
 
-## The weapon with no spread, so a test shot goes where the camera looks.
 func steady(weapon: WeaponDef) -> WeaponDef:
 	weapon.spread_degrees = 0.0
 	return weapon
