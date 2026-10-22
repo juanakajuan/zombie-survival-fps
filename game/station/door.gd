@@ -1,7 +1,6 @@
 class_name Door
 extends Station
 ## A door in a wall gap. The player buys it one time. Its origin is the gap center, and its +Z axis points toward the zone that is open.
-## accept() frees every child, so nothing else may add a child to a Door.
 
 signal opened(zone: StringName)
 
@@ -16,6 +15,10 @@ var zone: StringName
 var price: int
 var is_open: bool = false
 
+var _area: CollisionShape3D
+var _blocker: StaticBody3D
+var _label: Label3D
+
 
 func _init(door_zone: StringName, door_price: int) -> void:
 	super()
@@ -26,19 +29,19 @@ func _init(door_zone: StringName, door_price: int) -> void:
 func _ready() -> void:
 	var area_shape: BoxShape3D = BoxShape3D.new()
 	area_shape.size = Vector3(GAP_SIZE.x, GAP_SIZE.y, AREA_DEPTH)
-	var area: CollisionShape3D = CollisionShape3D.new()
-	area.shape = area_shape
-	area.position = Vector3(0.0, 0.0, AREA_DEPTH * 0.5 - GAP_SIZE.z * 0.5)
-	add_child(area)
-	var blocker: StaticBody3D = StaticBody3D.new()
-	blocker.collision_layer = Layers.WORLD
-	blocker.collision_mask = 0
+	_area = CollisionShape3D.new()
+	_area.shape = area_shape
+	_area.position = Vector3(0.0, 0.0, AREA_DEPTH * 0.5 - GAP_SIZE.z * 0.5)
+	add_child(_area)
+	_blocker = StaticBody3D.new()
+	_blocker.collision_layer = Layers.WORLD
+	_blocker.collision_mask = 0
 	var shape: BoxShape3D = BoxShape3D.new()
 	shape.size = GAP_SIZE
 	var shape_node: CollisionShape3D = CollisionShape3D.new()
 	shape_node.name = "Shape"
 	shape_node.shape = shape
-	blocker.add_child(shape_node)
+	_blocker.add_child(shape_node)
 	var slab_mesh: BoxMesh = BoxMesh.new()
 	slab_mesh.size = GAP_SIZE
 	var slab_material: StandardMaterial3D = StandardMaterial3D.new()
@@ -48,16 +51,16 @@ func _ready() -> void:
 	slab.name = "Mesh"
 	slab.mesh = slab_mesh
 	slab.material_override = slab_material
-	blocker.add_child(slab)
-	add_child(blocker)
-	var label: Label3D = Label3D.new()
-	label.text = "%s\n%d" % [String(zone).capitalize(), price]
-	label.modulate = CAPTION_COLOR
-	label.outline_size = 0
-	label.pixel_size = 0.003
-	label.font_size = 48
-	label.position = Vector3(0.0, 0.2, GAP_SIZE.z * 0.5 + 0.02)
-	add_child(label)
+	_blocker.add_child(slab)
+	add_child(_blocker)
+	_label = Label3D.new()
+	_label.text = "%s\n%d" % [String(zone).capitalize(), price]
+	_label.modulate = CAPTION_COLOR
+	_label.outline_size = 0
+	_label.pixel_size = 0.003
+	_label.font_size = 48
+	_label.position = Vector3(0.0, 0.2, GAP_SIZE.z * 0.5 + 0.02)
+	add_child(_label)
 
 
 func offer(_loadout: Loadout, _perks: Perks) -> Station.Offer:
@@ -71,6 +74,7 @@ func accept(chosen: Station.Offer, _weapon: Weapon, _perks: Perks) -> void:
 		return
 	is_open = true
 	collision_layer = 0
-	for node: Node in get_children():
-		node.free()
+	_area.free()
+	_blocker.free()
+	_label.free()
 	opened.emit(zone)
