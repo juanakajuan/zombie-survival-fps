@@ -1,1 +1,1 @@
-The L1 facts of commit daccabc, with the trailer a maintainer would add.
+SYNTHETIC. The L1 facts of commit daccabc with a Verify-map trailer added in the last paragraph. The real commit changed player movement and needed movement.md. The trailer only tests the matcher.

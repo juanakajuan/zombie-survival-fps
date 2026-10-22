@@ -1,0 +1,4 @@
+L4 group-index tests/x_test.gd:1
+L4 binding-empty tests/x_test.gd:2
+L4 collision-bit tests/x_test.gd:3
+L4 node-index tests/x_test.gd:3

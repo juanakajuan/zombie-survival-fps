@@ -5,6 +5,7 @@ L1   a commit changed game code and not the feature file the verify skill maps t
 L2b  a key of the verify driver's _state() is missing from the State fields line of SKILL.md.
 L3   a doc comment names its caller, or the same doc comment sits in two files.
 L4   a test asserts a pinned read: a collision bit, a binding count, or a node list index.
+     It reads one line. A read split over several lines, or held in a local variable first, is not caught.
 
 A fixture file ends in .fixture so Godot and the parse check skip it.
 """
@@ -16,6 +17,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -51,32 +53,54 @@ FEATURE_MAP: dict[str, list[str]] = {
 }
 L1_IGNORED = (".uid", ".gdshader", ".tres", "lamp.tscn", "game/layers.gd", "game/main.tscn")
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
-TRAILER = re.compile(r"^Verify-map: unchanged \(.+\)$", re.M)
+TRAILER = re.compile(r"^Verify-map: unchanged \(.+\)$")
 
 CALLER = re.compile(
-    r"^\s*##?\s.*\b(?:[A-Z_][\w.]*|_\w+|[a-z_]+\(\))\s+(?:(?:also|only)\s+)?"
+    r"^##?\s.*\b(?:[A-Z_][\w.]*|_\w+|[a-z_]+\(\))\s+(?:(?:also|only)\s+)?"
     r"(?:sets?|calls?|seeds?|reads?|uses?|connects?|overrides?|replaces?)\s+(?:it|this|them|these)\b"
 )
-CALLER_TESTS = re.compile(r"^\s*##?\s.*\b(?:[Tt]ests?|[Cc]allers?)\s+(?:call|set|seed|read|use|write)\b")
+CALLER_TESTS = re.compile(r"^##?\s.*\b(?:[Tt]ests?|[Cc]allers?)\s+(?:call|set|seed|read|use|write)\b")
+CALLER_PASSIVE = re.compile(r"^##?\s.*\b(?:[Cc]alled|[Ss]et|[Uu]sed|[Rr]ead|[Ss]eeded|[Cc]onnected|[Oo]verridden)\s+by\s+\S")
 DOC_COMMENT = re.compile(r"^\s*##\s*(.+?)\s*$")
 MIN_DUPLICATE_LENGTH = 12
 
 ASSERT_CALL = re.compile(r"\b(?:check|ok|eq|near|between)\(")
-PINNED_READS: list[tuple[re.Pattern[str], str, str]] = [
+PINNED_READS: list[tuple[str, re.Pattern[str], str, str]] = [
     (
+        "collision-bit",
         re.compile(r"\bcollision_(?:layer|mask)\b"),
         "reads a collision bit",
         "Assert what the player observes: the prompt, the interact result, a ray hit, or movement.",
     ),
     (
+        "binding-count",
         re.compile(r"InputMap\.action_get_events\([^)]*\)\.size\(\)"),
         "counts the bindings of an action",
         "Press the binding and assert that the action fires.",
     ),
     (
+        "binding-empty",
+        re.compile(r"InputMap\.action_get_events\([^)]*\)\.is_empty\(\)"),
+        "checks that an action has a binding",
+        "Press the binding and assert that the action fires.",
+    ),
+    (
+        "node-index",
         re.compile(r"\b(?:stations|machines|spawns\(\)|get_children\(\)|zones|children)\[\d+\]"),
         "indexes a node list by a literal",
         "Find the node by type or name, not by its place in the scene.",
+    ),
+    (
+        "child-index",
+        re.compile(r"\bget_child\(\d+\)"),
+        "reads a child by a literal index",
+        "Find the node by type, name, or text, not by its place in the scene.",
+    ),
+    (
+        "group-index",
+        re.compile(r"\bget_nodes_in_group\([^)]*\)\[\d+\]"),
+        "indexes a group by a literal",
+        "Find the node by type or name, not by its place in the group.",
     ),
 ]
 
@@ -105,8 +129,9 @@ class AllowedDuplicate:
 
 
 _BUILD_CHILDREN = "The children that _build() adds. They have no owner, so the editor does not save them in the scene."
-_BUILD_RAY = "The interact area stands out from the wall, so the ray finds it before the wall."
-_BUILD_REASON = "A real why, copied into each station by _build(). PR 8 builds the level in code and deletes the copies."
+_AREA_DEPTH = "The interact area stands out from the wall, so the ray finds it before the wall."
+_BUILD_REASON = "The same doc comment sits on the _built variable of each script that has a _build(). PR 8 removes every entry of this table and its _built variables."
+_AREA_REASON = "The same doc comment sits on the AREA_DEPTH constant of machine.gd and wall_buy.gd. PR 8 removes every entry of this table and keeps one copy."
 ALLOWED_DUPLICATES: tuple[AllowedDuplicate, ...] = (
     AllowedDuplicate("game/level/sigil.gd", _BUILD_CHILDREN, _BUILD_REASON),
     AllowedDuplicate("game/station/cache.gd", _BUILD_CHILDREN, _BUILD_REASON),
@@ -114,8 +139,8 @@ ALLOWED_DUPLICATES: tuple[AllowedDuplicate, ...] = (
     AllowedDuplicate("game/station/machine.gd", _BUILD_CHILDREN, _BUILD_REASON),
     AllowedDuplicate("game/station/power_switch.gd", _BUILD_CHILDREN, _BUILD_REASON),
     AllowedDuplicate("game/station/wall_buy.gd", _BUILD_CHILDREN, _BUILD_REASON),
-    AllowedDuplicate("game/station/machine.gd", _BUILD_RAY, _BUILD_REASON),
-    AllowedDuplicate("game/station/wall_buy.gd", _BUILD_RAY, _BUILD_REASON),
+    AllowedDuplicate("game/station/machine.gd", _AREA_DEPTH, _AREA_REASON),
+    AllowedDuplicate("game/station/wall_buy.gd", _AREA_DEPTH, _AREA_REASON),
 )
 
 
@@ -133,13 +158,32 @@ class Tree:
         return file.read_text(encoding="utf-8").splitlines() if file.is_file() else None
 
 
+def split_comment(text: str) -> str | None:
+    quote = ""
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if quote:
+            if char == "\\":
+                index += 1
+            elif char == quote:
+                quote = ""
+        elif char in "\"'":
+            quote = char
+        elif char == "#":
+            return text[index:]
+        index += 1
+    return None
+
+
 def lint_l3(tree: Tree, allowed: tuple[AllowedDuplicate, ...]) -> list[Finding]:
     findings: list[Finding] = []
     sites: dict[str, list[tuple[str, int]]] = defaultdict(list)
     for path in tree.paths("game/**/*.gd") + [p for p in [DRIVER] if tree.lines(p) is not None]:
         for number, text in enumerate(tree.lines(path) or [], 1):
-            if CALLER.search(text) or CALLER_TESTS.search(text):
-                findings.append(Finding("L3", path, number, f"the comment names its caller ({text.strip()})", "Delete the comment, or state a why the code cannot show.", "caller"))
+            comment = split_comment(text)
+            if comment is not None and (CALLER.search(comment) or CALLER_TESTS.search(comment) or CALLER_PASSIVE.search(comment)):
+                findings.append(Finding("L3", path, number, f"the comment names its caller ({comment})", "Delete the comment, or state a why the code cannot show.", "caller"))
             match = DOC_COMMENT.match(text)
             if match and len(match.group(1)) >= MIN_DUPLICATE_LENGTH:
                 sites[match.group(1)].append((path, number))
@@ -165,32 +209,51 @@ def lint_l4(tree: Tree) -> list[Finding]:
         for number, text in enumerate(tree.lines(path) or [], 1):
             if text.lstrip().startswith("#") or not ASSERT_CALL.search(text):
                 continue
-            for pattern, what, fix in PINNED_READS:
+            for name, pattern, what, fix in PINNED_READS:
                 if pattern.search(text):
-                    findings.append(Finding("L4", path, number, f"the assertion {what}", fix))
+                    findings.append(Finding("L4", path, number, f"the assertion {what}", fix, name))
     return findings
 
 
+STATE_FUNC = re.compile(r"^(?:static\s+)?func _state\(")
+TOP_LEVEL = re.compile(r"^(?:(?:static\s+)?(?:func|var|const|class|signal|enum)\b|@)")
+
+
 def state_keys(driver: list[str]) -> list[tuple[str, int]]:
-    start = next((i for i, text in enumerate(driver) if text.startswith("func _state(")), None)
+    start = next((i for i, text in enumerate(driver) if STATE_FUNC.match(text)), None)
     if start is None:
         return []
     keys: list[tuple[str, int]] = []
     depth = 0
-    for index in range(start + 1, len(driver)):
+    for index in range(start, len(driver)):
         text = driver[index]
-        if text.startswith("func "):
+        if index > start and TOP_LEVEL.match(text):
             break
-        if depth == 1:
-            match = re.match(r'\s*"(\w+)"\s*:', text)
-            if match:
-                keys.append((match.group(1), index + 1))
-        assigned = re.match(r'\s*\w+\["(\w+)"\]\s*=', text)
-        if assigned and depth == 0:
-            keys.append((assigned.group(1), index + 1))
-        code = re.sub(r'"(?:[^"\\]|\\.)*"', '""', text.split("#", 1)[0])
-        depth += sum(code.count(c) for c in "{[(") - sum(code.count(c) for c in "}])")
-        depth = max(depth, 0)
+        quote = ""
+        begin = 0
+        position = 0
+        while position < len(text):
+            char = text[position]
+            if quote:
+                if char == "\\":
+                    position += 1
+                elif char == quote:
+                    quote = ""
+                    literal = text[begin + 1 : position]
+                    before, after = text[:begin], text[position + 1 :]
+                    is_key = depth == 1 and re.match(r"\s*:", after) is not None
+                    is_assign = depth == 0 and re.search(r"\w\[$", before) is not None and re.match(r"\]\s*=(?!=)", after) is not None
+                    if re.fullmatch(r"\w+", literal) and (is_key or is_assign):
+                        keys.append((literal, index + 1))
+            elif char in "\"'":
+                quote, begin = char, position
+            elif char == "#":
+                break
+            elif char in "{[(":
+                depth += 1
+            elif char in "}])":
+                depth = max(depth - 1, 0)
+            position += 1
     return keys
 
 
@@ -205,9 +268,12 @@ def lint_l2b(tree: Tree, must_exist: bool) -> list[Finding]:
     if line is None:
         return [Finding("L2b", SKILL, 1, "SKILL.md has no line that starts with State fields:", "Restore the State fields line, or update the rule in tools/lint.py.")]
     documented = set(re.findall(r"`(\w+)`", line))
+    keys = state_keys(driver)
+    if not keys:
+        return [Finding("L2b", DRIVER, 1, "the rule found no _state() function, or no key in it", "Keep a `func _state(` in the driver that returns a dictionary literal with string keys, or update state_keys in tools/lint.py.")]
     return [
-        Finding("L2b", DRIVER, number, f"`{key}` is a _state() key and the State fields line of SKILL.md does not list it", "Add the key to the State fields line in SKILL.md with its meaning.")
-        for key, number in state_keys(driver)
+        Finding("L2b", DRIVER, number, f"`{key}` is a _state() key and the State fields line of SKILL.md does not list it", "Add the key to the State fields line in SKILL.md with its meaning.", key)
+        for key, number in keys
         if key not in documented
     ]
 
@@ -278,8 +344,18 @@ def describe(need: tuple[str, ...]) -> str:
     return ", ".join(FEATURES + n for n in need)
 
 
+def has_verify_trailer(message: str) -> bool:
+    parsed = subprocess.run(["git", "interpret-trailers", "--parse"], input=message, capture_output=True, text=True, check=True).stdout
+    return any(TRAILER.match(line) for line in parsed.splitlines())
+
+
+def absent_note(need: tuple[str, ...], commit: CommitInfo) -> str:
+    absent = [FEATURES + n for n in need if n != ANY_FEATURE and n not in commit.feature_files]
+    return f" (create {', '.join(absent)} and list it in {FEATURES}README.md)" if absent else ""
+
+
 def lint_l1(commit: CommitInfo) -> list[Finding]:
-    if "README.md" not in commit.feature_files or TRAILER.search(commit.message):
+    if "README.md" not in commit.feature_files or has_verify_trailer(commit.message):
         return []
     docs = {p.removeprefix(FEATURES) for p in commit.changed if p.startswith(FEATURES)}
     skill_touched = SKILL in commit.changed
@@ -295,7 +371,7 @@ def lint_l1(commit: CommitInfo) -> list[Finding]:
             if not (docs or skill_touched):
                 missing[(ANY_FEATURE,)].append(path)
             continue
-        names = [w for w in wanted if w in commit.feature_files] or ["<new feature file>"]
+        names = [w for w in wanted if w in commit.feature_files] or wanted[:1]
         need = set(names) - docs
         if need:
             missing[tuple(sorted(need))].append(path)
@@ -305,19 +381,31 @@ def lint_l1(commit: CommitInfo) -> list[Finding]:
             "L1",
             paths[0],
             1,
-            f"commit {short} changed {', '.join(paths)} and did not change {describe(need)}",
+            f"commit {short} changed {', '.join(paths)} and did not change {describe(need)}{absent_note(need, commit)}",
             "Read each file and update it to match the new behavior. If the player-visible behavior is unchanged, "
-            "add the commit trailer `Verify-map: unchanged (<reason>)`.",
+            "add the commit trailer `Verify-map: unchanged (<reason>)` as the last paragraph of the message.",
+            "any" if need == (ANY_FEATURE,) else "+".join(need),
         )
         for need, paths in missing.items()
     ]
 
 
-def default_range(repo: Path) -> str | None:
+def git_ok(repo: Path, *args: str) -> bool:
+    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True).returncode == 0
+
+
+def resolve_range(repo: Path, commit_range: str | None) -> tuple[str | None, list[Finding]]:
+    where = FEATURES + "README.md"
+    if not (repo / where).is_file():
+        return None, [Finding("L1", where, 1, "the feature map file is missing, so L1 cannot run", "Restore the file, or update FEATURES in tools/lint.py to its new path.")]
+    if git(repo, "rev-parse", "--is-shallow-repository").strip() == "true":
+        return None, [Finding("L1", ".git", 1, "the repository is shallow, so L1 cannot see the commits", "Run `git fetch --unshallow origin main`. In CI, set `fetch-depth: 0` on the checkout step.")]
+    if commit_range is not None:
+        return commit_range, []
     for base in ("origin/main", "main"):
-        if subprocess.run(["git", "-C", str(repo), "rev-parse", "--verify", "-q", base], capture_output=True).returncode == 0:
-            return f"{base}..HEAD"
-    return None
+        if git_ok(repo, "rev-parse", "--verify", "-q", base):
+            return f"{base}..HEAD", []
+    return None, [Finding("L1", ".git", 1, "no origin/main or main ref exists, so L1 has no base to compare with", "Run `git fetch origin main`, or pass `--range <base>..HEAD`. In CI, set `fetch-depth: 0` on the checkout step.")]
 
 
 def parse_expected(text: str) -> set[str]:
@@ -350,22 +438,73 @@ def run_fixtures() -> tuple[list[str], int]:
     return out, failures
 
 
+def env_repo(base: Path, name: str, *, readme: bool, branch: str) -> Path:
+    repo = base / name
+    repo.mkdir()
+    git(repo, "init", "-q", "-b", branch)
+    git(repo, "config", "user.email", "lint@example.com")
+    git(repo, "config", "user.name", "lint")
+    if readme:
+        (repo / FEATURES).mkdir(parents=True)
+        (repo / FEATURES / "README.md").write_text("x\n", encoding="utf-8")
+    (repo / "a.txt").write_text("a\n", encoding="utf-8")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "first")
+    return repo
+
+
+def run_env_cases() -> tuple[list[str], int]:
+    out: list[str] = []
+    failures = 0
+    with tempfile.TemporaryDirectory() as raw:
+        base = Path(raw)
+        source = env_repo(base, "source", readme=True, branch="main")
+        (source / "b.txt").write_text("b\n", encoding="utf-8")
+        git(source, "add", "-A")
+        git(source, "commit", "-q", "-m", "second")
+        subprocess.run(["git", "clone", "-q", "--depth", "1", source.as_uri(), str(base / "shallow")], check=True, capture_output=True)
+        cases: dict[str, tuple[Path, str]] = {
+            "no base ref": (env_repo(base, "nobase", readme=True, branch="trunk"), "no origin/main or main ref"),
+            "shallow clone": (base / "shallow", "the repository is shallow"),
+            "missing feature map": (env_repo(base, "nomap", readme=False, branch="main"), "the feature map file is missing"),
+            "empty range": (source, ""),
+        }
+        for name, (repo, expected) in cases.items():
+            scope, found = resolve_range(repo, None)
+            messages = " ".join(f.what + " " + f.fix for f in found)
+            if expected and expected in messages and scope is None:
+                out.append(f"OK: lint env case {name}: fails with a message that names the fix")
+            elif not expected and not found and scope == "main..HEAD" and not git(repo, "log", "--format=%H", "main..HEAD").split():
+                out.append(f"OK: lint env case {name}: an empty range passes and the summary says it is empty")
+            else:
+                failures += 1
+                out.append(f"FAIL lint env case {name}: expected `{expected or 'no finding'}`, got scope {scope} and findings: {messages}")
+    return out, failures
+
+
 def cmd_check(repo: Path, commit_range: str | None) -> int:
     findings = lint_tree(Tree(repo), ALLOWED_DUPLICATES, must_exist=True)
-    scope = commit_range or default_range(repo)
+    scope, problems = resolve_range(repo, commit_range)
+    findings += problems
     checked = 0
     if scope is not None:
-        for sha in reversed(git(repo, "log", "--no-merges", "--format=%H", scope).split()):
+        try:
+            shas = git(repo, "log", "--no-merges", "--format=%H", scope).split()
+        except subprocess.CalledProcessError as error:
+            findings.append(Finding("L1", ".git", 1, f"git cannot list the range {scope} ({error.stderr.strip()})", "Fetch the base branch, or pass a range that exists."))
+            shas = []
+        for sha in reversed(shas):
             findings += lint_l1(commit_info(repo, sha))
             checked += 1
     for finding in findings:
         print(finding.render())
     if findings:
         return 1
-    print(f"OK: lint (L2b, L3, L4 on the tree; L1 on {checked} commit(s) in {scope or 'no range, no main branch found'})")
+    print(f"OK: lint (L2b, L3, L4 on the tree; L1 on {checked} commit(s) in {scope}{'; the range is empty, so HEAD adds nothing over its base' if checked == 0 else ''})")
     lines, failures = run_fixtures()
-    print("\n".join(lines))
-    return 1 if failures else 0
+    env_lines, env_failures = run_env_cases()
+    print("\n".join(lines + env_lines))
+    return 1 if failures or env_failures else 0
 
 
 def cmd_l1(repo: Path, sha: str) -> int:

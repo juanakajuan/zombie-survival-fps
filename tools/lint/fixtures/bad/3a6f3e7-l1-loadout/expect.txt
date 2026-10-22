@@ -1,2 +1,2 @@
-L1 game/game.gd:1
-L1 game/weapon/arsenal.gd:1
+L1 any game/game.gd:1
+L1 melee.md+pistol.md game/weapon/arsenal.gd:1

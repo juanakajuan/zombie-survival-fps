@@ -1,0 +1,1 @@
+SYNTHETIC. A static _state() with a # inside a string and a nested dictionary. All top-level keys are listed.

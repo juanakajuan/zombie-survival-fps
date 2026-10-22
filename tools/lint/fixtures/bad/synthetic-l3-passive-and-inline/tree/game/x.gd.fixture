@@ -1,0 +1,9 @@
+## Called by the body each tick.
+func a() -> void:
+	pass
+## Set by tests.
+var b: int = 0
+## Used by the HUD.
+var c: int = 0
+var d: int = 0 ## Tests seed it.
+var e: String = "Called by #1"

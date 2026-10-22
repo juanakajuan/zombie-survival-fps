@@ -1,0 +1,1 @@
+	wall.collision_layer = Layers.WORLD

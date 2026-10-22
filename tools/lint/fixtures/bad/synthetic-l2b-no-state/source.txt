@@ -1,0 +1,1 @@
+SYNTHETIC. A driver with no _state().

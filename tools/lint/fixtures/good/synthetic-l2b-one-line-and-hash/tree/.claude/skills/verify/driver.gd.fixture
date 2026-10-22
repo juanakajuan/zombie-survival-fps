@@ -1,0 +1,5 @@
+static func _state() -> Dictionary:
+	var c: String = "#%02x"
+	return {"a": 1, "color": c, "b": {"inner": 2}}
+func _next() -> void:
+	pass

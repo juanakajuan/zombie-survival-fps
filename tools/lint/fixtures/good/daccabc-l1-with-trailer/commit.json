@@ -15,6 +15,6 @@
     "pistol.md",
     "rounds.md"
   ],
-  "message": "feat(player): add a mantle move state\n\nVerify-map: unchanged (the mantle has no feature file yet)\n",
+  "message": "feat(player): add a mantle move state\n\nVerify-map: unchanged (fixture: tests the trailer matcher)\n",
   "sha": "daccabc"
 }

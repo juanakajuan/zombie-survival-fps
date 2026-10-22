@@ -1,0 +1,1 @@
+SYNTHETIC. A one-line _state() with an undocumented key.

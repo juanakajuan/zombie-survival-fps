@@ -1,0 +1,2 @@
+func _other() -> Dictionary:
+	return {"a": 1}

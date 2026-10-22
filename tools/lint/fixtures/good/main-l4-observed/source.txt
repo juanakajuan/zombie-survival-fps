@@ -1,1 +1,1 @@
-Real lines of tests/ at the PR 3 head that read contract values or fixtures outside an assertion, or index a counter list.
+Real lines of tests/suites at a6d37be, one line after another with no padding: arena_test.gd lines 10 and 21 (a collision bit read outside an assertion, and geometry_collision_mask inside one), game_test.gd line 159, movement_test.gd line 498, perks_test.gd line 67 (a counter list index). None may be flagged.
