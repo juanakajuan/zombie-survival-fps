@@ -149,7 +149,8 @@ If you do not give a path, the file is `user://visual_smoke.png`.
 
 These checks passed with Godot 4.7.2 on Linux on 2026-10-14:
 
-- `tools/gate` passed. The editor import and the parse of every script gave no errors and no warnings.
+- `bash tests/run_checks.sh` passed. The editor import and the parse of every script gave no errors and no warnings.
+- `tools/gate` passed on 2026-10-22. The lint, the editor import, the parse of every script, both physics engines in both timing modes, and the 600-frame start gave no errors and no warnings.
 - The test suite passed on Jolt Physics with 0 failures on 2026-10-21, after the mantle was added.
 - The test suite passed on Godot Physics with 0 failures on 2026-10-21, after the mantle was added.
 - The mantle tests cover a walk into a 1.0 m ledge with no jump, a jump press at that ledge, a 1.5 m ledge that blocks, a ledge with a ceiling too low for a crouched body, a ledge with a ceiling that fits only a crouched body, a short jump onto a ledge with jump held, a short jump with jump released, a jump at a 2.0 m ledge, the camera at 240 FPS during a mantle, and a scripted route with a literal end position.
