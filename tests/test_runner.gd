@@ -2,6 +2,9 @@ extends SceneTree
 
 const TICK: float = 1.0 / 60.0
 
+## Under --fixed-fps every rendered frame runs exactly one physics tick, so the checks that need frames between ticks run in a separate real-time process.
+enum Frames { ALL, FIXED_ONLY, REAL_ONLY }
+
 var checks: int = 0
 var failures: int = 0
 var jumps: int = 0
@@ -31,8 +34,24 @@ func frames(count: int) -> void:
 		await physics_frame
 
 
+func frames_mode() -> Frames:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if "--real-frames" in args:
+		return Frames.REAL_ONLY
+	if "--skip-real-frames" in args:
+		return Frames.FIXED_ONLY
+	return Frames.ALL
+
+
 func run() -> void:
 	print("Physics engine setting: %s" % str(ProjectSettings.get_setting("physics/3d/physics_engine")))
+	var mode: Frames = frames_mode()
+	if mode == Frames.REAL_ONLY:
+		await test_camera_on_stairs()
+		await test_camera_on_mantle()
+		print("RESULT: %d checks, %d failures" % [checks, failures])
+		quit(1 if failures > 0 else 0)
+		return
 	test_rules()
 	test_round_director_start()
 	test_round_director_spawn_cap()
@@ -56,12 +75,14 @@ func run() -> void:
 	await test_mantle()
 	await test_mantle_in_air()
 	await test_mantle_headroom()
-	await test_camera_on_mantle()
+	if mode == Frames.ALL:
+		await test_camera_on_mantle()
 	await test_mantle_route()
 	await test_slope_slide()
 	await test_landed_signal()
 	await test_camera_rig()
-	await test_camera_on_stairs()
+	if mode == Frames.ALL:
+		await test_camera_on_stairs()
 	await test_player_input()
 	await test_player_health()
 	await test_weapon()
@@ -1329,13 +1350,15 @@ func test_shotgun() -> void:
 	await finish(level)
 
 
-## The navigation map takes a few physics ticks to take in the baked region.
+## The navigation map syncs on a worker thread, so wait in wall time until its iteration holds this arena's region. A path query alone can answer from the previous level's stale map.
 func make_arena() -> Arena:
 	var arena: Arena = Game.ARENA_SCENE.instantiate() as Arena
 	root.add_child(arena)
 	var map: RID = arena.get_world_3d().navigation_map
-	for tick: int in range(30):
-		if not NavigationServer3D.map_get_path(map, arena.player_spawn.origin, arena.spawns()[0], true).is_empty():
+	var deadline: int = Time.get_ticks_msec() + 5000
+	while NavigationServer3D.map_get_closest_point_owner(map, arena.player_spawn.origin) != arena.navigation.get_rid():
+		if Time.get_ticks_msec() > deadline:
+			push_error("make_arena: the navigation map did not take in the arena region in 5 s")
 			break
 		await physics_frame
 	return arena

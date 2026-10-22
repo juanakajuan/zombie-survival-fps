@@ -17,21 +17,22 @@ fail_on_output() {
 }
 
 run_suite() {
-	local engine="$1"
+	local label="$1"
+	shift
 	local output
 	local status=0
-	output="$(godot --headless --path . -s tests/test_runner.gd 2>&1)" || status=$?
-	echo "Test suite on $engine:"
+	output="$(godot --headless "$@" 2>&1)" || status=$?
+	echo "Test suite, $label:"
 	grep -E 'RESULT|FAIL|SCRIPT ERROR' <<<"$output" || true
 	if grep -E 'leaked at exit|still in use at exit' <<<"$output"; then
-		echo "FAIL: the test suite ($engine) leaked objects at exit. Free each node a test makes: await finish(level) for a level, or call .free() on a node that never entered the tree."
+		echo "FAIL: the test suite ($label) leaked objects at exit. Free each node a test makes: await finish(level) for a level, or call .free() on a node that never entered the tree."
 		exit 1
 	fi
 	local unexpected
 	unexpected="$(grep -E '^(ERROR|WARNING)' <<<"$output" | grep -v '^ERROR: FAIL: ' || true)"
 	if [[ -n $unexpected ]]; then
 		echo "$unexpected"
-		echo "FAIL: the test suite ($engine) printed errors or warnings."
+		echo "FAIL: the test suite ($label) printed errors or warnings."
 		exit 1
 	fi
 	local reported counted
@@ -42,7 +43,7 @@ run_suite() {
 		exit 1
 	fi
 	if [[ $status -ne 0 ]] || grep -q 'SCRIPT ERROR' <<<"$output" || ! grep -q 'RESULT: [0-9]* checks, 0 failures' <<<"$output"; then
-		echo "FAIL: test suite on $engine"
+		echo "FAIL: test suite ($label)"
 		exit 1
 	fi
 }
@@ -55,11 +56,12 @@ fi
 fail_on_output "import" godot --headless --path . --import
 fail_on_output "parse every tracked script" godot --headless --path . -s tests/parse_all.gd
 
-run_suite "Jolt Physics"
-
-trap 'rm -f override.cfg' EXIT
-printf '[physics]\n\n3d/physics_engine="GodotPhysics3D"\n' >override.cfg
-run_suite "Godot Physics"
-rm -f override.cfg
+# Each overlay in tools/engines is a project dir of symlinks plus an override.cfg, so the engine choice never touches the repo root.
+for engine in jolt godot_physics; do
+	overlay="tools/engines/$engine"
+	fail_on_output "import ($engine overlay)" godot --headless --path "$overlay" --import
+	run_suite "$engine, fixed 60 FPS" --path "$overlay" --fixed-fps 60 -s tests/test_runner.gd -- --skip-real-frames
+	run_suite "$engine, real frames" --path "$overlay" -s tests/test_runner.gd -- --real-frames
+done
 
 fail_on_output "launch the game for 600 frames" godot --headless --path . --quit-after 600
