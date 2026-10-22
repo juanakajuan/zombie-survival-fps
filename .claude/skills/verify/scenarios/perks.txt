@@ -1,5 +1,5 @@
 # Perks: clear round 1 beside the Mender machine, look at it with the power off (the prompt is `No power` and a press buys nothing), then look at the upgrade machine.
-# The pistol alone does not survive round 2 here, so the paid buys are proven by tests/test_runner.gd (test_game_perks).
+# The pistol alone does not survive round 2 here, so the paid buys are proven by test_game_perks in tests/suites/game_test.gd.
 # Around the cover block at 8,4 (x 7 to 9, z 3 to 5), and the block at 0,-4.
 walk_to 5.5 6 4
 walk_to 5.5 -17 8

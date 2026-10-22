@@ -4,6 +4,7 @@ extends RefCounted
 const TICK: float = 1.0 / 60.0
 
 var tree: SceneTree
+var id: String = ""
 var checks: int = 0
 var failures: int = 0
 var jumps: int = 0
@@ -56,7 +57,7 @@ func _record(passed: bool, what: String, detail: String) -> void:
 		print("PASS: " + what)
 		return
 	failures += 1
-	push_error("FAIL: " + what + ("" if detail.is_empty() else " (" + detail + ")"))
+	push_error("FAIL: " + id + " " + what + ("" if detail.is_empty() else " (" + detail + ")"))
 
 
 func tuning() -> PlayerSettings:
