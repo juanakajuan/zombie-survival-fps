@@ -27,9 +27,7 @@ var state: State = State.READY
 var trigger_held: bool = false
 ## Kept until the weapon is READY, then cleared, so a press during the cooldown is not lost.
 var reload_requested: bool = false
-## One tick. The game writes this from input. Tests write it directly.
 var melee_requested: bool = false
-## One tick. The game writes this from input. Tests write it directly.
 var switch_requested: bool = false
 
 var _time_left: float = 0.0
