@@ -1,0 +1,11 @@
+# Map
+
+| Feature | File | Scenario | Code |
+|---|---|---|---|
+| Good | [pistol.md](pistol.md) | none | `game/weapon/` |
+| No link | pistol.md | none | `game/weapon/` |
+| Not md | [x](x.txt) | none | `game/weapon/` |
+| Short row | [melee.md](melee.md) |
+| No path | [buys.md](buys.md) | none | game/weapon/ |
+| Parent link | [rounds.md](../rounds.md) | none | `game/weapon/` |
+Lost pipe | [perks.md](perks.md) | none | `game/weapon/` |

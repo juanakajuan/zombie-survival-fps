@@ -1,0 +1,10 @@
+{
+  "changed": {
+    "game/weapon/weapon.gd": true
+  },
+  "feature_files": [
+    "README.md"
+  ],
+  "message": "feat(weapon): change the weapon\n\n",
+  "sha": "0000000"
+}

@@ -289,7 +289,7 @@ func _ready() -> void   # reads the markers and does a synchronous navigation ba
 
 `Game` and the tests make the arena with `Game.ARENA_SCENE.instantiate()`. All fields are set when the arena enters the tree.
 
-The arena is a 40 m by 40 m yard with outer walls, cover blocks, one raised platform with stairs and a ramp, and eight zombie spawn points near the walls. `Game` picks the spawn point that is farthest from the player of four random candidates, so zombies do not appear in view at close range.
+The arena is a 40 m by 40 m yard with outer walls, cover blocks, one raised platform with stairs and a ramp, and eight zombie spawn points near the walls. `Game` picks four random spawn points. `Rules.pick_spawn` takes the one nearest to the player that is at least `SPAWN_MIN_DISTANCE` (12 m) away, so zombies do not appear in view at close range. If all four are closer than 12 m, it takes the farthest one.
 
 ## Input
 

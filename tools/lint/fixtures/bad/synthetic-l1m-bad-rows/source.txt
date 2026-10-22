@@ -1,0 +1,1 @@
+SYNTHETIC. Rows the parser cannot read: no link, a link that is not a feature file, too few cells, a Code cell with no backticks, a link out of the folder, and a row without its leading pipe. Each must fail L1m.
