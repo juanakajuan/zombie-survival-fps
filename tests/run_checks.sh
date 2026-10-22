@@ -13,6 +13,7 @@ fail_on_output() {
 		exit 1
 	fi
 	echo "OK: $label"
+	grep '^PARSED' <<<"$output" || true
 }
 
 run_suite() {
@@ -22,6 +23,17 @@ run_suite() {
 	output="$(godot --headless --path . -s tests/test_runner.gd 2>&1)" || status=$?
 	echo "Test suite on $engine:"
 	grep -E 'RESULT|FAIL|SCRIPT ERROR' <<<"$output" || true
+	if grep -E 'leaked at exit|still in use at exit' <<<"$output"; then
+		echo "FAIL: the test suite ($engine) leaked objects at exit. Free each node a test makes: await finish(level) for a level, or call .free() on a node that never entered the tree."
+		exit 1
+	fi
+	local unexpected
+	unexpected="$(grep -E '^(ERROR|WARNING)' <<<"$output" | grep -v '^ERROR: FAIL: ' || true)"
+	if [[ -n $unexpected ]]; then
+		echo "$unexpected"
+		echo "FAIL: the test suite ($engine) printed errors or warnings."
+		exit 1
+	fi
 	if [[ $status -ne 0 ]] || grep -q 'SCRIPT ERROR' <<<"$output" || ! grep -q 'RESULT: [0-9]* checks, 0 failures' <<<"$output"; then
 		echo "FAIL: test suite on $engine"
 		exit 1
@@ -33,10 +45,8 @@ if [[ -e override.cfg ]]; then
 	exit 1
 fi
 
-fail_on_output "editor import" godot --headless --path . --editor --quit
-for script in $(find game tests -name '*.gd' | sort); do
-	fail_on_output "parse $script" godot --headless --path . --check-only -s "$script"
-done
+fail_on_output "import" godot --headless --path . --import
+fail_on_output "parse every tracked script" godot --headless --path . -s tests/parse_all.gd
 
 run_suite "Jolt Physics"
 
