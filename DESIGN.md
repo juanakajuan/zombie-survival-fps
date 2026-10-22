@@ -88,7 +88,7 @@ Then move and rename. The player is a part of the game now, not an addon:
 - `game/weapon/weapon_def.gd`. `class_name WeaponDef extends Resource`. Data for one weapon.
 - `game/weapon/weapon.gd`. `class_name Weapon extends Node3D`. A child of the player camera. Fire, reload, hitscan, and a box view model.
 - `game/zombie/zombie.gd`. `class_name Zombie extends CharacterBody3D`. Chase, attack, die.
-- `game/level/arena_layout.gd`. `class_name ArenaLayout`. The map: floor, walls, cover blocks, the platform with stairs and ramp, lamps, the sky and moon, the stations, the `PlayerSpawn` marker, and the `ZombieSpawns` markers, one `LevelBuilder` call each. All static bodies go under the `Navigation` region.
+- `game/level/arena_layout.gd`. `class_name ArenaLayout`. The map: floor, walls, cover blocks, the platform with stairs and ramp, lamps, the sky and moon, the stations, the `PlayerSpawn` marker, and the `ZombieSpawns` markers, one `LevelBuilder` call each. The floor, the walls, the cover blocks, the platform, and the lamps go under the `Navigation` region. The door blockers, the sigils, and the secret panel are outside it, so the baked mesh is continuous through each gap.
 - `game/level/level_builder.gd`. `class_name LevelBuilder`. One typed constructor per kind of node. `lamp` makes a post, a bulb, and a light.
 - `game/level/arena.gd`. `class_name Arena extends Node3D`. `Arena.create()` builds the map. `_ready()` reads the spawn markers and the stations, and bakes the navigation mesh.
 - `game/level/grid.gdshader` and `game/level/materials/*.tres`. The grid shader and one material for each surface color.

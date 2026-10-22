@@ -45,9 +45,7 @@ loadout.current().magazine              # 30
 loadout.find(&"pistol").reserve         # 80
 
 # A station tells what a press buys. It does not change anything:
-var wall: WallBuy = WallBuy.new()
-wall.weapon_id = &"smg"                 # arena.tscn sets the two fields in the inspector
-wall.price = 1000
+var wall: WallBuy = WallBuy.new(Arsenal.smg(), 1000)   # arena_layout.gd gives the weapon and the price
 var offer: Station.Offer = wall.offer(loadout)
 offer.kind   # Station.Offer.Kind.AMMO
 offer.cost   # 500
@@ -97,7 +95,7 @@ Changed files:
 - `game/weapon/weapon_def.gd`. Adds `id`, `pellets`, `parts`, and `muzzle`. Removes `starting_pistol()`. `Arsenal.pistol()` replaces it.
 - `game/weapon/weapon.gd`. Reads the active slot of a `Loadout`. Adds SWITCHING and pellets. Builds the view model from `WeaponDef.parts`. Removes `def`, `magazine`, `reserve`, and `refill()`.
 - `game/game.gd`. Casts the interact ray, shows the prompt, and handles the `interact` and `switch_weapon` actions. Removes the `refill()` call on `round_started`.
-- `game/level/arena.tscn`. Holds the three wall buys and the box crate. The crate is under the `Navigation` region, so the bake cuts it out.
+- `game/level/arena.tscn`. Holds the three wall buys and the box crate. The crate is under the `Navigation` region, so the bake cuts it out. (Since the level-in-code change, `game/level/arena_layout.gd` holds them.)
 - `game/layers.gd`. Adds `INTERACT`.
 - `game/rules.gd`. Adds the constants for buys, the box, and the weapon change.
 - `game/hud.gd`. Adds the weapon name and the prompt. Adds the new keys to the pause screen.
@@ -205,6 +203,7 @@ class_name WallBuy extends Station
 
 @export var weapon_id: StringName   # an Arsenal id. Its setter sets weapon_def.
 @export var price: int
+# Current: WallBuy._init(weapon: WeaponDef, price: int). No exports. arena_layout.gd passes the WeaponDef.
 
 var weapon_def: WeaponDef
 ```
@@ -314,7 +313,7 @@ The outer walls have their inner faces at 20 m from the center. The stations sta
 | Rifle wall buy, 1500 | (-19.95, 1.5, 8) | +X |
 | Box, 950 | (10, 0, 19.5) | -Z |
 
-The stations are nodes in `game/level/arena.tscn`. `Arena` exposes `stations: Array[Station]` and `box: MysteryBox` for the game and the tests.
+The stations were nodes in `game/level/arena.tscn`. They are now `LevelBuilder` calls in `game/level/arena_layout.gd`. `Arena` exposes `stations: Array[Station]` and `box: MysteryBox` for the game and the tests.
 
 ## Input
 

@@ -109,7 +109,7 @@ Changed files:
 - `game/player/player.gd`. Adds `perks`. Reads the maximum health and the regeneration numbers from `Rules`.
 - `game/game.gd`. Owns one `Perks`, gives it to the player and the weapon, and passes it to `offer()` and `accept()`.
 - `game/hud.gd`. Adds a perk row.
-- `game/level/arena.tscn`. Holds the four perk machines and the upgrade machine.
+- `game/level/arena.tscn`. Holds the four perk machines and the upgrade machine. (Since the level-in-code change, `game/level/arena_layout.gd` holds them as `PerkMachine.new(perk, price)` calls through `LevelBuilder`.)
 - `tests/suites/perks_test.gd` and `test_game_perks` in `tests/suites/game_test.gd`. The tests in the verification plan.
 
 ## Data shapes

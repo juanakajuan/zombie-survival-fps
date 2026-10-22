@@ -74,7 +74,7 @@ New:
 
 Changed:
 
-- `game/level/arena.tscn`. Adds the Warehouse and the Courtyard, the two doors, the power switch, the sigils, the panel, the cache, and the spawn markers. Spawn markers go under one `Node3D` for each zone (`ZombieSpawns/Yard`, `ZombieSpawns/Warehouse`, `ZombieSpawns/Courtyard`). Doors and the panel are outside `Navigation`.
+- `game/level/arena.tscn` (now `game/level/arena_layout.gd`, built by `LevelBuilder`). Adds the Warehouse and the Courtyard, the two doors, the power switch, the sigils, the panel, the cache, and the spawn markers. Spawn markers go under one `Node3D` for each zone (`ZombieSpawns/Yard`, `ZombieSpawns/Warehouse`, `ZombieSpawns/Courtyard`). Doors and the panel are outside `Navigation`.
 - `game/level/arena.gd`. Reads spawns by zone. `open_zone(zone)` adds a zone. `spawns() -> Array[Vector3]` gives the open ones. Finds the doors, the power switch, and the secret.
 - `game/station/machine.gd`. Adds `powered`. `offer()` returns NONE with the label "No power" when off, and calls the new abstract `_offer()` when on. The glow is dark when off. `PerkMachine` and `UpgradeMachine` rename `offer` to `_offer`.
 - `game/station/station.gd`. Adds `Offer.Kind.DOOR`, `POWER`, and `CACHE`.
