@@ -591,6 +591,8 @@ def run_env_cases() -> tuple[list[str], int]:
         os.environ.update(hook_env)
         try:
             env_repo(base, "inherited", readme=True, branch="main")
+        except subprocess.CalledProcessError:
+            pass
         finally:
             for key, value in saved.items():
                 if value is None:
