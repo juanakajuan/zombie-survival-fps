@@ -1,6 +1,6 @@
 # Zombie Survival FPS
 
-Zombie Survival FPS is a round-based survival first-person shooter for Godot 4.7. It is written in GDScript only. The map is a scene (`game/level/arena.tscn`) that you can open and edit in the Godot editor. The rules, the player, the weapons, the zombies, input actions, and the HUD are in code. It uses no external assets.
+Zombie Survival FPS is a round-based survival first-person shooter for Godot 4.7. It is written in GDScript only. The map is code (`game/level/arena_layout.gd`), one typed call per node. The rules, the player, the weapons, the zombies, input actions, and the HUD are in code too. It uses no external assets.
 
 You stand in a walled yard with a pistol. Undead come in rounds. Each round has more zombies, and the zombies have more health and more speed. You get points for hits and kills, and you spend them on weapons and ammunition. The game ends when you die. Your score is the number of rounds that you survived.
 
@@ -77,7 +77,7 @@ The player has four move states: GROUND, AIR, SLIDE, and MANTLE. A step of 0.35 
 | File | Function |
 |---|---|
 | `game/main.tscn` | The main scene. It has one node with `game/game.gd`. |
-| `game/game.gd` | `Game` instances the arena scene and builds the player, the weapon, and the HUD. It ticks the round director, spawns zombies, and sends events between the parts. It finds the station in view, shows its prompt, and takes the points for a buy. It owns mouse capture, pause, and restart. |
+| `game/game.gd` | `Game` builds the arena, the player, the weapon, and the HUD. It ticks the round director, spawns zombies, and sends events between the parts. It finds the station in view, shows its prompt, and takes the points for a buy. It owns mouse capture, pause, and restart. |
 | `game/rules.gd` | `Rules` holds all tuning values and the wave formulas. |
 | `game/round_director.gd` | `RoundDirector` is the round state machine. It uses no nodes. |
 | `game/perks.gd` | `Perks` holds the perks that the player has. `Rules` reads it for the numbers that a perk changes. |
@@ -98,8 +98,9 @@ The player has four move states: GROUND, AIR, SLIDE, and MANTLE. A step of 0.35 
 | `game/station/upgrade_machine.gd` | `UpgradeMachine` upgrades the weapon in the hands. |
 | `game/station/mystery_box.gd` | `MysteryBox` rolls a random weapon and offers it. |
 | `game/zombie/zombie.gd` | `Zombie` finds a path to the player, attacks, and dies. |
-| `game/level/arena.tscn` | The map: the yard, the lamps, the wall buys, the box, the perk machines, the upgrade machine, and the spawn markers. Edit it in the Godot editor. |
-| `game/level/arena.gd` | `Arena` reads the spawn markers and the stations of the map scene, and bakes its navigation mesh. |
+| `game/level/arena_layout.gd` | `ArenaLayout` is the map: one `LevelBuilder` call per block, lamp, station, door, and spawn marker. Edit it in a text editor. |
+| `game/level/level_builder.gd` | `LevelBuilder` has one typed constructor per kind of node. A wrong perk, weapon, or zone is a parse error. |
+| `game/level/arena.gd` | `Arena.create()` builds the map. `Arena` reads the spawn markers and the stations, and bakes its navigation mesh. |
 | `tests/run.gd` | Finds every `tests/suites/*_test.gd` and runs each `test_` method. |
 | `tests/test_case.gd` | `TestCase`: the assertions and the fixtures that more than one suite uses. |
 | `tests/suites/` | The headless test suites, one file per area. |
