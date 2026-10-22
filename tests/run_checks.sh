@@ -56,7 +56,6 @@ fi
 fail_on_output "import" godot --headless --path . --import
 fail_on_output "parse every tracked script" godot --headless --path . -s tests/parse_all.gd
 
-# Each overlay in tools/engines is a project dir of symlinks plus an override.cfg, so the engine choice never touches the repo root.
 for engine in jolt godot_physics; do
 	overlay="tools/engines/$engine"
 	fail_on_output "import ($engine overlay)" godot --headless --path "$overlay" --import

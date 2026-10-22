@@ -2,9 +2,6 @@ extends SceneTree
 
 const TICK: float = 1.0 / 60.0
 
-## Under --fixed-fps every rendered frame runs exactly one physics tick, so the checks that need frames between ticks run in a separate real-time process.
-enum Frames { ALL, FIXED_ONLY, REAL_ONLY }
-
 var checks: int = 0
 var failures: int = 0
 var jumps: int = 0
@@ -34,24 +31,18 @@ func frames(count: int) -> void:
 		await physics_frame
 
 
-func frames_mode() -> Frames:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
-	if "--real-frames" in args:
-		return Frames.REAL_ONLY
-	if "--skip-real-frames" in args:
-		return Frames.FIXED_ONLY
-	return Frames.ALL
-
-
 func run() -> void:
 	print("Physics engine setting: %s" % str(ProjectSettings.get_setting("physics/3d/physics_engine")))
-	var mode: Frames = frames_mode()
-	if mode == Frames.REAL_ONLY:
-		await test_camera_on_stairs()
-		await test_camera_on_mantle()
-		print("RESULT: %d checks, %d failures" % [checks, failures])
-		quit(1 if failures > 0 else 0)
-		return
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	if "--real-frames" not in args:
+		await tick_tests()
+	if "--skip-real-frames" not in args:
+		await tests_that_need_frames_between_ticks()
+	print("RESULT: %d checks, %d failures" % [checks, failures])
+	quit(1 if failures > 0 or checks == 0 else 0)
+
+
+func tick_tests() -> void:
 	test_rules()
 	test_round_director_start()
 	test_round_director_spawn_cap()
@@ -75,14 +66,10 @@ func run() -> void:
 	await test_mantle()
 	await test_mantle_in_air()
 	await test_mantle_headroom()
-	if mode == Frames.ALL:
-		await test_camera_on_mantle()
 	await test_mantle_route()
 	await test_slope_slide()
 	await test_landed_signal()
 	await test_camera_rig()
-	if mode == Frames.ALL:
-		await test_camera_on_stairs()
 	await test_player_input()
 	await test_player_health()
 	await test_weapon()
@@ -101,8 +88,11 @@ func run() -> void:
 	await test_doors()
 	await test_power()
 	await test_secret()
-	print("RESULT: %d checks, %d failures" % [checks, failures])
-	quit(1 if failures > 0 else 0)
+
+
+func tests_that_need_frames_between_ticks() -> void:
+	await test_camera_on_stairs()
+	await test_camera_on_mantle()
 
 
 func tuning() -> PlayerSettings:
@@ -1350,7 +1340,7 @@ func test_shotgun() -> void:
 	await finish(level)
 
 
-## The navigation map syncs on a worker thread, so wait in wall time until its iteration holds this arena's region. A path query alone can answer from the previous level's stale map.
+## The navigation map syncs on a worker thread, and a path query alone can answer from the previous level's stale map.
 func make_arena() -> Arena:
 	var arena: Arena = Game.ARENA_SCENE.instantiate() as Arena
 	root.add_child(arena)
