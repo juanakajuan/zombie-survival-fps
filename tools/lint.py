@@ -103,16 +103,6 @@ class Finding:
         return f"{self.rule}{' ' + self.kind if self.kind else ''} {self.path}:{self.line}"
 
 
-@dataclass(frozen=True)
-class AllowedDuplicate:
-    path: str
-    text: str
-    reason: str
-
-
-ALLOWED_DUPLICATES: tuple[AllowedDuplicate, ...] = ()
-
-
 class Tree:
     def __init__(self, root: Path, suffix: str = "") -> None:
         self.root = root
@@ -150,7 +140,7 @@ def split_comment(text: str) -> str | None:
     return None
 
 
-def lint_l3(tree: Tree, allowed: tuple[AllowedDuplicate, ...]) -> list[Finding]:
+def lint_l3(tree: Tree) -> list[Finding]:
     findings: list[Finding] = []
     sites: dict[str, list[tuple[str, int]]] = defaultdict(list)
     for path in tree.paths("game/**/*.gd") + [p for p in [DRIVER] if tree.lines(p) is not None]:
@@ -161,19 +151,12 @@ def lint_l3(tree: Tree, allowed: tuple[AllowedDuplicate, ...]) -> list[Finding]:
             match = DOC_COMMENT.match(text)
             if match and len(match.group(1)) >= MIN_DUPLICATE_LENGTH:
                 sites[match.group(1)].append((path, number))
-    permitted = {(a.path, a.text) for a in allowed}
     for text, places in sites.items():
         if len({path for path, _ in places}) < 2:
             continue
         for path, number in places:
-            if (path, text) in permitted:
-                continue
             others = ", ".join(f"{p}:{n}" for p, n in places if (p, n) != (path, number))
             findings.append(Finding("L3", path, number, f"the doc comment is the same as in {others} (## {text})", "Delete the copies, or state a why that is specific to this line.", "duplicate"))
-    seen_texts = {(path, text) for text, places in sites.items() for path, _ in places}
-    for entry in allowed:
-        if (entry.path, entry.text) not in seen_texts:
-            findings.append(Finding("L3", entry.path, 1, "an ALLOWED_DUPLICATES entry matches no comment", "Delete the entry from ALLOWED_DUPLICATES in tools/lint.py.", "allow"))
     return sorted(findings, key=lambda f: (f.path, f.line, f.kind))
 
 
@@ -252,8 +235,8 @@ def lint_l2b(tree: Tree, must_exist: bool) -> list[Finding]:
     ]
 
 
-def lint_tree(tree: Tree, allowed: tuple[AllowedDuplicate, ...], must_exist: bool) -> list[Finding]:
-    return lint_l2b(tree, must_exist) + lint_l3(tree, allowed) + lint_l4(tree) + lint_l1_map(tree)
+def lint_tree(tree: Tree, must_exist: bool) -> list[Finding]:
+    return lint_l2b(tree, must_exist) + lint_l3(tree) + lint_l4(tree) + lint_l1_map(tree)
 
 
 @dataclass(frozen=True)
@@ -514,7 +497,7 @@ def run_fixtures(feature_map: FeatureMap) -> tuple[list[str], int]:
             if (case / "commit.json").is_file():
                 found += lint_l1(CommitInfo.from_json((case / "commit.json").read_text(encoding="utf-8")), feature_map)
             if (case / "tree").is_dir():
-                found += lint_tree(Tree(case / "tree", FIXTURE_SUFFIX), (), must_exist=False)
+                found += lint_tree(Tree(case / "tree", FIXTURE_SUFFIX), must_exist=False)
             got = {f.key(): f for f in found}
             problems = [f"FAIL lint fixture {name}: expected {k} and the rule did not report it. The rule no longer catches this bad commit." for k in sorted(expected - got.keys())]
             problems += [f"FAIL lint fixture {name}: reported {k}, which expect.txt does not list. Fix the rule, or list the finding in expect.txt." for k in sorted(got.keys() - expected)]
@@ -606,7 +589,7 @@ def run_env_cases() -> tuple[list[str], int]:
 
 
 def cmd_check(repo: Path, commit_range: str | None) -> int:
-    findings = lint_tree(Tree(repo), ALLOWED_DUPLICATES, must_exist=True)
+    findings = lint_tree(Tree(repo), must_exist=True)
     feature_map = load_feature_map(Tree(repo))
     scope, problems = resolve_range(repo, commit_range)
     findings += problems
