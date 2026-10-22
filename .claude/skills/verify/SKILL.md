@@ -23,7 +23,7 @@ Run this first, and again when something looks wrong. It is read-only.
 .claude/skills/verify/doctor.sh
 ```
 
-Each line starts with `OK:` or `PROBLEM:`. Exit code 1 means at least one problem. It checks Godot 4.7, `kwin_wayland`, `XDG_RUNTIME_DIR`, the project import (each `class_name` in `game/` is in the class cache in `.godot/`), no `override.cfg` (it changes the physics engine), and no stranded verify instances.
+Each line starts with `OK:` or `PROBLEM:`. Exit code 1 means at least one problem. It checks Godot 4.7, `kwin_wayland`, `XDG_RUNTIME_DIR`, the project import (each `class_name` in `game/` is in the class cache in `.godot/`), no `override.cfg` (it changes the physics engine), and no stranded verify instances. An instance of another worktree is an `OK: info:` line that names its worktree. An instance with no `project` file (an older `run.sh` started it) is a `PROBLEM:` line with the `kill <pid>` command that stops it.
 
 If the project is not imported, or the class cache is stale (a new `class_name` since the last import), run `godot --headless --path . --import` once. With a stale cache, each run fails with `SCRIPT ERROR: Parse Error: Could not find type "<Class>"`.
 
@@ -39,12 +39,12 @@ The optional second argument sets the evidence directory. The default is `.verif
 
 Options go after the scenario and the evidence directory:
 
-- `--seed <n>` seeds the zombie spawn generator, so two runs spawn the same zombies at the same points. The default is a random seed. Pistol spread stays random.
-- `--invulnerable` makes the player take no damage. `health` stays at 100, so a scenario can fight for a whole round. Use it for scenarios that test rounds or buys. Do not use it when the scenario proves damage or death.
+- `--seed <n>` seeds the spawn generator in `Game`. It fixes the 4 random spawn-point picks for each zombie and each zombie's speed roll. It does not fix where a zombie spawns, because `Rules.pick_spawn` chooses among the picks by the player position, and the player position differs between runs. It does not fix the mystery box (`mystery_box.gd`) or the weapon spread (`weapon.gd`): both use their own unseeded generators. `--seed 0` is the default and means a random seed.
+- `--invulnerable` makes the player take no damage. `health` never drops, so a scenario can fight for a whole round. Use it for scenarios that test rounds or buys. Do not use it when the scenario proves damage or death.
 
-Both options set `GameConfig` in the driver before the game starts. They are off by default, and nothing else sets them.
+Both options set `GameConfig` in the driver before the game starts. They are off by default. The driver and the headless tests in `tests/` are the only code that sets them.
 
-`run.sh` runs `godot --headless --path . --import` first, so a new `class_name` is in the class cache. The environment variable `VERIFY_TIMEOUT` sets the limit for the game run in seconds. The default is 300. At the limit `run.sh` stops Godot and prints `RESULT: FAIL (timeout after <n> s: the driver never printed VERIFY DONE; read godot.log for the SCRIPT ERROR)`. A script error in the driver, for example, stops the driver before it prints `VERIFY DONE`.
+`run.sh` runs `godot --headless --path . --import` first, so a new `class_name` is in the class cache. The environment variable `VERIFY_TIMEOUT` sets the limit for the game run in seconds. The default is 300. `run.sh` also fails the run when `godot.log` has a line that starts with `ERROR:`, or a `SCRIPT ERROR`, or a `FAIL` line. At the limit `run.sh` stops Godot and prints `RESULT: FAIL (timeout after <n> s: the driver never printed VERIFY DONE; read godot.log for the SCRIPT ERROR)`. A script error in the driver, for example, stops the driver before it prints `VERIFY DONE`.
 
 - Ready signal: `VERIFY READY` in the output. The main scene is in the tree at that time.
 - End: `VERIFY DONE failures=<n>`, then `RESULT: PASS` or `RESULT: FAIL (exit <code>)` and the evidence path.
@@ -55,7 +55,7 @@ There is no long-lived instance. To prove a new behavior, write a scenario file 
 
 ### Scenario language
 
-One command on each line. `#` starts a comment line. The run stops at the first failed step.
+One command on each line. `#` starts a comment line. The run stops at the first failed step. A failure inside a step, for example an enum value that `_enum_name` cannot name (it prints `UNKNOWN_<n>`), also stops the run.
 
 | Command | Effect |
 |---|---|
@@ -95,7 +95,7 @@ Each run writes these files to its evidence directory:
 
 Proof standards:
 
-- Drive the real player path: keys, mouse buttons, and mouse motion. Do not set `Weapon.trigger_held`, call `take_damage`, or use other test hooks from a scenario. `--seed` and `--invulnerable` are the only hooks, and they are run options, not scenario commands. The headless suite in `tests/` already does that.
+- Drive the real player path: keys, mouse buttons, and mouse motion. Do not set `Weapon.trigger_held`, call `take_damage`, or use other test hooks from a scenario. `--seed` and `--invulnerable` are the only hooks, and they are run options, not scenario commands. The headless suite in `tests/` calls these hooks, so use the suite for them.
 - Capture the action and the result: a `state` or `expect` before the action, a `shot` during it, and `expect` lines after it.
 - Assert what the player sees (`hud_*` fields and screenshots) and the game state behind it (`points`, `magazine`, `phase`). A HUD that shows a value the game does not have is a bug.
 - Look at the screenshots. Use the Read tool on the PNG. An `expect` does not prove that the frame shows the right thing.
