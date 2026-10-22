@@ -29,6 +29,7 @@ static func zone_id(zone: Zone) -> StringName:
 func add(parent: Node, node: Node) -> void:
 	if parent.has_node(NodePath(node.name)):
 		push_error("LevelBuilder: %s already has a child named \"%s\"." % [root.get_path_to(parent), node.name])
+		node.free()
 		return
 	parent.add_child(node)
 	node.owner = root

@@ -36,14 +36,16 @@ run_suite() {
 	output="$(godot --headless "$@" 2>&1)" || status=$?
 	echo "Test suite, $label:"
 	grep -E 'RESULT|FAIL|SCRIPT ERROR' <<<"$output" || true
-	if grep -E 'leaked at exit|still in use at exit' <<<"$output"; then
-		echo "FAIL: the test suite ($label) leaked objects at exit. Free each node a test makes: await finish(level) for a level, or call .free() on a node that never entered the tree."
-		exit 1
-	fi
 	local unexpected
 	unexpected="$(grep -E '^(ERROR|WARNING)' <<<"$output" | grep -v '^ERROR: FAIL: ' || true)"
 	if [[ -n $unexpected ]]; then
 		echo "$unexpected"
+	fi
+	if grep -qE 'leaked at exit|still in use at exit' <<<"$output"; then
+		echo "FAIL: the test suite ($label) leaked objects at exit. Free each node a test makes: await finish(level) for a level, or call .free() on a node that never entered the tree."
+		exit 1
+	fi
+	if [[ -n $unexpected ]]; then
 		echo "FAIL: the test suite ($label) printed errors or warnings."
 		exit 1
 	fi
