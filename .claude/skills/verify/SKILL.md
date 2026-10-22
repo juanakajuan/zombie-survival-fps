@@ -25,7 +25,7 @@ Run this first, and again when something looks wrong. It is read-only.
 
 Each line starts with `OK:` or `PROBLEM:`. Exit code 1 means at least one problem. It checks Godot 4.7, `kwin_wayland`, `XDG_RUNTIME_DIR`, the project import (each `class_name` in `game/` is in the class cache in `.godot/`), no `override.cfg` (it changes the physics engine), and no stranded verify instances.
 
-If the project is not imported, or the class cache is stale (a new `class_name` since the last import), run `godot --headless --path . --editor --quit` once. With a stale cache, each run fails with `SCRIPT ERROR: Parse Error: Could not find type "<Class>"`.
+If the project is not imported, or the class cache is stale (a new `class_name` since the last import), run `godot --headless --path . --import` once. With a stale cache, each run fails with `SCRIPT ERROR: Parse Error: Could not find type "<Class>"`.
 
 ## Launch and drive
 

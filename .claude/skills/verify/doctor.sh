@@ -13,11 +13,11 @@ command -v kwin_wayland >/dev/null && ok "kwin_wayland found (private headless d
 [[ -n "${XDG_RUNTIME_DIR:-}" && -d "$XDG_RUNTIME_DIR" ]] && ok "XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" || bad "XDG_RUNTIME_DIR not set"
 cache="$project/.godot/global_script_class_cache.cfg"
 if [[ ! -f "$cache" ]]; then
-	bad "project not imported: run 'godot --headless --path . --editor --quit'"
+	bad "project not imported: run 'godot --headless --path . --import'"
 else
 	# A class_name added after the last import is missing from the cache, and every scene that uses it fails to parse.
 	missing="$(grep -rhoP '^class_name \K\w+' "$project/game" | while read -r name; do grep -q "&\"$name\"" "$cache" || echo "$name"; done | tr '\n' ' ')"
-	[[ -z "$missing" ]] && ok "project imported (class cache has every class_name)" || bad "class cache is stale, missing: ${missing}run 'godot --headless --path . --editor --quit'"
+	[[ -z "$missing" ]] && ok "project imported (class cache has every class_name)" || bad "class cache is stale, missing: ${missing}run 'godot --headless --path . --import'"
 fi
 [[ -e "$project/override.cfg" ]] && bad "override.cfg exists: it changes engine settings (tests/run_checks.sh may have left it)" || ok "no override.cfg"
 stray="$( { pgrep -ax godot; pgrep -ax kwin_wayland; pgrep -ax dbus-daemon; } | grep -E 'verify/driver\.gd -- |--socket zsfps-verify-|/zsfps-verify-[0-9]+\.d/bus\.conf' || true)"
