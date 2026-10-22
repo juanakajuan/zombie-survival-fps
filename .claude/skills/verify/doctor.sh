@@ -20,8 +20,30 @@ else
 	[[ -z "$missing" ]] && ok "project imported (class cache has every class_name)" || bad "class cache is stale, missing: ${missing}run 'godot --headless --path . --import'"
 fi
 [[ -e "$project/override.cfg" ]] && bad "override.cfg exists: it changes engine settings (tests/run_checks.sh may have left it)" || ok "no override.cfg"
-stray="$( { pgrep -ax godot; pgrep -ax kwin_wayland; pgrep -ax dbus-daemon; } | grep -E 'verify/driver\.gd -- |--socket zsfps-verify-|/zsfps-verify-[0-9]+\.d/bus\.conf' || true)"
-[[ -z "$stray" ]] && ok "no verify instances running" || bad "verify instances still running (cleanup.sh stops them):
-$stray"
+# Owner of an instance: the --path of its godot, or the project file of its kwin and dbus (run.sh writes it).
+# pgrep -x matches the executable name only, so this shell is never listed.
+found=0
+for pid in $(pgrep -x godot) $(pgrep -x kwin_wayland) $(pgrep -x dbus-daemon); do
+	cmdline="$(tr '\0' ' ' </proc/"$pid"/cmdline 2>/dev/null)"
+	owner=""
+	if [[ "$cmdline" == *"verify/driver.gd -- "* ]]; then
+		owner="${cmdline#*--path }"
+		owner="${owner%% *}"
+	elif [[ "$cmdline" =~ (zsfps-verify-[0-9]+)([ .]) ]]; then
+		marker="$XDG_RUNTIME_DIR/${BASH_REMATCH[1]}.d/project"
+		if [[ -f "$marker" ]]; then owner="$(<"$marker")"; else owner="?"; fi
+	else
+		continue
+	fi
+	found=1
+	if [[ "$owner" == "$project" ]]; then
+		bad "stranded verify instance of this worktree (cleanup.sh stops it): $pid ${cmdline:0:100}"
+	elif [[ "$owner" == "?" ]]; then
+		bad "verify instance with no project file (an older run.sh started it, so cleanup.sh does not stop it). Stop it with: kill $pid ($pid ${cmdline:0:100})"
+	else
+		ok "info: $pid belongs to the verify run of worktree $owner. It is not a problem here, and cleanup.sh here leaves it alone"
+	fi
+done
+[[ $found -eq 0 ]] && ok "no verify instances running"
 [[ -d "$project/.verify" ]] && ok "evidence dir $project/.verify has $(find "$project/.verify" -mindepth 1 -maxdepth 1 -type d | wc -l) runs" || ok "no evidence yet ($project/.verify)"
 exit $((problems > 0))

@@ -119,6 +119,31 @@ func test_game_melee() -> void:
 	await tree.physics_frame
 
 
+func first_spawn(rng_seed: int) -> Vector3:
+	GameConfig.rng_seed = rng_seed
+	var game: Game = start_game()
+	GameConfig.rng_seed = 0
+	var at: Vector3 = Vector3.INF
+	for tick: int in range(240):
+		await tree.physics_frame
+		var live: Array[Zombie] = live_zombies(game)
+		if not live.is_empty():
+			at = live[0].global_position
+			break
+	tree.current_scene = null
+	game.queue_free()
+	await tree.physics_frame
+	return at
+
+
+func test_spawn_seed() -> void:
+	var first: Vector3 = await first_spawn(1)
+	var again: Vector3 = await first_spawn(1)
+	var other: Vector3 = await first_spawn(2)
+	ok(first != Vector3.INF and first == again, "Two games with one rng_seed spawn the first zombie at the same point")
+	ok(other != Vector3.INF and other != first, "A different rng_seed spawns the first zombie at another point")
+
+
 func prompt_text(game: Game) -> String:
 	return game.hud.prompt_label.text if game.hud.prompt_label.visible else ""
 
