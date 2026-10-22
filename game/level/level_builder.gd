@@ -1,6 +1,6 @@
 class_name LevelBuilder
 extends RefCounted
-## Typed constructors for a level built in code. Each node gets the level root as owner, so find_children finds it as it did in the scene.
+## Each node gets the level root as owner, because find_children skips nodes that have no owner.
 
 enum Zone { YARD, WAREHOUSE, COURTYARD }
 
@@ -14,7 +14,6 @@ const LAMP_POST_SIZE: Vector3 = Vector3(0.2, 3.5, 0.2)
 const LAMP_BULB_SIZE: Vector3 = Vector3(0.4, 0.25, 0.4)
 const LAMP_COLOR: Color = Color(1, 0.72, 0.4, 1)
 
-## Every lamp shares these resources, as the instances of the lamp scene did.
 static var _post_shape: BoxShape3D = _box_shape(LAMP_POST_SIZE)
 static var _post_mesh: BoxMesh = _box_mesh(LAMP_POST_SIZE)
 static var _bulb_mesh: BoxMesh = _box_mesh(LAMP_BULB_SIZE)
@@ -45,7 +44,6 @@ func group(parent: Node, node_name: StringName) -> Node3D:
 	return node
 
 
-## The collision box and the mesh box come from one size, so they cannot differ.
 func block(parent: Node, node_name: StringName, size: Vector3, at: Transform3D, material: Material) -> StaticBody3D:
 	var body: StaticBody3D = StaticBody3D.new()
 	body.name = node_name
@@ -131,7 +129,6 @@ func power_switch(parent: Node, node_name: StringName, at: Transform3D) -> Power
 	return station
 
 
-## The box sits at the center of its crate, so it takes no transform.
 func mystery_box(crate: StaticBody3D, node_name: StringName) -> MysteryBox:
 	var station: MysteryBox = MysteryBox.new()
 	_place(crate, node_name, station, Transform3D.IDENTITY)

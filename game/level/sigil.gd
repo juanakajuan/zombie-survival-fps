@@ -49,7 +49,8 @@ func light() -> void:
 	if is_lit:
 		return
 	is_lit = true
-	_show_state()
+	if is_node_ready():
+		_show_state()
 	lit.emit()
 
 

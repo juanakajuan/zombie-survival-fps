@@ -1,6 +1,5 @@
 class_name ArenaLayout
 extends RefCounted
-## The arena, one call per node. Generated once from the old arena.tscn, then kept by hand.
 
 
 static func build(b: LevelBuilder) -> void:

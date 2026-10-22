@@ -61,7 +61,8 @@ func accept(chosen: Station.Offer, _weapon: Weapon, _perks: Perks) -> void:
 	if chosen.kind != Station.Offer.Kind.POWER or is_on:
 		return
 	is_on = true
-	_show_state()
+	if is_node_ready():
+		_show_state()
 	switched_on.emit()
 
 
