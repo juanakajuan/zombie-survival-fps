@@ -44,7 +44,7 @@ Choice: **B**. The body runs on the physics clock and the camera runs on the ren
 - `game/player/player_settings.gd`. `class_name PlayerSettings extends Resource`. All tuning, grouped with `@export_group`. The only source of truth for sizes and speeds.
 - `game/player/player.gd`. `class_name Player extends CharacterBody3D`. Builds its own children from settings. Parses input into `Intent`. Runs the move state machine. Steps up stairs. Plans and runs mantles.
 - `game/player/player_camera_rig.gd`. `class_name PlayerCameraRig extends Node3D`. Top-level node. Places the camera every rendered frame from the interpolated body position plus look angles plus feel effects.
-- `tests/test_runner.gd`. Headless physics integration tests.
+- `tests/suites/movement_test.gd` and `tests/suites/camera_real_frames_test.gd`. Headless physics integration tests.
 
 ## Data shapes
 

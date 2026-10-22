@@ -5,7 +5,7 @@ The Yard has two closed doors. The player buys a door to open a zone. A power sw
 ## Sub-features
 
 - `door-prompt` shows `E  Open Warehouse  1250` at the east door and `E  Open Courtyard  1750` at the north door. The prompt is gray when the player cannot pay, and a press buys nothing.
-- `door-open` takes the points, removes the blocker, label, and prompt, and adds the 3 zone spawn points. Proven by `test_doors` in `tests/test_runner.gd`. Round 1 gives about 1200 points with the pistol, so a player needs a part of round 2 for the east door.
+- `door-open` takes the points, removes the blocker, label, and prompt, and adds the 3 zone spawn points. Proven by `test_doors` in `tests/suites/game_test.gd`. Round 1 gives about 1200 points with the pistol, so a player needs a part of round 2 for the east door.
 - `power` is the switch at the far end of the Warehouse. Its prompt is `E  Turn on power`, then `Power is on`. It costs nothing and turns on all five machines. Proven by `test_power`.
 - `secret` is three shots at the sigils on the north wall of the Courtyard, then the cache in the alcove (`E  Take the cache`: 1500 points and full ammunition for each weapon that the player has). Proven by `test_secret`.
 
