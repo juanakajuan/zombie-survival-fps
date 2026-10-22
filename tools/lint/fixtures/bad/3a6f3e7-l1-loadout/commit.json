@@ -1,0 +1,26 @@
+{
+  "changed": {
+    ".claude/skills/verify/driver.gd": false,
+    "game/game.gd": true,
+    "game/layers.gd": true,
+    "game/rules.gd": true,
+    "game/weapon/arsenal.gd": true,
+    "game/weapon/arsenal.gd.uid": true,
+    "game/weapon/loadout.gd": true,
+    "game/weapon/loadout.gd.uid": true,
+    "game/weapon/weapon.gd": true,
+    "game/weapon/weapon_def.gd": true,
+    "tests/test_runner.gd": false
+  },
+  "feature_files": [
+    "README.md",
+    "death-restart.md",
+    "melee.md",
+    "movement.md",
+    "pause.md",
+    "pistol.md",
+    "rounds.md"
+  ],
+  "message": "feat(weapon): hold two weapons in a Loadout and change between them\n\nWeapon reads the active slot of a Loadout and gains a SWITCHING state,\nequip(), fill(), and pellets that sum into one hit for each zombie.\nArsenal replaces WeaponDef.starting_pistol() with the six weapons of the\ndesign, and each WeaponDef carries its view model parts and muzzle.\nWeapon loses def, magazine, reserve, and refill(); round start no\nlonger refills the ammunition.\n\n",
+  "sha": "3a6f3e7"
+}

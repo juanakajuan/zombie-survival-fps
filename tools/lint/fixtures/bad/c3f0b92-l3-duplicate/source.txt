@@ -1,0 +1,1 @@
+Real line 43 of game/player/player.gd and line 23 of game/weapon/weapon.gd at c3f0b92, at their real line numbers. Other lines are blank.

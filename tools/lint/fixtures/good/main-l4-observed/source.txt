@@ -1,0 +1,1 @@
+Real lines of tests/ at the PR 3 head that read contract values or fixtures outside an assertion, or index a counter list.

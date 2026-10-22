@@ -1,0 +1,12 @@
+func _state() -> Dictionary:
+	var state: Dictionary = {
+		"phase": "ACTIVE",
+		"position": {"x": 1.0, "y": 2.0},
+		"slots": ",".join(["a", "b"]),
+	}
+	state["speed"] = 0.0
+	return state
+
+
+func _other() -> Dictionary:
+	return {"unrelated": 1}

@@ -1,0 +1,4 @@
+L1 game/level/arena.tscn:1
+L1 game/player/player.gd:1
+L1 game/station/mystery_box.gd:1
+L1 game/weapon/arsenal.gd:1

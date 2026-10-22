@@ -1,0 +1,6 @@
+		if body.collision_layer != Layers.WORLD or shape.size != mesh.size:
+	ok(is_equal_approx(nav_mesh.agent_height, Zombie.HEIGHT) and nav_mesh.geometry_collision_mask == Layers.WORLD, "The navigation mesh uses the zombie height and the world layer")
+	wall.collision_layer = Layers.WORLD
+	ok(shots[0] == 4, "Without Rapid the SMG fires 4 shots in 17 ticks")
+	ok(landings.size() == 1 and landings[0] > 10.5, "A 2 m drop emits landed once")
+	# a comment that mentions ok(stations[0]) is not an assertion
