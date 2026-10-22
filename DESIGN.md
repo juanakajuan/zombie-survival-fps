@@ -4,7 +4,7 @@
 
 A round-based survival FPS for Godot 4.7, in GDScript only. The player fights waves of undead. Each round has more zombies, and the zombies have more health and more speed. The player earns points for hits and kills. The game ends when the player dies. The score is the number of rounds the player survived.
 
-The world is code: `game/level/arena_layout.gd` makes the geometry, the materials, the lights, the stations, and the spawn markers with one typed `LevelBuilder` call per node. The rules, the player, the weapons, the zombies, the input actions, and the UI are code too. The game uses no external assets. "World in code" below gives the reasons.
+The world is code: `game/level/arena_layout.gd` makes the geometry, the materials, the lights, the stations, and the spawn markers with one typed `LevelBuilder` call per block, lamp, station, group, and marker. The rules, the player, the weapons, the zombies, the input actions, and the UI are code too. The game uses no external assets. "World in code" below gives the reasons.
 
 ## Milestones
 
@@ -17,10 +17,10 @@ Milestone 1 must not add speculative hooks for milestones 2 to 4. It must keep t
 
 ## World in code
 
-The arena was a scene from milestone 3 to the agent-friendly architecture work. A scene stores a perk as an integer, a weapon as a string id, and a zone as a string id. A typo in any of them loaded with no error and showed only when a test exercised that exact station. The arena is now code. The decision:
+The arena was a scene from milestone 3 to the agent-friendly architecture work. A scene stores a perk as an integer, a weapon as a string id, and a zone as a string id. A perk or zone typo loaded with no error and showed only when a test exercised that exact station. A weapon id typo passed the import and printed an error at run time, when the setter found no weapon. The arena is now code. The decision:
 
 - **`LevelBuilder`** has one typed constructor per kind of node: `block`, `lamp`, `wall_buy(parent, name, weapon: WeaponDef, price, at)`, `perk_machine(parent, name, perk: Perks.Kind, price, at)`, `door(parent, name, zone: LevelBuilder.Zone, price, at)`, `power_switch`, `mystery_box`, `secret`, `sigil`, `cache`, `spawn_group`, and `marker`. A wrong perk, weapon, or zone is a parse error with a file and a line, and the gate stops at its import step.
-- **`ArenaLayout.build`** calls the constructors once per node. It is the one place that says where each thing is. A block is one call with one size, so its collision box and its mesh box cannot differ.
+- **`ArenaLayout.build`** calls the constructors once per block, lamp, station, group, and marker. A block call makes the body, its shape, and its mesh. It is the one place that says where each thing is. A block is one call with one size, so its collision box and its mesh box cannot differ.
 - **`Arena.create()`** makes an `Arena`, runs the layout on it, and returns it. `Game` and the tests call it. Each node gets the arena as its owner, so `find_children` finds the stations and the spawn markers.
 - **Stations** build their children once in `_ready()` from plain fields that the builder sets before the node enters the tree. A state change (power, a lit sigil, an open door, a taken cache) changes the color of the parts it keeps, or frees the children. No station is a `@tool` script.
 - **Navigation:** the layout sets the `NavigationMesh` settings with no polygons, and `Arena` bakes at `_ready()`, so the mesh always matches the geometry.

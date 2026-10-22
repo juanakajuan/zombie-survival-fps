@@ -45,7 +45,10 @@ loadout.current().magazine              # 30
 loadout.find(&"pistol").reserve         # 80
 
 # A station tells what a press buys. It does not change anything:
-var wall: WallBuy = WallBuy.new(Arsenal.smg(), 1000)   # arena_layout.gd gives the weapon and the price
+var wall: WallBuy = WallBuy.new()
+wall.weapon_id = &"smg"                 # arena.tscn sets the two fields in the inspector
+wall.price = 1000
+# Current: WallBuy.new(Arsenal.smg(), 1000). arena_layout.gd gives the weapon and the price.
 var offer: Station.Offer = wall.offer(loadout)
 offer.kind   # Station.Offer.Kind.AMMO
 offer.cost   # 500

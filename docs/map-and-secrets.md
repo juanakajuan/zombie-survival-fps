@@ -66,10 +66,10 @@ Choices: **A**, **A**, **B**.
 
 New:
 
-- `game/station/door.gd`. `class_name Door extends Station`, `@tool`. Exports `zone` (`StringName`) and `price`. Builds a blocker (`StaticBody3D` on `Layers.WORLD`), a dark slab, and a price label, in `_ready()`. Signal `opened(zone: StringName)`. `accept()` frees the blocker and hides the slab.
-- `game/station/power_switch.gd`. `class_name PowerSwitch extends Station`, `@tool`. Free. Signal `switched_on`. One use.
-- `game/station/cache.gd`. `class_name Cache extends Station`, `@tool`. Free, one use. Hidden and not in the interact ray until `reveal()` is called.
-- `game/level/sigil.gd`. `class_name Sigil extends StaticBody3D`, `@tool`. A glowing mark. `light()` turns it on. Signal `lit`.
+- `game/station/door.gd`. `class_name Door extends Station`, `@tool`. Exports `zone` (`StringName`) and `price`. (Since the level-in-code change: no `@tool`, and `Door._init(zone, price)` takes both values.) Builds a blocker (`StaticBody3D` on `Layers.WORLD`), a dark slab, and a price label, in `_ready()`. Signal `opened(zone: StringName)`. `accept()` frees the blocker and hides the slab.
+- `game/station/power_switch.gd`. `class_name PowerSwitch extends Station`, `@tool` (no `@tool` since the level-in-code change). Free. Signal `switched_on`. One use.
+- `game/station/cache.gd`. `class_name Cache extends Station`, `@tool` (no `@tool` since the level-in-code change). Free, one use. Hidden and not in the interact ray until `reveal()` is called.
+- `game/level/sigil.gd`. `class_name Sigil extends StaticBody3D`, `@tool` (no `@tool` since the level-in-code change). A glowing mark. `light()` turns it on. Signal `lit`.
 - `game/level/secret.gd`. `class_name Secret extends Node3D`. Counts the lit sigils of its children, moves the panel away at 3, and calls `reveal()` on the cache.
 
 Changed:
