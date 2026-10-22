@@ -76,7 +76,6 @@ func _apply_options(options: PackedStringArray) -> bool:
 	return true
 
 
-## Dictionary.find_key returns null with no error for a value that is not in the enum, so a stale or new value would print as null.
 func _enum_name(values: Dictionary, value: int, enum_name: String) -> String:
 	var key: Variant = values.find_key(value)
 	if key == null:

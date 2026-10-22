@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # Stops verify instances that a crashed or killed run.sh left behind, for this worktree only. It never touches the
 # evidence in .verify/ or an instance that another worktree started.
-# Each run.sh writes its project path to $XDG_RUNTIME_DIR/zsfps-verify-<pid>.d/project. A private KWin, D-Bus, or socket
-# belongs to this worktree only when that file names this project. The Godot that runs driver.gd is matched by --path.
 set -uo pipefail
 project="$(cd "$(dirname "$0")/../../.." && pwd)"
 runtime="${XDG_RUNTIME_DIR:?}"
