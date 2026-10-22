@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Repo lint.
 
-L1   a commit changed game code and not the feature file the verify skill maps to it.
+L1   a commit changed game code and not the feature file the verify skill maps to it. The map is the
+     Code column of the features table in the verify skill's features/README.md.
+L1m  a path in that Code column names a file or folder that does not exist.
 L2b  a key of the verify driver's _state() is missing from the State fields line of SKILL.md.
 L3   a doc comment names its caller, or the same doc comment sits in two files.
 L4   a test asserts a pinned read: a collision bit, a binding count, or a node list index.
@@ -30,27 +32,6 @@ DRIVER = VERIFY + "/driver.gd"
 SKILL = VERIFY + "/SKILL.md"
 
 ANY_FEATURE = "<any feature file or SKILL.md>"
-FEATURE_MAP: dict[str, list[str]] = {
-    "game/weapon/": ["pistol.md", "melee.md", "buys.md", "perks.md"],
-    "game/station/door.gd": ["doors.md"],
-    "game/station/power_switch.gd": ["doors.md", "perks.md"],
-    "game/station/cache.gd": ["doors.md"],
-    "game/station/perk_machine.gd": ["perks.md"],
-    "game/station/upgrade_machine.gd": ["perks.md"],
-    "game/station/machine.gd": ["perks.md"],
-    "game/station/": ["buys.md", "perks.md", "doors.md"],
-    "game/player/": ["movement.md"],
-    "game/zombie/": ["rounds.md", "death-restart.md"],
-    "game/round_director.gd": ["rounds.md"],
-    "game/points.gd": ["buys.md", "rounds.md"],
-    "game/perks.gd": ["perks.md"],
-    "game/level/secret.gd": ["doors.md"],
-    "game/level/sigil.gd": ["doors.md"],
-    "game/level/": ["README.md", "doors.md", "buys.md", "perks.md", "movement.md"],
-    "game/hud.gd": [ANY_FEATURE],
-    "game/game.gd": [ANY_FEATURE],
-    "game/rules.gd": [ANY_FEATURE],
-}
 L1_IGNORED = (".uid", ".gdshader", ".tres", "lamp.tscn", "game/layers.gd", "game/main.tscn")
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 TRAILER = re.compile(r"^Verify-map: unchanged \(.+\)$")
@@ -152,6 +133,11 @@ class Tree:
     def paths(self, pattern: str) -> list[str]:
         found = self.root.glob(pattern + self.suffix)
         return sorted(p.relative_to(self.root).as_posix().removesuffix(self.suffix) for p in found if p.is_file())
+
+    def exists(self, path: str) -> bool:
+        if path.endswith("/"):
+            return (self.root / path).is_dir()
+        return (self.root / (path + self.suffix)).is_file()
 
     def lines(self, path: str) -> list[str] | None:
         file = self.root / (path + self.suffix)
@@ -279,7 +265,7 @@ def lint_l2b(tree: Tree, must_exist: bool) -> list[Finding]:
 
 
 def lint_tree(tree: Tree, allowed: tuple[AllowedDuplicate, ...], must_exist: bool) -> list[Finding]:
-    return lint_l2b(tree, must_exist) + lint_l3(tree, allowed) + lint_l4(tree)
+    return lint_l2b(tree, must_exist) + lint_l3(tree, allowed) + lint_l4(tree) + lint_l1_map(tree)
 
 
 @dataclass(frozen=True)
@@ -354,7 +340,55 @@ def absent_note(need: tuple[str, ...], commit: CommitInfo) -> str:
     return f" (create {', '.join(absent)} and list it in {FEATURES}README.md)" if absent else ""
 
 
-def lint_l1(commit: CommitInfo) -> list[Finding]:
+FeatureMap = dict[str, list[str]]
+TABLE_LINK = re.compile(r"\]\((?:\.\./)?([\w-]+\.md)\)")
+
+
+def parse_feature_map(lines: list[str]) -> tuple[FeatureMap, list[tuple[str, int]]]:
+    result: FeatureMap = {}
+    named: list[tuple[str, int]] = []
+    code_column: int | None = None
+    for number, text in enumerate(lines, 1):
+        if not text.startswith("|"):
+            code_column = None
+            continue
+        cells = [c.strip() for c in text.strip().strip("|").split("|")]
+        if code_column is None:
+            code_column = cells.index("Code") if "Code" in cells else None
+            continue
+        link = TABLE_LINK.search(cells[1]) if len(cells) > 1 else None
+        if code_column is None or link is None or code_column >= len(cells):
+            continue
+        target = ANY_FEATURE if link.group(1) == "SKILL.md" else link.group(1)
+        for path in re.findall(r"`([^`]+)`", cells[code_column]):
+            result.setdefault(path, [])
+            if target not in result[path]:
+                result[path].append(target)
+            named.append((path, number))
+    return result, named
+
+
+def load_feature_map(tree: Tree) -> FeatureMap:
+    lines = tree.lines(FEATURES + "README.md")
+    return parse_feature_map(lines)[0] if lines is not None else {}
+
+
+def lint_l1_map(tree: Tree) -> list[Finding]:
+    where = FEATURES + "README.md"
+    lines = tree.lines(where)
+    if lines is None:
+        return []
+    mapping, named = parse_feature_map(lines)
+    if not mapping:
+        return [Finding("L1m", where, 1, "the features table has no Code column with paths, so L1 has no map", "Add a Code column to the features table, with the paths of each feature in backticks.")]
+    return [
+        Finding("L1m", where, number, f"the Code column names {path}, which does not exist", "Fix the path, or delete it from the Code column.", path)
+        for path, number in named
+        if not tree.exists(path)
+    ]
+
+
+def lint_l1(commit: CommitInfo, feature_map: FeatureMap) -> list[Finding]:
     if "README.md" not in commit.feature_files or has_verify_trailer(commit.message):
         return []
     docs = {p.removeprefix(FEATURES) for p in commit.changed if p.startswith(FEATURES)}
@@ -363,10 +397,10 @@ def lint_l1(commit: CommitInfo) -> list[Finding]:
     for path, code in sorted(commit.changed.items()):
         if not path.startswith("game/") or path.endswith(L1_IGNORED) or not code:
             continue
-        prefix = max((k for k in FEATURE_MAP if path.startswith(k)), default=None)
+        prefix = max((k for k in feature_map if path.startswith(k)), default=None)
         if prefix is None:
             continue
-        wanted = FEATURE_MAP[prefix]
+        wanted = feature_map[prefix]
         if wanted == [ANY_FEATURE]:
             if not (docs or skill_touched):
                 missing[(ANY_FEATURE,)].append(path)
@@ -412,7 +446,7 @@ def parse_expected(text: str) -> set[str]:
     return {line.strip() for line in text.splitlines() if line.strip() and not line.startswith("#")}
 
 
-def run_fixtures() -> tuple[list[str], int]:
+def run_fixtures(feature_map: FeatureMap) -> tuple[list[str], int]:
     out: list[str] = []
     failures = 0
     for kind in ("bad", "good"):
@@ -421,7 +455,7 @@ def run_fixtures() -> tuple[list[str], int]:
             expected = parse_expected((case / "expect.txt").read_text(encoding="utf-8"))
             found: list[Finding] = []
             if (case / "commit.json").is_file():
-                found += lint_l1(CommitInfo.from_json((case / "commit.json").read_text(encoding="utf-8")))
+                found += lint_l1(CommitInfo.from_json((case / "commit.json").read_text(encoding="utf-8")), feature_map)
             if (case / "tree").is_dir():
                 found += lint_tree(Tree(case / "tree", FIXTURE_SUFFIX), (), must_exist=False)
             got = {f.key(): f for f in found}
@@ -484,6 +518,7 @@ def run_env_cases() -> tuple[list[str], int]:
 
 def cmd_check(repo: Path, commit_range: str | None) -> int:
     findings = lint_tree(Tree(repo), ALLOWED_DUPLICATES, must_exist=True)
+    feature_map = load_feature_map(Tree(repo))
     scope, problems = resolve_range(repo, commit_range)
     findings += problems
     checked = 0
@@ -494,21 +529,21 @@ def cmd_check(repo: Path, commit_range: str | None) -> int:
             findings.append(Finding("L1", ".git", 1, f"git cannot list the range {scope} ({error.stderr.strip()})", "Fetch the base branch, or pass a range that exists."))
             shas = []
         for sha in reversed(shas):
-            findings += lint_l1(commit_info(repo, sha))
+            findings += lint_l1(commit_info(repo, sha), feature_map)
             checked += 1
     for finding in findings:
         print(finding.render())
     if findings:
         return 1
-    print(f"OK: lint (L2b, L3, L4 on the tree; L1 on {checked} commit(s) in {scope}{'; the range is empty, so HEAD adds nothing over its base' if checked == 0 else ''})")
-    lines, failures = run_fixtures()
+    print(f"OK: lint (L1m, L2b, L3, L4 on the tree; L1 on {checked} commit(s) in {scope}{'; the range is empty, so HEAD adds nothing over its base' if checked == 0 else ''})")
+    lines, failures = run_fixtures(feature_map)
     env_lines, env_failures = run_env_cases()
     print("\n".join(lines + env_lines))
     return 1 if failures or env_failures else 0
 
 
 def cmd_l1(repo: Path, sha: str) -> int:
-    findings = lint_l1(commit_info(repo, sha))
+    findings = lint_l1(commit_info(repo, sha), load_feature_map(Tree(repo)))
     print("\n".join(f.render() for f in findings) or f"OK: lint L1 {sha}")
     return 1 if findings else 0
 

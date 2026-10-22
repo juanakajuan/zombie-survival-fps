@@ -1,0 +1,5 @@
+# Map
+
+| Feature | File | Scenario | Code |
+|---|---|---|---|
+| Pistol | [pistol.md](pistol.md) | `scenarios/pistol.txt` | `game/weapon/`, `game/weapon/gone.gd` |

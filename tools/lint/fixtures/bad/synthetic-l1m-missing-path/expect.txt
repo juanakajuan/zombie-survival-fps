@@ -1,0 +1,1 @@
+L1m game/weapon/gone.gd .claude/skills/verify/features/README.md:5
