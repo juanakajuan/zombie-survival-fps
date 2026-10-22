@@ -7,9 +7,13 @@ expect points == 500
 wait_until nearest_zombie_m <= 8 40
 aim_nearest body
 shot before-fire
-click
-wait 0.03
+# Saving a PNG blocks one frame. The flash timer counts that frame's long delta and ends the 0.05 s flash before it shows.
+# Let the frame time settle, then capture on the frame after the magazine drops.
+wait 0.2
+mouse_down
+wait_until magazine == 7 1
 shot muzzle-flash
+mouse_up
 wait 0.3
 state
 expect magazine == 7
