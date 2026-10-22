@@ -34,6 +34,13 @@ run_suite() {
 		echo "FAIL: the test suite ($engine) printed errors or warnings."
 		exit 1
 	fi
+	local reported counted
+	reported="$(sed -n 's/^RESULT: [0-9]* checks, \([0-9]*\) failures.*/\1/p' <<<"$output")"
+	counted="$(grep -c '^ERROR: FAIL: ' <<<"$output" || true)"
+	if [[ $counted != "$reported" && -n $reported ]]; then
+		echo "FAIL: the test suite ($engine) printed $counted FAIL: errors, but RESULT counts $reported failures. Only a failed check may print FAIL:."
+		exit 1
+	fi
 	if [[ $status -ne 0 ]] || grep -q 'SCRIPT ERROR' <<<"$output" || ! grep -q 'RESULT: [0-9]* checks, 0 failures' <<<"$output"; then
 		echo "FAIL: test suite on $engine"
 		exit 1
