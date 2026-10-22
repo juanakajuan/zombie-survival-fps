@@ -2,7 +2,7 @@ extends SceneTree
 
 const SUITES_DIR: String = "res://tests/suites"
 const REAL_FRAMES_SUFFIX: String = "_real_frames_test.gd"
-const DRAIN_TICKS: int = 120
+const DRAIN_TICKS: int = 60
 
 var tests: Array[TestCase] = []
 var runner_failures: int = 0
