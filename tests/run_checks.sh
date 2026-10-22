@@ -17,8 +17,8 @@ fail_on_output() {
 }
 
 run_suite() {
-	local label="$1"
-	shift
+	local label="$1" expected_engine="$2" overlay="$3"
+	shift 3
 	local output
 	local status=0
 	output="$(godot --headless "$@" 2>&1)" || status=$?
@@ -35,11 +35,17 @@ run_suite() {
 		echo "FAIL: the test suite ($label) printed errors or warnings."
 		exit 1
 	fi
+	local actual_engine
+	actual_engine="$(sed -n 's/^Physics engine setting: //p' <<<"$output")"
+	if [[ $actual_engine != "$expected_engine" ]]; then
+		echo "FAIL: the test suite ($label) ran on \"$actual_engine\", expected \"$expected_engine\". Fix 3d/physics_engine in $overlay/override.cfg."
+		exit 1
+	fi
 	local reported counted
 	reported="$(sed -n 's/^RESULT: [0-9]* checks, \([0-9]*\) failures.*/\1/p' <<<"$output")"
 	counted="$(grep -c '^ERROR: FAIL: ' <<<"$output" || true)"
 	if [[ $counted != "$reported" && -n $reported ]]; then
-		echo "FAIL: the test suite ($engine) printed $counted FAIL: errors, but RESULT counts $reported failures. Only a failed check may print FAIL:."
+		echo "FAIL: the test suite ($label) printed $counted FAIL: errors, but RESULT counts $reported failures. Only a failed check may print FAIL:."
 		exit 1
 	fi
 	if [[ $status -ne 0 ]] || grep -q 'SCRIPT ERROR' <<<"$output" || ! grep -q 'RESULT: [0-9]* checks, 0 failures' <<<"$output"; then
@@ -56,11 +62,15 @@ fi
 fail_on_output "import" godot --headless --path . --import
 fail_on_output "parse every tracked script" godot --headless --path . -s tests/parse_all.gd
 
-for engine in jolt godot_physics; do
-	overlay="tools/engines/$engine"
+check_engine() {
+	local engine="$1" expected_engine="$2"
+	local overlay="tools/engines/$engine"
 	fail_on_output "import ($engine overlay)" godot --headless --path "$overlay" --import
-	run_suite "$engine, fixed 60 FPS" --path "$overlay" --fixed-fps 60 -s tests/run.gd -- --skip-real-frames
-	run_suite "$engine, real frames" --path "$overlay" -s tests/run.gd -- --real-frames
-done
+	run_suite "$engine, fixed 60 FPS" "$expected_engine" "$overlay" --path "$overlay" --fixed-fps 60 -s tests/run.gd -- --skip-real-frames
+	run_suite "$engine, real frames" "$expected_engine" "$overlay" --path "$overlay" -s tests/run.gd -- --real-frames
+}
+
+check_engine jolt "Jolt Physics"
+check_engine godot_physics "GodotPhysics3D"
 
 fail_on_output "launch the game for 600 frames" godot --headless --path . --quit-after 600
