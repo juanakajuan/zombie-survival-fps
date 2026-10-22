@@ -3,7 +3,7 @@
 
 L1   a commit changed game code and not the feature file the verify skill maps to it. The map is the
      Code column of the features table in the verify skill's features/README.md.
-L1m  a path in that Code column names a file or folder that does not exist.
+L1m  the map cannot be read, or a path in that Code column does not exist, or a file under game/ has no Code path.
 L2b  a key of the verify driver's _state() is missing from the State fields line of SKILL.md.
 L3   a doc comment names its caller, or the same doc comment sits in two files.
 L4   a test asserts a pinned read: a collision bit, a binding count, or a node list index.
@@ -341,31 +341,83 @@ def absent_note(need: tuple[str, ...], commit: CommitInfo) -> str:
 
 
 FeatureMap = dict[str, list[str]]
-TABLE_LINK = re.compile(r"\]\((?:\.\./)?([\w-]+\.md)\)")
+TABLE_LINK = re.compile(r"\]\(([^)\s]+)\)")
+CELL_SPLIT = re.compile(r"(?<!\\)\|")
+SEPARATOR_CELL = re.compile(r":?-+:?")
+ROW_FIX = "Write the File cell as a link such as [name.md](name.md) and the Code cell as paths in backticks, or `none`. Write a pipe inside a cell as \\|."
 
 
-def parse_feature_map(lines: list[str]) -> tuple[FeatureMap, list[tuple[str, int]]]:
+@dataclass(frozen=True)
+class MapRow:
+    line: int
+    name: str
+    problem: str
+
+
+def split_cells(text: str) -> list[str]:
+    body = text.strip().removeprefix("|")
+    if body.endswith("|") and not body.endswith("\\|"):
+        body = body[:-1]
+    return [c.replace("\\|", "|").strip() for c in CELL_SPLIT.split(body)]
+
+
+def header_name(cell: str) -> str:
+    return re.sub(r"[*_`\s]", "", cell).lower()
+
+
+def feature_target(href: str) -> str | None:
+    if href == "../SKILL.md":
+        return ANY_FEATURE
+    name = href.removeprefix("./")
+    if name.endswith(".md") and re.fullmatch(r"[\w-]+(?:/[\w-]+)*\.md", name):
+        return name
+    return None
+
+
+def parse_feature_map(lines: list[str]) -> tuple[FeatureMap, list[tuple[str, int]], list[MapRow]]:
     result: FeatureMap = {}
     named: list[tuple[str, int]] = []
-    code_column: int | None = None
-    for number, text in enumerate(lines, 1):
+    bad: list[MapRow] = []
+    columns: tuple[int, int] | None = None
+    for number, raw in enumerate(lines, 1):
+        text = raw.strip()
         if not text.startswith("|"):
-            code_column = None
+            if columns is not None and text and CELL_SPLIT.search(text):
+                bad.append(MapRow(number, text[:40], "the row does not start with a pipe"))
+            else:
+                columns = None
             continue
-        cells = [c.strip() for c in text.strip().strip("|").split("|")]
-        if code_column is None:
-            code_column = cells.index("Code") if "Code" in cells else None
+        cells = split_cells(text)
+        if all(SEPARATOR_CELL.fullmatch(c) for c in cells if c) and any(cells):
             continue
-        link = TABLE_LINK.search(cells[1]) if len(cells) > 1 else None
-        if code_column is None or link is None or code_column >= len(cells):
+        if columns is None:
+            names = [header_name(c) for c in cells]
+            if "code" in names and "file" in names:
+                columns = (names.index("file"), names.index("code"))
             continue
-        target = ANY_FEATURE if link.group(1) == "SKILL.md" else link.group(1)
-        for path in re.findall(r"`([^`]+)`", cells[code_column]):
+        file_column, code_column = columns
+        label = cells[0][:40]
+        if max(file_column, code_column) >= len(cells):
+            bad.append(MapRow(number, label, "the row has fewer cells than the header"))
+            continue
+        link = TABLE_LINK.search(cells[file_column])
+        if link is None:
+            bad.append(MapRow(number, label, "the File cell has no link"))
+            continue
+        target = feature_target(link.group(1))
+        if target is None:
+            bad.append(MapRow(number, label, f"the File cell links to {link.group(1)}, which is not a feature file"))
+            continue
+        paths = re.findall(r"`([^`]+)`", cells[code_column])
+        if not paths and header_name(cells[code_column]) != "none":
+            bad.append(MapRow(number, label, "the Code cell has no path in backticks and is not `none`"))
+            continue
+        for path in paths:
             result.setdefault(path, [])
             if target not in result[path]:
                 result[path].append(target)
             named.append((path, number))
-    return result, named
+    return result, named, bad
 
 
 def load_feature_map(tree: Tree) -> FeatureMap:
@@ -373,19 +425,31 @@ def load_feature_map(tree: Tree) -> FeatureMap:
     return parse_feature_map(lines)[0] if lines is not None else {}
 
 
-def lint_l1_map(tree: Tree) -> list[Finding]:
+def lint_l1_map(tree: Tree, must_exist: bool = False) -> list[Finding]:
     where = FEATURES + "README.md"
     lines = tree.lines(where)
     if lines is None:
+        if must_exist:
+            return [Finding("L1m", where, 1, "the feature map file is missing, so L1 has no map", "Restore the file, or update FEATURES in tools/lint.py to its new path.")]
         return []
-    mapping, named = parse_feature_map(lines)
+    mapping, named, bad = parse_feature_map(lines)
+    findings = [
+        Finding("L1m", where, row.line, f"the row `{row.name}` cannot be read: {row.problem}", ROW_FIX, "row")
+        for row in bad
+    ]
     if not mapping:
-        return [Finding("L1m", where, 1, "the features table has no Code column with paths, so L1 has no map", "Add a Code column to the features table, with the paths of each feature in backticks.")]
-    return [
+        return findings + [Finding("L1m", where, 1, "the features table has no Code column with paths, so L1 has no map", "Add a Code column to the features table, with the paths of each feature in backticks.")]
+    findings += [
         Finding("L1m", where, number, f"the Code column names {path}, which does not exist", "Fix the path, or delete it from the Code column.", path)
         for path, number in named
         if not tree.exists(path)
     ]
+    findings += [
+        Finding("L1m", where, 1, f"{path} is under game/ and no path in the Code column covers it", f"Add {path} or its folder to the Code column of a row in {where}. If a change to it needs no feature file, add it to L1_IGNORED in tools/lint.py.", path)
+        for path in tree.paths("game/**/*")
+        if not path.endswith(L1_IGNORED) and not any(path.startswith(k) for k in mapping)
+    ]
+    return findings
 
 
 def lint_l1(commit: CommitInfo, feature_map: FeatureMap) -> list[Finding]:
@@ -405,7 +469,7 @@ def lint_l1(commit: CommitInfo, feature_map: FeatureMap) -> list[Finding]:
             if not (docs or skill_touched):
                 missing[(ANY_FEATURE,)].append(path)
             continue
-        names = [w for w in wanted if w in commit.feature_files] or wanted[:1]
+        names = [w for w in wanted if w in commit.feature_files] or wanted
         need = set(names) - docs
         if need:
             missing[tuple(sorted(need))].append(path)
@@ -513,6 +577,17 @@ def run_env_cases() -> tuple[list[str], int]:
             else:
                 failures += 1
                 out.append(f"FAIL lint env case {name}: expected `{expected or 'no finding'}`, got scope {scope} and findings: {messages}")
+        l1_cases: dict[str, tuple[Path, str]] = {
+            "l1 with no Code column": (source, "no Code column with paths"),
+            "l1 with no feature map file": (base / "nomap", "the feature map file is missing"),
+        }
+        for name, (repo, expected) in l1_cases.items():
+            messages = " ".join(f.what + " " + f.fix for f in l1_findings(repo, "HEAD"))
+            if expected in messages:
+                out.append(f"OK: lint env case {name}: fails with a message that names the fix")
+            else:
+                failures += 1
+                out.append(f"FAIL lint env case {name}: expected `{expected}`, got: {messages or 'no finding'}")
     return out, failures
 
 
@@ -542,8 +617,13 @@ def cmd_check(repo: Path, commit_range: str | None) -> int:
     return 1 if failures or env_failures else 0
 
 
+def l1_findings(repo: Path, sha: str) -> list[Finding]:
+    tree = Tree(repo)
+    return lint_l1_map(tree, must_exist=True) + lint_l1(commit_info(repo, sha), load_feature_map(tree))
+
+
 def cmd_l1(repo: Path, sha: str) -> int:
-    findings = lint_l1(commit_info(repo, sha), load_feature_map(Tree(repo)))
+    findings = l1_findings(repo, sha)
     print("\n".join(f.render() for f in findings) or f"OK: lint L1 {sha}")
     return 1 if findings else 0
 
