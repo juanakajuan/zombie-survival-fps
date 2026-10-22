@@ -1,7 +1,19 @@
 #!/usr/bin/env bash
-# Runs every headless check. The visual smoke needs a display, so it is not here.
+# The one gate. The shell, .githooks/pre-push, and CI all run this file.
+# The visual smoke needs a display, so it is not here.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+for arg in "$@"; do
+	if [[ $arg != "--full" ]]; then
+		echo "Usage: tools/gate [--full]. The gate always runs every check."
+		exit 2
+	fi
+done
+
+if [[ -z ${CI:-} && -z "$(git config --get core.hooksPath || true)" ]]; then
+	echo "NOTE: hooks are off. Run: git config core.hooksPath .githooks"
+fi
 
 fail_on_output() {
 	local label="$1"
