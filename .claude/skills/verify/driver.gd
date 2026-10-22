@@ -46,8 +46,9 @@ func _run() -> void:
 		if line.is_empty() or line.begins_with("#"):
 			continue
 		_say("STEP %d: %s" % [line_number, line])
+		var failures_before: int = _failures
 		var ok: bool = await _step(line)
-		if not ok:
+		if not ok or _failures > failures_before:
 			_fail("step %d failed: %s" % [line_number, line])
 			break
 	for key: Key in _held_keys.duplicate():
