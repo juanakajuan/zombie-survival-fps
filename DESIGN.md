@@ -61,7 +61,7 @@ Choice: **B**. The rules of a wave shooter are a pure function of the round numb
 The game does not need the reusable addon surface. Remove these before adding game code:
 
 - `addons/fps_controller/fps_recording.gd`, `FPSController.start_recording/stop_recording/is_recording/play/stop_playback/is_playing`, the `playback_finished` signal, the `_recording`, `_playback`, `_playback_tick` fields, `_apply_playback_tick()`, `_record_tick()`, and `FPSCameraRig.record_tick()` if it exists only for playback.
-- `tests/record_golden.gd`, `tests/golden/`, and the record, playback, and golden tests in `tests/test_runner.gd`.
+- `tests/record_golden.gd`, `tests/golden/`, and the record, playback, and golden tests in the headless test suite.
 - `demo/` (the test level and the ghost).
 - `manage_mouse_capture`. The game owns mouse capture, because death and pause release the mouse.
 
@@ -93,7 +93,7 @@ Then move and rename. The player is a part of the game now, not an addon:
 - `game/level/lamp.tscn`. One lamp: a post, a bulb, and a light. The arena has four instances.
 - `game/level/grid.gdshader` and `game/level/materials/*.tres`. The grid shader and one material for each surface color.
 - `game/hud.gd`. `class_name Hud extends CanvasLayer`. Round number, points, ammo, health vignette, crosshair, hit marker, round banner, death screen, pause screen.
-- `tests/test_runner.gd`. The movement tests (renamed), plus the game tests below.
+- `tests/suites/*_test.gd`. The movement tests (renamed), plus the game tests below. `tests/run.gd` finds and runs every suite.
 - `tests/visual_smoke.gd`. A windowed launch of `game/main.tscn` that captures one frame.
 - `tests/run_checks.sh`. All headless checks.
 

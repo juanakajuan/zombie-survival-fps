@@ -66,8 +66,8 @@ check_engine() {
 	local engine="$1" expected_engine="$2"
 	local overlay="tools/engines/$engine"
 	fail_on_output "import ($engine overlay)" godot --headless --path "$overlay" --import
-	run_suite "$engine, fixed 60 FPS" "$expected_engine" "$overlay" --path "$overlay" --fixed-fps 60 -s tests/test_runner.gd -- --skip-real-frames
-	run_suite "$engine, real frames" "$expected_engine" "$overlay" --path "$overlay" -s tests/test_runner.gd -- --real-frames
+	run_suite "$engine, fixed 60 FPS" "$expected_engine" "$overlay" --path "$overlay" --fixed-fps 60 -s tests/run.gd -- --skip-real-frames
+	run_suite "$engine, real frames" "$expected_engine" "$overlay" --path "$overlay" -s tests/run.gd -- --real-frames
 }
 
 check_engine jolt "Jolt Physics"

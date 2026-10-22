@@ -101,7 +101,7 @@ Changed files:
 - `game/layers.gd`. Adds `INTERACT`.
 - `game/rules.gd`. Adds the constants for buys, the box, and the weapon change.
 - `game/hud.gd`. Adds the weapon name and the prompt. Adds the new keys to the pause screen.
-- `tests/test_runner.gd`. Uses `weapon.current()` in place of `weapon.magazine`, `weapon.reserve`, and `weapon.def`. Replaces the `refill()` test and the refill check of round 2. Adds the tests in the verification plan.
+- `tests/suites/weapons_test.gd` and `tests/suites/game_test.gd`. Use `weapon.current()` in place of `weapon.magazine`, `weapon.reserve`, and `weapon.def`. Replaces the `refill()` test and the refill check of round 2. Adds the tests in the verification plan.
 
 ## Data shapes
 

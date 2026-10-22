@@ -100,7 +100,9 @@ The player has four move states: GROUND, AIR, SLIDE, and MANTLE. A step of 0.35 
 | `game/zombie/zombie.gd` | `Zombie` finds a path to the player, attacks, and dies. |
 | `game/level/arena.tscn` | The map: the yard, the lamps, the wall buys, the box, the perk machines, the upgrade machine, and the spawn markers. Edit it in the Godot editor. |
 | `game/level/arena.gd` | `Arena` reads the spawn markers and the stations of the map scene, and bakes its navigation mesh. |
-| `tests/test_runner.gd` | The headless test suite. |
+| `tests/run.gd` | Finds every `tests/suites/*_test.gd` and runs each `test_` method. |
+| `tests/test_case.gd` | `TestCase`: the assertions and the fixtures that more than one suite uses. |
+| `tests/suites/` | The headless test suites, one file per area. |
 | `tests/run_checks.sh` | Runs all headless checks. |
 | `tests/visual_smoke.gd` | Opens a window, plays the game for 3 seconds, and saves one frame. |
 
