@@ -578,3 +578,18 @@ func test_player_health() -> void:
 	await ticks(30)
 	ok(dying.health == 0.0 and dying.horizontal_speed() < 0.01, "A dead player does not regenerate or move")
 	await finish(level)
+
+
+func test_invulnerable() -> void:
+	var level: Node3D = make_level()
+	var player: Player = spawn(level, tuning(), Vector3.ZERO, 0.0)
+	player.take_damage(30.0)
+	eq(player.health, 70.0, "With the default config 30 damage leaves 70 health")
+	GameConfig.invulnerable = true
+	player.take_damage(30.0)
+	player.take_damage(1000.0)
+	GameConfig.invulnerable = false
+	ok(player.health == 70.0 and player.alive, "With the invulnerable config damage changes nothing, even a lethal hit")
+	player.take_damage(30.0)
+	eq(player.health, 40.0, "Damage counts again when the config is off")
+	await finish(level)

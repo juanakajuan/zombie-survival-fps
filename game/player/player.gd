@@ -173,9 +173,9 @@ func teleport(target_position: Vector3, target_yaw: float) -> void:
 		_settle()
 
 
-## No effect when not alive. At zero health the body stops reading input and keeps no intent.
+## No effect when not alive or when `GameConfig.invulnerable` is set. At zero health the body stops reading input and keeps no intent.
 func take_damage(amount: float) -> void:
-	if not alive:
+	if not alive or GameConfig.invulnerable:
 		return
 	health = maxf(health - amount, 0.0)
 	_regen_delay_left = Rules.regen_delay(perks)
