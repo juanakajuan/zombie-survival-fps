@@ -21,6 +21,8 @@ var _station: Station = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if GameConfig.rng_seed != 0:
+		_rng.seed = GameConfig.rng_seed
 	_register_actions()
 	for world: Node in [arena, player, zombies]:
 		world.process_mode = Node.PROCESS_MODE_PAUSABLE

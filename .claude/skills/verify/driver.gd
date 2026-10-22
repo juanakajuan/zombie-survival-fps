@@ -3,11 +3,6 @@ extends SceneTree
 const MAIN_SCENE: String = "res://game/main.tscn"
 ## nearest_zombie_m when no zombie is alive, so a wait for "<= N" does not pass early.
 const NO_ZOMBIE_DISTANCE: float = 999.0
-const PHASES: PackedStringArray = ["STARTING", "ACTIVE", "INTERMISSION", "GAME_OVER"]
-const WEAPON_STATES: PackedStringArray = ["READY", "COOLDOWN", "RELOADING", "MELEE", "SWITCHING"]
-const MOVE_STATES: PackedStringArray = ["GROUND", "AIR", "SLIDE", "MANTLE"]
-const STANCES: PackedStringArray = ["STAND", "CROUCH"]
-const BOX_PHASES: PackedStringArray = ["IDLE", "ROLLING", "OFFERING"]
 const ARRIVE_DISTANCE: float = 0.3
 const BURST_TICKS: int = 12
 
@@ -24,7 +19,10 @@ func _initialize() -> void:
 func _run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if args.size() < 2:
-		push_error("usage: -- <scenario-file> <evidence-dir>")
+		push_error("usage: -- <scenario-file> <evidence-dir> [--seed <n>] [--invulnerable]")
+		quit(2)
+		return
+	if not _apply_options(args.slice(2)):
 		quit(2)
 		return
 	_evidence = args[1]
@@ -48,8 +46,9 @@ func _run() -> void:
 		if line.is_empty() or line.begins_with("#"):
 			continue
 		_say("STEP %d: %s" % [line_number, line])
+		var failures_before: int = _failures
 		var ok: bool = await _step(line)
-		if not ok:
+		if not ok or _failures > failures_before:
 			_fail("step %d failed: %s" % [line_number, line])
 			break
 	for key: Key in _held_keys.duplicate():
@@ -57,6 +56,33 @@ func _run() -> void:
 	_say("VERIFY DONE failures=%d" % _failures)
 	_log.close()
 	quit(0 if _failures == 0 else 1)
+
+
+func _apply_options(options: PackedStringArray) -> bool:
+	var index: int = 0
+	while index < options.size():
+		match options[index]:
+			"--seed":
+				index += 1
+				if index >= options.size() or not options[index].is_valid_int():
+					push_error("--seed needs an integer")
+					return false
+				GameConfig.rng_seed = options[index].to_int()
+			"--invulnerable":
+				GameConfig.invulnerable = true
+			_:
+				push_error("unknown option %s" % options[index])
+				return false
+		index += 1
+	return true
+
+
+func _enum_name(values: Dictionary, value: int, enum_name: String) -> String:
+	var key: Variant = values.find_key(value)
+	if key == null:
+		_fail("%s has no member with value %d" % [enum_name, value])
+		return "UNKNOWN_%d" % value
+	return str(key)
 
 
 func _step(line: String) -> bool:
@@ -126,7 +152,7 @@ func _state() -> Dictionary:
 		if (child as Zombie).state != Zombie.State.DEAD:
 			live += 1
 	return {
-		"phase": PHASES[game.director.phase],
+		"phase": _enum_name(RoundDirector.Phase, game.director.phase, "RoundDirector.Phase"),
 		"round": game.director.round_number,
 		"to_spawn": game.director.to_spawn,
 		"zombies_alive": live,
@@ -135,14 +161,14 @@ func _state() -> Dictionary:
 		"earned": game.points.earned,
 		"magazine": game.weapon.current().magazine,
 		"reserve": game.weapon.current().reserve,
-		"weapon": WEAPON_STATES[game.weapon.state],
+		"weapon": _enum_name(Weapon.State, game.weapon.state, "Weapon.State"),
 		"weapon_name": game.weapon.current().def.display_name,
 		"slots": _slots(game.weapon.loadout),
-		"box": BOX_PHASES[game.arena.box.phase],
+		"box": _enum_name(MysteryBox.Phase, game.arena.box.phase, "MysteryBox.Phase"),
 		"health": snappedf(game.player.health, 0.1),
 		"player_alive": game.player.alive,
-		"move_state": MOVE_STATES[game.player.move_state],
-		"stance": STANCES[game.player.stance],
+		"move_state": _enum_name(Player.MoveState, game.player.move_state, "Player.MoveState"),
+		"stance": _enum_name(Player.Stance, game.player.stance, "Player.Stance"),
 		"speed": snappedf(game.player.horizontal_speed(), 0.01),
 		"position": "%.2f,%.2f,%.2f" % [game.player.global_position.x, game.player.global_position.y, game.player.global_position.z],
 		"yaw_deg": snappedf(rad_to_deg(game.player.yaw), 0.1),

@@ -22,12 +22,12 @@ Run `.claude/skills/verify/run.sh .claude/skills/verify/scenarios/pistol.txt`.
 
 - **Baseline.** `wait_until phase == ACTIVE 10`, then `expect hud_ammo == 8 / 80` and `expect points == 500`.
 - **Get in range.** `wait_until nearest_zombie_m <= 8 40`. At 28 m, the spread misses often.
-- **Fire.** `aim_nearest body`, `shot before-fire`, `click`, `wait 0.03`, `shot muzzle-flash`. The PNG shows the flash at the muzzle and the hit marker on the crosshair.
+- **Fire.** `aim_nearest body`, `shot before-fire`, `wait 0.2`, `mouse_down`, `wait_until magazine == 7 1`, `shot muzzle-flash`, `mouse_up`. The PNG shows the flash at the muzzle and the hit marker on the crosshair.
 - **Result.** `expect magazine == 7`, `expect hud_ammo == 7 / 80`, `expect earned >= 10`, `expect hud_points != 500`.
 - **Reload.** `tap R`, `wait 0.3`, `expect weapon == RELOADING`, `shot reloading` (the pistol dips). After `wait 2.0`: `expect weapon == READY` and `expect hud_ammo == 8 / 79`.
 
 ## Gotchas
 
 - `aim_nearest body` aims at the chest (1 m above the feet). `aim_nearest head` aims above `Rules.ZOMBIE_HEAD_HEIGHT` for a head hit.
-- The hit marker shows for 0.15 s only. Take the `shot` within 0.1 s of the `click`.
+- The hit marker shows for 0.15 s only. Take the `shot` on the frame after the magazine drops. Saving a PNG blocks one frame, and the flash (0.05 s) counts that long frame, so wait 0.2 s after a `shot` before you fire.
 - A miss is not a bug. If `earned` stays 0, look at `muzzle-flash.png` to see where the round went before you change the game.

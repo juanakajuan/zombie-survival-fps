@@ -24,7 +24,7 @@ Run `.claude/skills/verify/run.sh .claude/skills/verify/scenarios/movement.txt`.
 - **Walk.** `press W`, `wait 0.5`, `expect speed >= 6.5`.
 - **Sprint.** `press Shift`, `wait 0.6`, `expect speed >= 10`.
 - **Slide.** `press C`, `wait 0.05`, `expect move_state == SLIDE`, `shot slide` (the camera is low).
-- **Mantle.** Run `.claude/skills/verify/scenarios/mantle.txt`. It walks to 12, 1.5, faces -Z, holds W for 0.6 s, expects `GROUND` (no auto-mantle), taps Space, waits for `move_state == MANTLE`, takes a shot, waits for `GROUND`, and expects a y of 1.2 in `position`.
+- **Mantle.** Run `.claude/skills/verify/scenarios/mantle.txt`. It walks to 12, 1.5, faces -Z, holds W for 0.6 s, expects `GROUND` (no auto-mantle), taps Space, waits for `move_state == MANTLE`, logs `state`, takes a shot, waits for `GROUND`, and expects a y of 1.2 in `position`.
 - **Jump.** Release all keys, `wait 1`, `tap Space`, `wait 0.1`, `expect move_state == AIR`, `wait 1`, `expect move_state == GROUND`.
 
 ## Gotchas
