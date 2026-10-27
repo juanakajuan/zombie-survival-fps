@@ -2,6 +2,7 @@
 
 [ext_resource type="Shader" path="res://levels/greybox_grid.gdshader" id="1_grid"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://targets/target_dummy.tscn" id="3_dummy"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_material"]
 
@@ -96,3 +97,12 @@ material = SubResource("wall_material")
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector3(0, 0, 6)
+
+[node name="TargetDummyNear" parent="." instance=ExtResource("3_dummy")]
+position = Vector3(-2, 0, 2)
+
+[node name="TargetDummyMid" parent="." instance=ExtResource("3_dummy")]
+position = Vector3(0, 0, -3)
+
+[node name="TargetDummyFar" parent="." instance=ExtResource("3_dummy")]
+position = Vector3(2, 0, -12)
