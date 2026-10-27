@@ -45,6 +45,15 @@ A change is done only when `tools/check.sh` passes. For a visual change, also ru
 - Commit the `.uid` files next to scripts and shaders. Godot makes them.
 - Input actions are in the Input Map in `project.godot`. Use physical keycodes. Current actions: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`.
 
+## Godot AI MCP server
+
+- `.mcp.json` registers the `godot-ai` server (hi-godot/godot-ai 4.3.1). Its addon is in `addons/godot_ai/`. It works only while the human has the editor open.
+- Use it to see the live editor: the scene tree, editor errors, and screenshots of and input to the game that runs from the editor.
+- To change a scene that is open in the editor, use the godot-ai tools. They edit the editor's copy, so the human's next save does not overwrite the change.
+- `tools/check.sh` is still the gate. A godot-ai result does not replace it.
+- Do not edit files in `addons/godot_ai/`. The human updates the addon with the **Update** button in the Godot AI dock. After an update, change the `godot-ai==` version in `.mcp.json` to match.
+- Telemetry is off: `.mcp.json` passes `--disable-telemetry`, and the editor setting `godot_ai/telemetry_enabled` is false.
+
 ## Style
 
 - Follow the official GDScript style guide: snake_case for files, folders, functions, and variables, and PascalCase for nodes and `class_name`.
