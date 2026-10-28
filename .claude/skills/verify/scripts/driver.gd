@@ -1,0 +1,262 @@
+extends SceneTree
+## Verification driver. drive.sh runs it as the main loop: it loads the level, then plays a steps file line by line.
+## Input goes through Input.parse_input_event with the events from the Input Map, so the game sees it as player input.
+## Parsed events are flushed on the next frame, so every input command waits at least one frame after it sends.
+## Args after `--`: --steps=<abs path> --out=<abs dir> [--scene=res://...]
+
+const DEFAULT_SCENE := "res://levels/test_range.tscn"
+
+var _steps_path: String = ""
+var _out_dir: String = ""
+var _scene: String = DEFAULT_SCENE
+var _failures: int = 0
+
+
+func _initialize() -> void:
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("--steps="):
+			_steps_path = arg.trim_prefix("--steps=")
+		elif arg.begins_with("--out="):
+			_out_dir = arg.trim_prefix("--out=")
+		elif arg.begins_with("--scene="):
+			_scene = arg.trim_prefix("--scene=")
+	if _steps_path.is_empty() or _out_dir.is_empty():
+		printerr("driver: pass --steps=<file> and --out=<dir>")
+		quit(2)
+		return
+	DirAccess.make_dir_recursive_absolute(_out_dir)
+	var err := change_scene_to_file(_scene)
+	if err != OK:
+		printerr("driver: cannot load %s: %s" % [_scene, error_string(err)])
+		quit(2)
+		return
+	_run.call_deferred()
+
+
+func _run() -> void:
+	# Ready means playable: the player is in the tree and the round panel shows a round. Only then do steps start.
+	var waited := 0
+	while _state().get("hud.round_visible", "false") != "true":
+		if waited >= 600:
+			printerr("driver: the level was not ready after 600 frames: %s" % str(_state()))
+			quit(1)
+			return
+		await process_frame
+		waited += 1
+	print("driver: ready after %d frames" % waited)
+	var lines := FileAccess.get_file_as_string(_steps_path).split("\n")
+	for i: int in lines.size():
+		var line := lines[i].strip_edges()
+		if line.is_empty() or line.begins_with("#"):
+			continue
+		print("driver: [%d] %s" % [i + 1, line])
+		var ok: bool = await _step(line)
+		if not ok:
+			_failures += 1
+			printerr("driver: FAIL at line %d: %s" % [i + 1, line])
+			if not line.begins_with("expect"):
+				break
+	_write_text("summary.txt", "failures=%d\n" % _failures)
+	print("driver: done, %d failures" % _failures)
+	quit(1 if _failures > 0 else 0)
+
+
+func _step(line: String) -> bool:
+	var parts := line.split(" ", false)
+	var command := parts[0]
+	match command:
+		"wait":
+			await _wait_frames(parts[1].to_int())
+		"hold", "release":
+			if not _send_action(parts[1], command == "hold"):
+				return false
+			await _wait_frames(1)
+		"tap":
+			if not _send_action(parts[1], true):
+				return false
+			await _wait_frames(2)
+			_send_action(parts[1], false)
+			await _wait_frames(1)
+		"key":
+			return await _tap_key(parts[1])
+		"look":
+			var motion := InputEventMouseMotion.new()
+			motion.relative = Vector2(parts[1].to_float(), parts[2].to_float())
+			motion.screen_relative = motion.relative
+			Input.parse_input_event(motion)
+			await _wait_frames(1)
+		"shot":
+			await RenderingServer.frame_post_draw
+			var path := _out_dir.path_join(parts[1] + ".png")
+			var err := root.get_texture().get_image().save_png(path)
+			if err != OK:
+				printerr("driver: cannot save %s: %s" % [path, error_string(err)])
+				return false
+		"state":
+			_write_text(parts[1] + ".json", JSON.stringify(_state(), "  ") + "\n")
+		"expect":
+			return _expect(parts[1], " ".join(parts.slice(2)), true)
+		"expect_not":
+			return _expect(parts[1], " ".join(parts.slice(2)), false)
+		"aim":
+			return await _aim_nearest_zombie()
+		"fight_until":
+			return await _fight_until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
+		"until":
+			return await _until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
+		_:
+			printerr("driver: unknown command %s" % command)
+			return false
+	return true
+
+
+func _wait_frames(count: int) -> void:
+	for i: int in count:
+		await physics_frame
+
+
+func _send_action(action: StringName, pressed: bool) -> bool:
+	if not InputMap.has_action(action) or InputMap.action_get_events(action).is_empty():
+		printerr("driver: no Input Map event for action %s" % action)
+		return false
+	var event: InputEvent = InputMap.action_get_events(action)[0].duplicate()
+	if event is InputEventKey:
+		(event as InputEventKey).pressed = pressed
+	elif event is InputEventMouseButton:
+		var button := event as InputEventMouseButton
+		button.pressed = pressed
+		button.position = root.get_visible_rect().size / 2.0
+		button.global_position = button.position
+		button.button_mask = MOUSE_BUTTON_MASK_LEFT if pressed else 0
+	Input.parse_input_event(event)
+	return true
+
+
+func _tap_key(key_name: String) -> bool:
+	var keycode := OS.find_keycode_from_string(key_name)
+	if keycode == KEY_NONE:
+		printerr("driver: unknown key %s" % key_name)
+		return false
+	for pressed: bool in [true, false]:
+		var event := InputEventKey.new()
+		event.physical_keycode = keycode
+		event.keycode = keycode
+		event.pressed = pressed
+		Input.parse_input_event(event)
+		await _wait_frames(2)
+	return true
+
+
+func _expect(key: String, want: String, equal: bool) -> bool:
+	var got := str(_state().get(key, "<missing>"))
+	var op := "==" if equal else "!="
+	if (got == want) == equal:
+		print("driver: ok %s %s %s (got %s)" % [key, op, want, got])
+		return true
+	printerr("driver: expected %s %s %s, got %s" % [key, op, want, got])
+	return false
+
+
+func _until(key: String, want: String, max_frames: int) -> bool:
+	for i: int in max_frames:
+		if str(_state().get(key, "<missing>")) == want:
+			print("driver: ok %s == %s after %d frames" % [key, want, i])
+			return true
+		await physics_frame
+	printerr("driver: %s never became %s in %d frames, last %s" % [key, want, max_frames, str(_state().get(key))])
+	return false
+
+
+## Turns the view to the nearest zombie's chest with one mouse-motion event, as a player would flick the mouse.
+func _aim_nearest_zombie() -> bool:
+	var player := get_first_node_in_group("player") as Player
+	if player == null:
+		printerr("driver: aim found no player")
+		return false
+	var head := player.get_node("Head") as Node3D
+	var nearest: Zombie = null
+	for node: Node in current_scene.find_children("*", "", true, false):
+		if node is Zombie and (nearest == null or _dist(player, node as Zombie) < _dist(player, nearest)):
+			nearest = node as Zombie
+	if nearest == null:
+		return true
+	var to_target := nearest.global_position + Vector3.UP * 1.2 - head.global_position
+	var yaw := atan2(-to_target.x, -to_target.z)
+	var pitch := atan2(to_target.y, Vector2(to_target.x, to_target.z).length())
+	var motion := InputEventMouseMotion.new()
+	motion.relative = Vector2(
+		-wrapf(yaw - player.rotation.y, -PI, PI) / player.mouse_sensitivity,
+		-(pitch - head.rotation.x) / player.mouse_sensitivity)
+	motion.screen_relative = motion.relative
+	Input.parse_input_event(motion)
+	await _wait_frames(1)
+	return true
+
+
+func _dist(a: Node3D, b: Node3D) -> float:
+	return a.global_position.distance_to(b.global_position)
+
+
+## Aims at the nearest zombie and fires, about 6 shots a second, until the state key has the value.
+func _fight_until(key: String, want: String, max_frames: int) -> bool:
+	var start := Engine.get_physics_frames()
+	while Engine.get_physics_frames() - start < max_frames:
+		if str(_state().get(key, "<missing>")) == want:
+			print("driver: ok %s == %s after %d frames" % [key, want, Engine.get_physics_frames() - start])
+			return true
+		await _aim_nearest_zombie()
+		if not _send_action(&"fire", true):
+			return false
+		await _wait_frames(2)
+		_send_action(&"fire", false)
+		await _wait_frames(7)
+	printerr("driver: fight: %s never became %s in %d frames, last %s" % [key, want, max_frames, str(_state().get(key))])
+	return false
+
+
+## What the player can see or feel, as flat string values. `expect` and `until` compare against these.
+func _state() -> Dictionary[String, String]:
+	var s: Dictionary[String, String] = {}
+	s["frame"] = str(Engine.get_physics_frames())
+	s["mouse.mode"] = "captured" if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else "visible"
+	var level := current_scene
+	if level == null:
+		return s
+	var player := get_first_node_in_group("player") as Player
+	if player != null:
+		s["player.position"] = "%.1f %.1f %.1f" % [player.global_position.x, player.global_position.y, player.global_position.z]
+		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
+		s["player.dead"] = str(player.is_dead())
+		var hud := player.get_node("Hud") as Hud
+		s["hud.health"] = _label(hud, "%HealthValue")
+		s["hud.ammo"] = _label(hud, "%AmmoValue")
+		s["hud.reloading"] = str((hud.get_node("%ReloadLabel") as Label).is_visible_in_tree())
+		s["hud.round_visible"] = str((hud.get_node("%RoundPanel") as Control).is_visible_in_tree())
+		s["hud.round"] = _label(hud, "%RoundValue")
+		s["hud.break"] = str((hud.get_node("%BreakLabel") as Label).is_visible_in_tree())
+	var zombies := 0
+	var dummies_up := 0
+	for node: Node in level.find_children("*", "", true, false):
+		if node is Zombie:
+			zombies += 1
+		elif node is TargetDummy and (node as TargetDummy).visible:
+			dummies_up += 1
+	s["zombies.alive"] = str(zombies)
+	s["dummies.up"] = str(dummies_up)
+	var game_over := level.get_node_or_null("GameOver") as GameOver
+	if game_over != null:
+		s["game_over.visible"] = str(game_over.visible)
+		s["game_over.text"] = _label(game_over, "%RoundLabel")
+	return s
+
+
+func _label(owner_node: Node, path: String) -> String:
+	return (owner_node.get_node(path) as Label).text
+
+
+func _write_text(file_name: String, text: String) -> void:
+	var file := FileAccess.open(_out_dir.path_join(file_name), FileAccess.WRITE)
+	if file == null:
+		printerr("driver: cannot write %s" % file_name)
+		return
+	file.store_string(text)

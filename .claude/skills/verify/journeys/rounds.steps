@@ -1,0 +1,14 @@
+# Rounds and HUD: clear round 1, see the BREAK label, then round 2 starts and spawns 6 zombies.
+expect hud.round 1
+expect hud.break false
+until zombies.alive 4 300
+fight_until hud.break true 3600
+expect zombies.alive 0
+expect hud.round 1
+state 01-break
+shot 01-break
+until hud.break false 700
+expect hud.round 2
+until zombies.alive 6 400
+state 02-round-two
+shot 02-round-two
