@@ -40,3 +40,21 @@ func test_second_hit_during_a_flash_still_restores_base_color() -> void:
 	health.damage(1.0)
 	await run_seconds(0.2)
 	assert_eq(material.albedo_color, dummy.base_color, "base color after two hits")
+
+
+func test_each_hit_ends_its_own_flash() -> void:
+	var dummy := await spawn_dummy(Vector3.ZERO)
+	var material := (dummy.get_child(0) as MeshInstance3D).material_override as StandardMaterial3D
+	var health := Health.find_on(dummy)
+	health.damage(1.0)
+	await run_seconds(0.05)
+	health.damage(1.0)
+	await run_seconds(0.07)
+	assert_eq(material.albedo_color, dummy.base_color, "the first hit's timer ends the flash at 0.12 s")
+
+
+func test_zombie_freed_off_tree_leaks_no_node() -> void:
+	var before := Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
+	ZOMBIE_SCENE.instantiate().free()
+	DUMMY_SCENE.instantiate().free()
+	assert_eq(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT), before, "orphan node count")
