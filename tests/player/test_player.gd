@@ -181,6 +181,18 @@ func test_release_crouch_stands_up() -> void:
 	assert_almost_eq(camera.global_position.y, standing_eye, 0.01, "camera is back at standing height")
 
 
+func test_body_is_hidden_from_own_camera_and_shrinks_when_crouched() -> void:
+	var player := await _spawn_player()
+	var camera := player.get_node("Head/Camera3D") as Camera3D
+	var body := player.get_node("CollisionShape3D/Body") as MeshInstance3D
+	assert_true(camera.cull_mask & body.layers == 0, "own camera does not draw the body")
+	assert_almost_eq(body.get_aabb().size.y, 1.8, 0.01, "standing body is 1.8 m tall")
+	Input.action_press("crouch")
+	await _run_seconds(0.2)
+	assert_almost_eq(body.get_aabb().size.y, player.crouch_height, 0.01, "crouched body is crouch_height tall")
+	assert_almost_eq(body.global_position.y - player.global_position.y, player.crouch_height / 2.0, 0.01, "crouched body stands on the feet")
+
+
 func test_only_a_crouched_player_fits_under_a_low_ceiling() -> void:
 	var player := await _spawn_player()
 	_add_box(Vector3(0.0, 1.4, -3.0), Vector3(4.0, 0.4, 2.0))

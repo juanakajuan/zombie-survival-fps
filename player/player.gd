@@ -36,9 +36,11 @@ signal died
 @onready var _weapon: Weapon = $Head/Camera3D/Weapon
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
+@onready var _body: MeshInstance3D = $CollisionShape3D/Body
 
 var _crouched := false
 var _shape: CapsuleShape3D
+var _body_mesh: CapsuleMesh
 var _stand_height: float
 var _stand_head_height: float
 
@@ -49,6 +51,8 @@ func _ready() -> void:
 	# Every Player instance shares the scene's capsule, so crouching must resize a copy.
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
+	_body_mesh = _body.mesh.duplicate() as CapsuleMesh
+	_body.mesh = _body_mesh
 	_stand_height = _shape.height
 	_stand_head_height = _head.position.y
 
@@ -161,6 +165,7 @@ func _update_crouch(delta: float) -> void:
 func _set_crouched(crouched: bool) -> void:
 	_crouched = crouched
 	_shape.height = crouch_height if crouched else _stand_height
+	_body_mesh.height = _shape.height
 	_collision.position.y = _shape.height / 2.0
 
 

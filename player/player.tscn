@@ -10,6 +10,14 @@
 radius = 0.35
 height = 1.8
 
+[sub_resource type="StandardMaterial3D" id="body_material"]
+albedo_color = Color(0.25, 0.4, 0.7, 1)
+
+[sub_resource type="CapsuleMesh" id="body_mesh"]
+material = SubResource("body_material")
+radius = 0.35
+height = 1.8
+
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1_player")
 
@@ -17,10 +25,15 @@ script = ExtResource("1_player")
 position = Vector3(0, 0.9, 0)
 shape = SubResource("capsule")
 
+[node name="Body" type="MeshInstance3D" parent="CollisionShape3D"]
+layers = 2
+mesh = SubResource("body_mesh")
+
 [node name="Head" type="Node3D" parent="."]
 position = Vector3(0, 1.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head"]
+cull_mask = 1048573
 fov = 80.0
 current = true
 
