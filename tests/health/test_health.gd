@@ -53,6 +53,16 @@ func test_reset_revives_at_max_health() -> void:
 	assert_eq(_died_count, 2, "can die again after reset")
 
 
+func test_changed_reports_current_after_damage_and_reset() -> void:
+	var health := _spawn_health(100.0)
+	var reported: Array[float] = []
+	health.changed.connect(func(current: float) -> void: reported.append(current))
+	health.damage(30.0)
+	health.damage(0.0)
+	health.reset()
+	assert_eq(reported, [70.0, 100.0] as Array[float], "changed emitted with the new current")
+
+
 func test_find_on_returns_direct_child_health_or_null() -> void:
 	var holder := Node.new()
 	add_child(holder)
