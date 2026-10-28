@@ -4,12 +4,6 @@ extends CharacterBody3D
 
 enum State { CHASE, ATTACK, DEAD }
 
-const FLASH_COLOR := Color(1.0, 0.15, 0.1)
-const FLASH_SECONDS := 0.1
-## The zombie leaves ATTACK only when the target is this much farther than attack_range, so it does not flicker at the edge.
-const ATTACK_EXIT_MARGIN := 0.3
-const TURN_RATE := 10.0
-
 @export_group("Movement")
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var move_speed: float = 2.5
 
@@ -17,8 +11,11 @@ const TURN_RATE := 10.0
 @export_range(0.5, 5.0, 0.05, "suffix:m") var attack_range: float = 1.3
 @export_range(0.0, 100.0, 1.0) var attack_damage: float = 10.0
 @export_range(0.1, 10.0, 0.05, "suffix:s") var attack_interval: float = 1.0
+## The zombie leaves ATTACK only when the target is this much farther than attack_range, so it does not flicker at the edge.
+@export_range(0.0, 2.0, 0.05, "suffix:m") var attack_exit_margin: float = 0.3
 
 @export_group("Look")
+@export_range(0.0, 50.0, 0.5, "suffix:1/s") var turn_rate: float = 10.0
 @export var base_color: Color = Color(0.35, 0.55, 0.3)
 
 var target: Node3D
@@ -31,6 +28,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var _health: Health = $Health
 @onready var _agent: NavigationAgent3D = $NavigationAgent3D
 @onready var _shape: CollisionShape3D = $CollisionShape3D
+@onready var _hit_flash: HitFlash = $HitFlash
 
 
 func _ready() -> void:
@@ -42,7 +40,7 @@ func _ready() -> void:
 	# Baked navmesh surfaces float two cell heights above the floor, and the agent measures path distance in 3D, so
 	# without this the zombie never reaches a path point that is above its feet.
 	_agent.path_height_offset = 2.0 * NavigationServer3D.map_get_cell_height(_agent.get_navigation_map())
-	_health.damaged.connect(_on_damaged)
+	_hit_flash.material = _material
 	_health.died.connect(_on_died)
 
 
@@ -63,7 +61,7 @@ func _physics_process(delta: float) -> void:
 	elif state == State.CHASE and distance <= attack_range:
 		state = State.ATTACK
 		_attack_cooldown = attack_interval
-	elif state == State.ATTACK and distance > attack_range + ATTACK_EXIT_MARGIN:
+	elif state == State.ATTACK and distance > attack_range + attack_exit_margin:
 		state = State.CHASE
 
 	var heading := Vector3.ZERO
@@ -82,7 +80,7 @@ func _physics_process(delta: float) -> void:
 				Health.find_on(live_target).damage(attack_damage)
 
 	if heading != Vector3.ZERO:
-		rotation.y = lerp_angle(rotation.y, atan2(-heading.x, -heading.z), minf(TURN_RATE * delta, 1.0))
+		rotation.y = lerp_angle(rotation.y, atan2(-heading.x, -heading.z), minf(turn_rate * delta, 1.0))
 	var move_dir := heading if state == State.CHASE else Vector3.ZERO
 	velocity.x = move_dir.x * move_speed
 	velocity.z = move_dir.z * move_speed
@@ -99,17 +97,8 @@ func _live_target() -> Node3D:
 	return target
 
 
-func _on_damaged(_amount: float) -> void:
-	_material.albedo_color = FLASH_COLOR
-	get_tree().create_timer(FLASH_SECONDS).timeout.connect(_end_flash)
-
-
 func _on_died() -> void:
 	state = State.DEAD
 	velocity = Vector3.ZERO
 	_shape.set_deferred("disabled", true)
 	queue_free()
-
-
-func _end_flash() -> void:
-	_material.albedo_color = base_color

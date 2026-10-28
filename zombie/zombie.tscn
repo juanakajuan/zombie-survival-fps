@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://zombie/zombie.gd" id="1_zombie"]
 [ext_resource type="Script" path="res://health/health.gd" id="2_health"]
+[ext_resource type="Script" path="res://health/hit_flash.gd" id="3_flash"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -50,6 +51,9 @@ mesh = SubResource("arm_mesh")
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("2_health")
+
+[node name="HitFlash" type="Node" parent="."]
+script = ExtResource("3_flash")
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.4

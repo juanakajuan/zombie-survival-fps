@@ -67,7 +67,7 @@ func _init() -> void:
 		Rule.new(
 			"group_literal",
 			"^(?!tests/).*\\.gd$",
-			"\\b(add_to_group|is_in_group|get_first_node_in_group|get_nodes_in_group)\\(\\s*&?[\"']",
+			"\\b(add_to_group|remove_from_group|is_in_group|get_first_node_in_group|get_nodes_in_group|call_group)\\(\\s*&?[\"']|\\bcall_group_flags\\(\\s*[^,]+,\\s*&?[\"']",
 			"group name as a string literal",
 			"Use the owner's constant, for example Player.GROUP.",
 			true,
@@ -75,9 +75,16 @@ func _init() -> void:
 		Rule.new(
 			"mouse_mode_owner",
 			"^(?!player/player\\.gd$|tests/|debug/|\\.claude/).*\\.gd$",
-			"(Input\\.mouse_mode|\\btrigger_enabled)\\s*=[^=]",
+			"(Input\\.mouse_mode|\\btrigger_enabled)\\s*=[^=]|\\bInput\\.set_mouse_mode\\(",
 			"mouse mode or trigger written outside Player",
 			"Only Player writes the mouse mode and the trigger. Ask the player (Player.died, a Player method) instead.",
+		),
+		Rule.new(
+			"magic_const",
+			"^(?!tests/|tools/|debug/|\\.claude/).*\\.gd$",
+			"^\\s*const\\s+\\w+\\s*(:\\s*\\w+)?\\s*:?=\\s*(-?[\\d.]|Color\\()",
+			"numeric or Color const in a gameplay script",
+			"Make it @export (with @export_range) or put it in a .tres.",
 		),
 	]
 	var root := "res://"

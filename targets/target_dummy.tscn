@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://targets/target_dummy.gd" id="1_dummy"]
 [ext_resource type="Script" path="res://health/health.gd" id="2_health"]
+[ext_resource type="Script" path="res://health/hit_flash.gd" id="3_flash"]
 
 [sub_resource type="BoxMesh" id="mesh"]
 size = Vector3(0.6, 1.8, 0.4)
@@ -22,3 +23,6 @@ shape = SubResource("shape")
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("2_health")
+
+[node name="HitFlash" type="Node" parent="."]
+script = ExtResource("3_flash")
