@@ -152,6 +152,20 @@ func test_pistol_on_player_damages_dummy_and_never_hits_the_player() -> void:
 	assert_eq(weapon.ammo, PISTOL.magazine_size - 1, "one round used")
 
 
+func test_player_sees_the_pistol_model() -> void:
+	var player := await _spawn_player()
+	var camera := player.get_node("Head/Camera3D") as Camera3D
+	var meshes := player.get_node("Head/Camera3D/Weapon").find_children("*", "MeshInstance3D", true, false)
+	assert_true(meshes.size() > 0, "the pistol has a model")
+	var in_view := 0
+	for node in meshes:
+		var mesh := node as MeshInstance3D
+		var center := mesh.global_transform * mesh.get_aabb().get_center()
+		if mesh.is_visible_in_tree() and camera.is_position_in_frustum(center):
+			in_view += 1
+	assert_true(in_view > 0, "the pistol model is in the camera view")
+
+
 func _data() -> WeaponData:
 	var data := WeaponData.new()
 	data.damage = 20.0

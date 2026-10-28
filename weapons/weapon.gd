@@ -23,6 +23,8 @@ var _excluded: Array[RID] = []
 
 func _ready() -> void:
 	ammo = data.magazine_size
+	if data.view_model != null:
+		add_child(data.view_model.instantiate())
 	var ancestor: Node = get_parent()
 	while ancestor != null:
 		if ancestor is CollisionObject3D:
