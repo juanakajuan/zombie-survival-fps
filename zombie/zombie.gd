@@ -4,9 +4,6 @@ extends CharacterBody3D
 
 enum State { CHASE, ATTACK, DEAD }
 
-@export_group("Movement")
-@export_range(0.0, 10.0, 0.1, "suffix:m/s") var move_speed: float = 2.5
-
 @export_group("Attack")
 @export_range(0.5, 5.0, 0.05, "suffix:m") var attack_range: float = 1.3
 @export_range(0.0, 100.0, 1.0) var attack_damage: float = 10.0
@@ -19,10 +16,13 @@ enum State { CHASE, ATTACK, DEAD }
 @export var base_color: Color = Color(0.35, 0.55, 0.3)
 
 var target: Node3D
+## Set by configure(). RoundSettings owns the value for each round.
+var move_speed: float
 var state: State = State.CHASE
 
 var _material := StandardMaterial3D.new()
 var _attack_cooldown: float = 0.0
+var _configured := false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var _health: Health = $Health
@@ -32,6 +32,8 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 
 func _ready() -> void:
+	if not _configured:
+		push_error("Zombie: call configure() before add_child(), so that RoundSettings sets its speed and health.")
 	if target == null:
 		target = get_tree().get_first_node_in_group(Player.GROUP) as Node3D
 	_material.albedo_color = base_color
@@ -42,6 +44,13 @@ func _ready() -> void:
 	_agent.path_height_offset = 2.0 * NavigationServer3D.map_get_cell_height(_agent.get_navigation_map())
 	_hit_flash.material = _material
 	_health.died.connect(_on_died)
+
+
+## Sets the speed and health of this zombie. Call it before the zombie enters the tree.
+func configure(speed: float, max_health: float) -> void:
+	move_speed = speed
+	Health.find_on(self).max_health = max_health
+	_configured = true
 
 
 func _physics_process(delta: float) -> void:

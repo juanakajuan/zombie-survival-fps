@@ -1,6 +1,6 @@
 class_name Weapon
 extends Node3D
-## Hitscan weapon. It shoots along its own -Z axis and ignores the body it is mounted on.
+## Hitscan weapon. It shoots along its own -Z axis and ignores its wielder.
 
 signal fired
 signal reload_started
@@ -18,11 +18,12 @@ var ammo: int
 var trigger_enabled: bool = true
 ## The instance of data.view_model, or null when the data has none or its root is not a ViewModel.
 var view_model: ViewModel
+## The player who holds the weapon. Shots never hit the wielder. Player sets it.
+var wielder: Player
 
 var _state: State = State.READY
 ## Seconds until the next shot while READY, or until the reload ends while RELOADING.
 var _cooldown: float = 0.0
-var _excluded: Array[RID] = []
 
 
 func _ready() -> void:
@@ -31,12 +32,6 @@ func _ready() -> void:
 		var model := data.view_model.instantiate()
 		add_child(model)
 		view_model = model as ViewModel
-	var ancestor: Node = get_parent()
-	while ancestor != null:
-		if ancestor is CollisionObject3D:
-			_excluded.append((ancestor as CollisionObject3D).get_rid())
-			break
-		ancestor = ancestor.get_parent()
 
 
 func _physics_process(delta: float) -> void:
@@ -86,7 +81,8 @@ func is_reloading() -> bool:
 
 func _shoot() -> void:
 	var query := PhysicsRayQueryParameters3D.create(global_position, global_position - global_basis.z * data.max_range)
-	query.exclude = _excluded
+	if wielder != null:
+		query.exclude = [wielder.get_rid()]
 	query.collision_mask = hit_mask
 	query.hit_from_inside = true
 	var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)

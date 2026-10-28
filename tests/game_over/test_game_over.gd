@@ -1,7 +1,5 @@
 extends TestCase
 
-const ROUND_SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
-
 
 func test_game_over_is_hidden_while_the_player_lives() -> void:
 	var level := await spawn_level()

@@ -67,10 +67,8 @@ func _start_round(number: int) -> void:
 
 func _spawn_zombie() -> void:
 	var zombie := zombie_scene.instantiate() as Zombie
-	zombie.move_speed = settings.zombie_speed(round_number)
-	var health := Health.find_on(zombie)
-	health.max_health = settings.zombie_health(round_number)
-	health.died.connect(_on_zombie_died)
+	zombie.configure(settings.zombie_speed(round_number), settings.zombie_health(round_number))
+	Health.find_on(zombie).died.connect(_on_zombie_died)
 	zombie.transform = _spawn_points[_next_spawn_point].global_transform
 	_next_spawn_point = (_next_spawn_point + 1) % _spawn_points.size()
 	_zombies_to_spawn -= 1
