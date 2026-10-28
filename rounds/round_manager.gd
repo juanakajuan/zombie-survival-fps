@@ -8,6 +8,9 @@ signal round_ended(round_number: int)
 
 enum State { BREAK, ACTIVE }
 
+## The HUD is in the player scene, so it finds the manager of the level by this group.
+const GROUP := &"round_manager"
+
 @export var settings: RoundSettings
 @export var zombie_scene: PackedScene = preload("res://zombie/zombie.tscn")
 
@@ -21,6 +24,10 @@ var _zombies_to_spawn: int = 0
 var _zombies_alive: int = 0
 var _spawn_cooldown: float = 0.0
 var _break_left: float = 0.0
+
+
+func _enter_tree() -> void:
+	add_to_group(GROUP)
 
 
 func _ready() -> void:

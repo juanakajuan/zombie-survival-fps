@@ -134,3 +134,54 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6
 theme_override_font_sizes/font_size = 40
 text = "12 / 12"
+
+[node name="RoundPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -90.0
+offset_top = 24.0
+offset_right = 90.0
+offset_bottom = 104.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel")
+
+[node name="VBox" type="VBoxContainer" parent="RoundPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Row" type="HBoxContainer" parent="RoundPanel/VBox"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="Caption" type="Label" parent="RoundPanel/VBox/Row"]
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+text = "ROUND"
+
+[node name="RoundValue" type="Label" parent="RoundPanel/VBox/Row"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.2, 0.15, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 40
+text = "1"
+
+[node name="BreakLabel" type="Label" parent="RoundPanel/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.8, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 22
+text = "BREAK"
+horizontal_alignment = 1
