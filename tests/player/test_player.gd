@@ -78,7 +78,7 @@ func test_jump_leaves_floor_rises_and_lands() -> void:
 	Input.action_press("jump")
 	await physics_frames(1)
 	Input.action_release("jump")
-	var expected_peak := pow(player.jump_velocity, 2.0) / (2.0 * _gravity())
+	var expected_peak := pow(player.jump_velocity, 2.0) / (2.0 * player.gravity)
 	var peak := 0.0
 	var left_floor := false
 	var landed := false
@@ -101,7 +101,8 @@ func test_jump_in_air_adds_no_upward_velocity() -> void:
 	Input.action_press("jump")
 	await physics_frames(1)
 	Input.action_release("jump")
-	await _run_seconds(0.7)
+	# Three quarters of the air time: past the peak, before landing.
+	await _run_seconds(1.5 * player.jump_velocity / player.gravity)
 	assert_true(not player.is_on_floor(), "player is still in the air")
 	var velocity_before := player.velocity.y
 	assert_true(velocity_before < 0.0, "player is falling, got vy=%s" % velocity_before)
@@ -111,6 +112,47 @@ func test_jump_in_air_adds_no_upward_velocity() -> void:
 		await physics_frames(1)
 		highest = maxf(highest, player.velocity.y)
 	assert_true(highest <= velocity_before + 0.01, "air jump added upward velocity: before %s, after %s" % [velocity_before, highest])
+
+
+func test_holding_jump_hops_again_on_landing() -> void:
+	var player := await _spawn_player()
+	Input.action_press("jump")
+	var takeoffs := 0
+	var was_on_floor := true
+	for _i: int in roundi(2.0 * Engine.physics_ticks_per_second):
+		await physics_frames(1)
+		if was_on_floor and not player.is_on_floor():
+			takeoffs += 1
+		was_on_floor = player.is_on_floor()
+	assert_true(takeoffs >= 2, "holding jump hops more than once, got %s takeoffs" % takeoffs)
+
+
+func test_air_strafing_gains_speed_above_sprint_speed() -> void:
+	var player := await _spawn_player()
+	Input.action_press("move_forward")
+	await _run_seconds(1.0)
+	Input.action_release("move_forward")
+	Input.action_press("move_right")
+	Input.action_press("jump")
+	var turn_per_frame := deg_to_rad(3.0) / player.mouse_sensitivity
+	for _i: int in roundi(3.0 * Engine.physics_ticks_per_second):
+		player.look(Vector2(turn_per_frame, 0.0))
+		await physics_frames(1)
+	assert_true(_horizontal_speed(player) > player.sprint_speed + 1.0, "air strafing reached %s m/s" % _horizontal_speed(player))
+
+
+func test_no_input_in_the_air_keeps_horizontal_speed() -> void:
+	var player := await _spawn_player()
+	Input.action_press("move_forward")
+	await _run_seconds(1.0)
+	Input.action_release("move_forward")
+	Input.action_press("jump")
+	await physics_frames(2)
+	Input.action_release("jump")
+	var speed_before := _horizontal_speed(player)
+	await physics_frames(10)
+	assert_true(not player.is_on_floor(), "player is in the air")
+	assert_almost_eq(_horizontal_speed(player), speed_before, 0.01, "air speed is kept without input")
 
 
 func test_look_up_clamps_pitch() -> void:
@@ -265,7 +307,3 @@ func _horizontal_speed(player: Player) -> float:
 func _horizontal_distance(from: Vector3, to: Vector3) -> float:
 	return Vector2(to.x - from.x, to.z - from.z).length()
 
-
-func _gravity() -> float:
-	var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
-	return gravity
