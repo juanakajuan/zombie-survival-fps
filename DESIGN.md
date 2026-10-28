@@ -23,12 +23,12 @@ The game is minimal when a player can play the full loop from a fresh start, wit
 |---|---|---|
 | Player | `player/` | Walk at 4.5 m/s, sprint at 7 m/s, jump, and mouse look. 100 health. **Esc** releases the mouse. The click that captures the mouse again does not fire. |
 | Weapon | `weapons/` | The pistol (`pistol.tres`) does 25 damage, fires every 0.15 s, holds 12 rounds, reloads in 1.2 s, and reaches 100 m. Left mouse fires and **R** reloads. A shot with an empty magazine starts a reload. There is no reserve ammo. |
-| Health | `health/` | `damage()`, `reset()`, `is_dead()`, and the `damaged` and `died` signals. |
+| Health | `health/` | `damage()`, `reset()`, `is_dead()`, and the `damaged`, `died`, and `changed` signals. |
 | Target dummy | `targets/` | 100 health. It flashes red when hit, goes away at 0 health, and comes back after 2 s. |
 | Zombie | `zombie/` | 100 health. It follows the navmesh to the player at 2.5 m/s. Within 1.3 m it hits for 10 damage each 1 s. It is removed when it dies. It does not attack a dead player. |
 | Test range | `levels/` | The greybox map and the main scene. It has 3 target dummies and 4 zombie spawn points. `level_navigation.gd` bakes the navmesh when the level starts. |
 | Rounds | `rounds/` | `RoundManager` starts round 1 when the level loads. Each round spawns its zombies one each 1 s, in turn at the `Marker3D` children of the manager. `round_settings.tres` gives 4 zombies in round 1 and 2 more each round, 100 health and 20 more each round, and 2.5 m/s and 0.25 m/s more each round up to 5 m/s. When the last zombie dies, a 10 s break starts, then the next round. Other code reads `round_number` and `state` (`BREAK` or `ACTIVE`) and connects to `round_started` and `round_ended`. |
-| Crosshair | `player/player.tscn` | A 4 px dot at the center of the screen. |
+| HUD | `hud/` | An instance in `player/player.tscn`. A 4 px crosshair dot at the center. Bottom left: health as a number and a bar, red at 30% or less. Bottom right: rounds in the magazine (`11 / 12`) and a yellow RELOADING label during a reload. The values change on the `Health` and `Weapon` signals. |
 
 ## Steps to a minimal game
 
@@ -39,7 +39,7 @@ Steps 1, 2, and 3 need no other step, so agents can do them at the same time. St
 | Step | Issue | Needs |
 |---|---|---|
 | 1. Add the round manager (done) | [#1](https://github.com/juanakajuan/zombie-survival-fps/issues/1) | Nothing |
-| 2. Add the HUD for health and ammo | [#2](https://github.com/juanakajuan/zombie-survival-fps/issues/2) | Nothing |
+| 2. Add the HUD for health and ammo (done) | [#2](https://github.com/juanakajuan/zombie-survival-fps/issues/2) | Nothing |
 | 3. Add player death | [#3](https://github.com/juanakajuan/zombie-survival-fps/issues/3) | Nothing |
 | 4. Show the round number on the HUD | [#4](https://github.com/juanakajuan/zombie-survival-fps/issues/4) | Steps 1 and 2 |
 | 5. Add game over and restart | [#5](https://github.com/juanakajuan/zombie-survival-fps/issues/5) | Steps 1 and 3 |
@@ -49,17 +49,6 @@ A step is done when all of these are true:
 - `tools/check.sh` passes.
 - A test covers each done-criterion that a test can see.
 - A `tools/smoke.sh` screenshot shows each visible result.
-
-### 2. Add the HUD for health and ammo
-
-You see your health and ammo while you play.
-
-Done when:
-
-- The HUD shows the player's health and the rounds in the magazine.
-- The HUD shows when the weapon reloads.
-- Each value on the HUD changes when the value in the game changes.
-- The HUD is easy to read in a smoke screenshot at 1280 × 720.
 
 ### 3. Add player death
 
