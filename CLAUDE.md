@@ -35,7 +35,7 @@ A change is done only when `tools/check.sh` passes. For a visual change, also ru
 | Tests and the verify driver use typed accessors (`player.camera`, `player.weapon`, `player.hud.readout()`), not node paths | `tools/lint.gd` rule `test_node_path` |
 | A test does not copy a `TestCase` helper (`spawn_player`, `run_seconds`, ...) | `tools/lint.gd` rule `test_helper_copy` |
 | A group name comes from its owner's constant (`Player.GROUP`), not a string literal | `tools/lint.gd` rule `group_literal` |
-| Only `Player` writes `Input.mouse_mode` and `weapon.trigger_enabled` | `tools/lint.gd` rule `mouse_mode_owner` |
+| Only `Player` writes `Input.mouse_mode` (or calls `Input.set_mouse_mode`) and `weapon.trigger_enabled` | `tools/lint.gd` rule `mouse_mode_owner` |
 | A gameplay script has no numeric or `Color` `const`; a tunable value is `@export` or in a `.tres` | `tools/lint.gd` rule `magic_const` |
 
 A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes on the offending line, and only with the human's approval: `# lint-allow <rule>: <reason> (until YYYY-MM-DD, approved: <human>)`. An expired or incomplete line fails the lint.
