@@ -10,8 +10,6 @@
 [ext_resource type="PackedScene" path="res://game_over/game_over.tscn" id="8_game_over"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
-geometry_source_geometry_mode = 1
-geometry_source_group_name = &"navigation_geometry"
 agent_radius = 0.5
 agent_height = 2.0
 agent_max_climb = 0.25
@@ -42,9 +40,10 @@ shader = ExtResource("1_grid")
 shader_parameter/base_color = Color(0.72, 0.45, 0.22, 1)
 shader_parameter/line_color = Color(0.5, 0.3, 0.14, 1)
 
-[node name="TestRange" type="Node3D" node_paths=PackedStringArray("game_over")]
+[node name="TestRange" type="Node3D" node_paths=PackedStringArray("game_over", "navigation")]
 script = ExtResource("7_level")
 game_over = NodePath("GameOver")
+navigation = NodePath("NavigationRegion3D")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("environment")
@@ -57,7 +56,7 @@ shadow_enabled = true
 navigation_mesh = SubResource("navigation_mesh")
 script = ExtResource("4_nav")
 
-[node name="Geometry" type="Node3D" parent="." groups=["navigation_geometry"]]
+[node name="Geometry" type="Node3D" parent="."]
 
 [node name="Floor" type="CSGBox3D" parent="Geometry"]
 position = Vector3(0, -0.5, 0)
@@ -134,13 +133,13 @@ material = SubResource("wall_material")
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector3(0, 0, 6)
 
-[node name="TargetDummyNear" parent="." groups=["navigation_geometry"] instance=ExtResource("3_dummy")]
+[node name="TargetDummyNear" parent="." instance=ExtResource("3_dummy")]
 position = Vector3(-2, 0, 2)
 
-[node name="TargetDummyMid" parent="." groups=["navigation_geometry"] instance=ExtResource("3_dummy")]
+[node name="TargetDummyMid" parent="." instance=ExtResource("3_dummy")]
 position = Vector3(0, 0, -3)
 
-[node name="TargetDummyFar" parent="." groups=["navigation_geometry"] instance=ExtResource("3_dummy")]
+[node name="TargetDummyFar" parent="." instance=ExtResource("3_dummy")]
 position = Vector3(2, 0, -12)
 
 [node name="RoundManager" type="Node" parent="."]
