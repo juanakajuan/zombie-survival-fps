@@ -8,7 +8,7 @@ When you finish a step, move it to [What is done](#what-is-done) in the same com
 
 You stand in an arena. Zombies come at you in rounds, and you shoot them before they reach you. When all zombies of a round are dead, a short break starts. Then a harder round starts. When your health gets to 0, the game ends and shows the round that you reached. You restart and try to reach a later round.
 
-The game is minimal when a player can play the full loop from a fresh start, without the editor.
+The game is minimal when a player can play the full loop from a fresh start, without the editor. The minimal game is done.
 
 ## Decided rules
 
@@ -52,6 +52,8 @@ A step is done when all of these are true:
 - A `tools/smoke.sh` screenshot shows each visible result.
 
 When the 5 steps are done, play one full loop by hand. Survive round 1, see round 2 start with more zombies, die, read the round on the game-over screen, and restart.
+
+The 5 steps are done, and the full loop passes. The verify skill plays it with `.claude/skills/verify/journeys/full_loop.steps`, and the run has 0 failures. The run aims with the driver's `aim` command, so it does not test how hard aiming is.
 
 ## After the minimal game
 

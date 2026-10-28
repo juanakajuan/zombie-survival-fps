@@ -1,0 +1,38 @@
+# Full loop: clear round 1, see round 2 with 6 zombies, die in round 2, read the game-over screen, restart.
+expect hud.round 1
+expect hud.health 100
+expect hud.ammo 12 / 12
+state 01-start
+shot 01-start
+until zombies.alive 4 300
+fight_until hud.break true 3600
+expect zombies.alive 0
+expect hud.round 1
+state 02-break
+shot 02-break
+until hud.break false 700
+expect hud.round 2
+until zombies.alive 6 400
+state 03-round-two
+shot 03-round-two
+until game_over.visible true 5400
+expect player.dead true
+expect hud.health 0
+expect game_over.text You reached round 2
+expect mouse.mode visible
+state 04-game-over
+shot 04-game-over
+tap restart
+wait 10
+expect game_over.visible false
+expect player.dead false
+expect hud.health 100
+expect hud.ammo 12 / 12
+expect hud.round 1
+expect hud.break false
+expect player.position 0.0 0.0 6.0
+expect mouse.mode captured
+state 05-restarted
+shot 05-restarted
+until zombies.alive 4 300
+state 06-round-one-again
