@@ -1,0 +1,30 @@
+# Movement and look: walk, sprint, jump, turn with the mouse, release the mouse with Esc, recapture without a shot.
+expect player.position 0.0 0.0 6.0
+expect mouse.mode captured
+hold move_forward
+wait 30
+release move_forward
+wait 30
+state 01-after-walk
+expect_not player.position 0.0 0.0 6.0
+hold sprint
+hold move_forward
+wait 30
+release move_forward
+release sprint
+wait 30
+state 02-after-sprint
+tap jump
+wait 10
+state 03-in-jump
+shot 03-in-jump
+look 200 0
+expect player.yaw_deg -29
+shot 04-after-look
+key Escape
+expect mouse.mode visible
+tap fire
+expect mouse.mode captured
+wait 12
+expect hud.ammo 12 / 12
+state 05-recaptured
