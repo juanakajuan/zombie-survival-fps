@@ -26,7 +26,8 @@ The game is minimal when a player can play the full loop from a fresh start, wit
 | Health | `health/` | `damage()`, `reset()`, `is_dead()`, and the `damaged` and `died` signals. |
 | Target dummy | `targets/` | 100 health. It flashes red when hit, goes away at 0 health, and comes back after 2 s. |
 | Zombie | `zombie/` | 100 health. It follows the navmesh to the player at 2.5 m/s. Within 1.3 m it hits for 10 damage each 1 s. It is removed when it dies. It does not attack a dead player. |
-| Test range | `levels/` | The greybox map and the main scene. It has 3 target dummies and 2 placed zombies. `level_navigation.gd` bakes the navmesh when the level starts. |
+| Test range | `levels/` | The greybox map and the main scene. It has 3 target dummies and 4 zombie spawn points. `level_navigation.gd` bakes the navmesh when the level starts. |
+| Rounds | `rounds/` | `RoundManager` starts round 1 when the level loads. Each round spawns its zombies one each 1 s, in turn at the `Marker3D` children of the manager. `round_settings.tres` gives 4 zombies in round 1 and 2 more each round, 100 health and 20 more each round, and 2.5 m/s and 0.25 m/s more each round up to 5 m/s. When the last zombie dies, a 10 s break starts, then the next round. Other code reads `round_number` and `state` (`BREAK` or `ACTIVE`) and connects to `round_started` and `round_ended`. |
 | Crosshair | `player/player.tscn` | A 4 px dot at the center of the screen. |
 
 ## Steps to a minimal game
@@ -37,7 +38,7 @@ Steps 1, 2, and 3 need no other step, so agents can do them at the same time. St
 
 | Step | Issue | Needs |
 |---|---|---|
-| 1. Add the round manager | [#1](https://github.com/juanakajuan/zombie-survival-fps/issues/1) | Nothing |
+| 1. Add the round manager (done) | [#1](https://github.com/juanakajuan/zombie-survival-fps/issues/1) | Nothing |
 | 2. Add the HUD for health and ammo | [#2](https://github.com/juanakajuan/zombie-survival-fps/issues/2) | Nothing |
 | 3. Add player death | [#3](https://github.com/juanakajuan/zombie-survival-fps/issues/3) | Nothing |
 | 4. Show the round number on the HUD | [#4](https://github.com/juanakajuan/zombie-survival-fps/issues/4) | Steps 1 and 2 |
@@ -48,21 +49,6 @@ A step is done when all of these are true:
 - `tools/check.sh` passes.
 - A test covers each done-criterion that a test can see.
 - A `tools/smoke.sh` screenshot shows each visible result.
-
-### 1. Add the round manager
-
-Rounds start, spawn zombies at spawn points, and get harder.
-
-Put the round data in a `RoundSettings` resource in a `.tres` file. It gives the zombie count, the zombie health, and the zombie speed for each round, and the break time between rounds. Mark the spawn points with `Marker3D` nodes in the level.
-
-Done when:
-
-- Round 1 starts when the level loads.
-- Round N spawns the number of zombies that `RoundSettings` gives for round N, at the spawn points.
-- Zombie health and speed go up each round, as `RoundSettings` gives.
-- When the last zombie of a round dies, the break starts. The next round starts when the break ends.
-- Other code can read the round number, and it gets a signal when a round starts and when a round ends.
-- The 2 placed zombies are gone from the test range. The round manager spawns all zombies.
 
 ### 2. Add the HUD for health and ammo
 
