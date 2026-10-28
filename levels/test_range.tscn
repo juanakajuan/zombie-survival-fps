@@ -3,6 +3,15 @@
 [ext_resource type="Shader" path="res://levels/greybox_grid.gdshader" id="1_grid"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://targets/target_dummy.tscn" id="3_dummy"]
+[ext_resource type="Script" path="res://levels/level_navigation.gd" id="4_nav"]
+[ext_resource type="PackedScene" path="res://zombie/zombie.tscn" id="5_zombie"]
+
+[sub_resource type="NavigationMesh" id="navigation_mesh"]
+geometry_source_geometry_mode = 1
+geometry_source_group_name = &"navigation_geometry"
+agent_radius = 0.5
+agent_height = 2.0
+agent_max_climb = 0.25
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_material"]
 
@@ -39,7 +48,11 @@ environment = SubResource("environment")
 rotation = Vector3(-0.8727, 0.5236, 0)
 shadow_enabled = true
 
-[node name="Geometry" type="Node3D" parent="."]
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("navigation_mesh")
+script = ExtResource("4_nav")
+
+[node name="Geometry" type="Node3D" parent="." groups=["navigation_geometry"]]
 
 [node name="Floor" type="CSGBox3D" parent="Geometry"]
 position = Vector3(0, -0.5, 0)
@@ -106,3 +119,9 @@ position = Vector3(0, 0, -3)
 
 [node name="TargetDummyFar" parent="." instance=ExtResource("3_dummy")]
 position = Vector3(2, 0, -12)
+
+[node name="ZombieA" parent="." instance=ExtResource("5_zombie")]
+position = Vector3(-3, 0, -17)
+
+[node name="ZombieB" parent="." instance=ExtResource("5_zombie")]
+position = Vector3(3, 0, -17)
