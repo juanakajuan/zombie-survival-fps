@@ -12,13 +12,16 @@ class Rule:
 	var line_re: RegEx
 	var what: String
 	var fix: String
+	## When false, the rule sees each string literal as "", so text in a string cannot match.
+	var reads_strings: bool
 
-	func _init(p_name: String, p_path: String, p_line: String, p_what: String, p_fix: String) -> void:
+	func _init(p_name: String, p_path: String, p_line: String, p_what: String, p_fix: String, p_reads_strings: bool = false) -> void:
 		name = p_name
 		path_re = RegEx.create_from_string(p_path)
 		line_re = RegEx.create_from_string(p_line)
 		what = p_what
 		fix = p_fix
+		reads_strings = p_reads_strings
 
 
 const SKIP_DIRS: PackedStringArray = ["addons", ".godot", ".git", "worktrees"]
@@ -42,16 +45,17 @@ func _init() -> void:
 		Rule.new(
 			"await_in_node",
 			"^(?!tests/|tools/|debug/|\\.claude/).*\\.gd$",
-			"^[^#]*\\bawait\\b",
+			"\\bawait\\b",
 			"await in a node script",
 			"An await resumes on a freed node. Connect the signal: timer.timeout.connect(_f).",
 		),
 		Rule.new(
 			"test_node_path",
 			"^(tests/.*|\\.claude/skills/verify/scripts/driver)\\.gd$",
-			"^[^#]*(get_node(_or_null)?\\(\\s*\"[^\"]*[/%]|\\$\"?%?\\w+/|\\$%|[A-Z]_PATH\\b|\"Head/|\"%[A-Z])",
+			"(get_node(_or_null)?\\(\\s*\"[^\"]*[/%]|\\$\"?%?\\w+/|\\$%|[A-Z]_PATH\\b|\"Head/|\"%[A-Z])",
 			"node path into a scene",
 			"Use a typed accessor on the feature class (player.camera, player.weapon, hud.readout()).",
+			true,
 		),
 		Rule.new(
 			"test_helper_copy",
@@ -89,12 +93,41 @@ func _lint_file(rel: String, path: String) -> void:
 	for i: int in lines.size():
 		var line := lines[i]
 		var allowed := _allowed_rule(rel, i + 1, line)
+		var code := _code(line, true)
+		var bare := _code(line, false)
 		for rule: Rule in _rules:
 			if rule.path_re.search(rel) == null or rule.name == allowed:
 				continue
-			var found := rule.line_re.search(line)
+			var found := rule.line_re.search(code if rule.reads_strings else bare)
 			if found != null:
 				_report(rel, i + 1, rule.what, rule.fix.replace("{1}", found.get_string(1)))
+
+
+## The line without its comment. Without `keep_strings`, each string literal becomes "".
+## A `#` in a string does not start a comment.
+func _code(line: String, keep_strings: bool) -> String:
+	var out := ""
+	var quote := ""
+	var i := 0
+	while i < line.length():
+		var c := line[i]
+		if quote.is_empty():
+			if c == "#":
+				break
+			if c == "\"" or c == "'":
+				quote = c
+			out += c
+		elif c == "\\":
+			if keep_strings:
+				out += line.substr(i, 2)
+			i += 1
+		elif c == quote:
+			quote = ""
+			out += c
+		elif keep_strings:
+			out += c
+		i += 1
+	return out
 
 
 ## The public methods of TestCase. Reads the names from the file, so a new helper is covered with no edit here.
@@ -119,10 +152,26 @@ func _allowed_rule(rel: String, line_number: int, line: String) -> String:
 	if not known:
 		_report(rel, line_number, "lint-allow names the unknown rule %s" % rule_name, "Use a rule name from tools/lint.gd.")
 		return ""
+	if not _is_date(found.get_string(3)):
+		_report(rel, line_number, "lint-allow date %s is not a valid date" % found.get_string(3), "Write the date as YYYY-MM-DD.")
+		return ""
 	if found.get_string(3) < _today:
 		_report(rel, line_number, "lint-allow for %s expired on %s" % [rule_name, found.get_string(3)], "Fix the code, or ask the human to renew the date.")
 		return ""
 	return rule_name
+
+
+## True for a real calendar date in YYYY-MM-DD form. The regex already checks the form.
+func _is_date(date: String) -> bool:
+	var parts := date.split("-")
+	var year := parts[0].to_int()
+	var month := parts[1].to_int()
+	var day := parts[2].to_int()
+	if month < 1 or month > 12:
+		return false
+	var leap := (year % 4 == 0 and year % 100 != 0) or year % 400 == 0
+	var days_in_month: PackedInt32Array = [31, 29 if leap else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+	return day >= 1 and day <= days_in_month[month - 1]
 
 
 func _report(rel: String, line_number: int, what: String, fix: String) -> void:
