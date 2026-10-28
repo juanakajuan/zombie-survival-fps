@@ -14,6 +14,7 @@ extends CharacterBody3D
 @export_range(0.0, 90.0, 0.5, "suffix:°") var max_pitch_degrees: float = 89.0
 
 @onready var _head: Node3D = $Head
+@onready var _weapon: Weapon = $Head/Camera3D/Weapon
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -28,10 +29,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			look((event as InputEventMouseMotion).screen_relative)
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		_weapon.trigger_enabled = false
 	elif event is InputEventMouseButton:
 		var click := event as InputEventMouseButton
-		if click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
+		# Capture on release, so the click that takes the mouse back never reaches the weapon as a shot.
+		if not click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			_weapon.trigger_enabled = true
 
 
 func _physics_process(delta: float) -> void:

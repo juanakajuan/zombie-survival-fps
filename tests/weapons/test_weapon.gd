@@ -195,3 +195,35 @@ func _spawn_player() -> Player:
 
 func _run_seconds(seconds: float) -> void:
 	await physics_frames(roundi(seconds * Engine.physics_ticks_per_second))
+
+
+func test_click_that_recaptures_the_mouse_does_not_fire() -> void:
+	await _spawn_player()
+	var dummy := await _spawn_dummy(Vector3(0.0, 0.0, -TARGET_DISTANCE))
+	var dummy_health := Health.find_on(dummy)
+	_send_key(KEY_ESCAPE, true)
+	_send_key(KEY_ESCAPE, false)
+	_send_click(true)
+	await physics_frames(3)
+	_send_click(false)
+	await physics_frames(3)
+	assert_almost_eq(dummy_health.current, dummy_health.max_health, 0.001, "the recapture click does not shoot")
+	_send_click(true)
+	await physics_frames(3)
+	_send_click(false)
+	assert_almost_eq(dummy_health.current, dummy_health.max_health - PISTOL.damage, 0.001, "the next click shoots")
+
+
+func _send_key(keycode: Key, pressed: bool) -> void:
+	var event := InputEventKey.new()
+	event.keycode = keycode
+	event.physical_keycode = keycode
+	event.pressed = pressed
+	Input.parse_input_event(event)
+
+
+func _send_click(pressed: bool) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = pressed
+	Input.parse_input_event(event)

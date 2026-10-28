@@ -12,6 +12,8 @@ enum State { READY, RELOADING }
 @export var data: WeaponData
 
 var ammo: int
+## When false, the fire and reload actions do nothing. The owner turns it off while the mouse is released.
+var trigger_enabled: bool = true
 
 var _state: State = State.READY
 ## Seconds until the next shot while READY, or until the reload ends while RELOADING.
@@ -36,6 +38,8 @@ func _physics_process(delta: float) -> void:
 		ammo = data.magazine_size
 		reload_finished.emit()
 
+	if not trigger_enabled:
+		return
 	var fire_pressed := Input.is_action_pressed("fire") if data.automatic else Input.is_action_just_pressed("fire")
 	if fire_pressed:
 		try_fire()
