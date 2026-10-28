@@ -45,7 +45,7 @@ A change is done only when `tools/check.sh` passes. For a visual change, also ru
 - Make tunable values `@export` (with `@export_range` where it helps) so that the human can tune them in the Inspector.
 - Put game data, such as weapons and round settings, in `.tres` Resources.
 - Commit the `.uid` files next to scripts and shaders. Godot makes them.
-- Input actions are in the Input Map in `project.godot`. Use physical keycodes. Current actions: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `fire`, `reload`.
+- Input actions are in the Input Map in `project.godot`. Use physical keycodes. Current actions: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `fire`, `reload`, `restart`.
 
 ## Godot AI MCP server
 
