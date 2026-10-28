@@ -3,6 +3,8 @@
 A round-based zombie survival FPS. Godot 4.7, GDScript only, Forward+ renderer, Jolt physics.
 An agent writes most of the code. The human uses the Godot editor at the same time.
 
+[DESIGN.md](DESIGN.md) has the core loop, the decided game rules, what is done, and the steps to a minimal game. Read it before gameplay work. When you finish a step, update DESIGN.md in the same commit.
+
 ## Commands
 
 | Command | Use |
