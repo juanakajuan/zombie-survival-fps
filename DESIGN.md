@@ -31,17 +31,17 @@ The game is minimal when a player can play the full loop from a fresh start, wit
 
 ## Steps to a minimal game
 
-The minimal game uses `levels/test_range.tscn` as its map. Each step is a GitHub issue that one agent can do.
+The minimal game uses `levels/test_range.tscn` as its map. Each step is a GitHub issue that one agent can do. The `ready` label marks an issue that an agent can start now. The `blocked` label marks an issue that waits on other issues. When an issue closes, move the `ready` label to each issue that it unblocked.
 
 Steps 1, 2, and 3 need no other step, so agents can do them at the same time. Step 4 needs steps 1 and 2. Step 5 needs steps 1 and 3.
 
-| Step | Needs |
-|---|---|
-| 1. Add the round manager | Nothing |
-| 2. Add the HUD for health and ammo | Nothing |
-| 3. Add player death | Nothing |
-| 4. Show the round number on the HUD | Steps 1 and 2 |
-| 5. Add game over and restart | Steps 1 and 3 |
+| Step | Issue | Needs |
+|---|---|---|
+| 1. Add the round manager | [#1](https://github.com/juanakajuan/zombie-survival-fps/issues/1) | Nothing |
+| 2. Add the HUD for health and ammo | [#2](https://github.com/juanakajuan/zombie-survival-fps/issues/2) | Nothing |
+| 3. Add player death | [#3](https://github.com/juanakajuan/zombie-survival-fps/issues/3) | Nothing |
+| 4. Show the round number on the HUD | [#4](https://github.com/juanakajuan/zombie-survival-fps/issues/4) | Steps 1 and 2 |
+| 5. Add game over and restart | [#5](https://github.com/juanakajuan/zombie-survival-fps/issues/5) | Steps 1 and 3 |
 
 A step is done when all of these are true:
 
