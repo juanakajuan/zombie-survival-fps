@@ -79,6 +79,13 @@ func _init() -> void:
 			"mouse mode or trigger written outside Player",
 			"Only Player writes the mouse mode and the trigger. Ask the player (Player.died, a Player method) instead.",
 		),
+		Rule.new(
+			"magic_const",
+			"^(?!tests/|tools/|debug/|\\.claude/).*\\.gd$",
+			"^\\s*const\\s+\\w+\\s*(:\\s*\\w+)?\\s*:?=\\s*(-?[\\d.]|Color\\()",
+			"numeric or Color const in a gameplay script",
+			"Make it @export (with @export_range) or put it in a .tres.",
+		),
 	]
 	var root := "res://"
 	var args := OS.get_cmdline_user_args()

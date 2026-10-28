@@ -29,7 +29,7 @@ func test_zombie_goes_around_a_wall_to_reach_the_player() -> void:
 	var player := await spawn_player(Vector3(0.0, 0.0, 6.0), 3)
 	var zombie := spawn_zombie(Vector3(0.0, 0.0, -6.0), player)
 	zombie.attack_damage = 0.0
-	var reach := zombie.attack_range + Zombie.ATTACK_EXIT_MARGIN
+	var reach := zombie.attack_range + zombie.attack_exit_margin
 	for _i: int in 15:
 		await run_seconds(1.0)
 		if _flat_distance(zombie, player) <= reach:
