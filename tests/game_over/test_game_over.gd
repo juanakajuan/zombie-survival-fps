@@ -22,6 +22,16 @@ func test_death_shows_the_round_that_the_player_reached() -> void:
 	assert_eq(game_over.round_text(), "You reached round 2", "round text")
 
 
+func test_death_releases_the_mouse_and_shows_game_over() -> void:
+	var level := _spawn_level()
+	await physics_frames(5)
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_kill(_player(level))
+	await physics_frames(1)
+	assert_eq(Input.mouse_mode, Input.MOUSE_MODE_VISIBLE, "mouse mode after death")
+	assert_true(_game_over(level).visible, "game over shows after death")
+
+
 func test_restart_while_alive_does_nothing() -> void:
 	var level := _spawn_level()
 	var requests: Array[int] = [0]

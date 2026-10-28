@@ -169,7 +169,7 @@ func _until(key: String, want: String, max_frames: int) -> bool:
 
 ## Turns the view to the nearest zombie's chest with one mouse-motion event, as a player would flick the mouse.
 func _aim_nearest_zombie() -> bool:
-	var player := get_first_node_in_group("player") as Player
+	var player := get_first_node_in_group(Player.GROUP) as Player
 	if player == null:
 		printerr("driver: aim found no player")
 		return false
@@ -222,7 +222,7 @@ func _state() -> Dictionary[String, String]:
 	var level := current_scene
 	if level == null:
 		return s
-	var player := get_first_node_in_group("player") as Player
+	var player := get_first_node_in_group(Player.GROUP) as Player
 	if player != null:
 		s["player.position"] = "%.1f %.1f %.1f" % [player.global_position.x, player.global_position.y, player.global_position.z]
 		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)

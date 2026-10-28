@@ -5,6 +5,9 @@ extends CharacterBody3D
 ## Emitted once when the Health child gets to 0. After it, the player ignores all input.
 signal died
 
+## The group that player.tscn puts the player in. Other features find the player with it.
+const GROUP := &"player"
+
 @export_group("Movement")
 @export_range(0.0, 20.0, 0.1, "suffix:m/s") var walk_speed: float = 4.5
 @export_range(0.0, 30.0, 0.1, "suffix:m/s") var sprint_speed: float = 7.0
@@ -125,6 +128,7 @@ func is_dead() -> bool:
 
 
 func _on_health_died() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	weapon.trigger_enabled = false
 	died.emit()
 
