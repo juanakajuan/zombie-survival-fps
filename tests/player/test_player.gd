@@ -155,6 +155,55 @@ func test_no_input_in_the_air_keeps_horizontal_speed() -> void:
 	assert_almost_eq(_horizontal_speed(player), speed_before, 0.01, "air speed is kept without input")
 
 
+func test_crouch_lowers_the_camera_and_moves_at_crouch_speed() -> void:
+	var player := await _spawn_player()
+	var camera := player.get_node("Head/Camera3D") as Camera3D
+	var standing_eye := camera.global_position.y
+	Input.action_press("crouch")
+	Input.action_press("sprint")
+	Input.action_press("move_forward")
+	await _run_seconds(1.0)
+	assert_true(player.is_crouching(), "is_crouching is true")
+	assert_true(not player.is_sprinting(), "crouching is not sprinting")
+	assert_true(camera.global_position.y < standing_eye - 0.5, "camera went down, got %s" % camera.global_position.y)
+	assert_almost_eq(_horizontal_speed(player), player.crouch_speed, SPEED_TOLERANCE, "speed is crouch_speed")
+
+
+func test_release_crouch_stands_up() -> void:
+	var player := await _spawn_player()
+	var camera := player.get_node("Head/Camera3D") as Camera3D
+	var standing_eye := camera.global_position.y
+	Input.action_press("crouch")
+	await _run_seconds(0.5)
+	Input.action_release("crouch")
+	await _run_seconds(0.5)
+	assert_true(not player.is_crouching(), "player stands up")
+	assert_almost_eq(camera.global_position.y, standing_eye, 0.01, "camera is back at standing height")
+
+
+func test_only_a_crouched_player_fits_under_a_low_ceiling() -> void:
+	var player := await _spawn_player()
+	_add_box(Vector3(0.0, 1.4, -3.0), Vector3(4.0, 0.4, 2.0))
+	Input.action_press("move_forward")
+	await _run_seconds(1.5)
+	assert_true(player.global_position.z > -2.0 + 0.3, "standing player is stopped by the ceiling, got z=%s" % player.global_position.z)
+	Input.action_press("crouch")
+	await _run_seconds(1.5)
+	assert_true(player.global_position.z < -2.5, "crouched player goes under, got z=%s" % player.global_position.z)
+
+
+func test_player_stays_crouched_under_a_low_ceiling() -> void:
+	var player := await _spawn_player()
+	Input.action_press("crouch")
+	await _run_seconds(0.2)
+	_add_box(Vector3(0.0, 1.4, 0.0), Vector3(4.0, 0.4, 4.0))
+	await physics_frames(2)
+	Input.action_release("crouch")
+	await _run_seconds(0.5)
+	assert_true(player.is_crouching(), "player cannot stand under the ceiling")
+	assert_almost_eq(player.global_position.y, 0.0, 0.05, "player is not pushed through the ceiling")
+
+
 func test_look_up_clamps_pitch() -> void:
 	var player := await _spawn_player()
 	var head := player.get_node("Head") as Node3D
@@ -294,6 +343,17 @@ func _spawn_player() -> Player:
 	add_child(player)
 	await physics_frames(SETTLE_FRAMES)
 	return player
+
+
+func _add_box(center: Vector3, size: Vector3) -> void:
+	var body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	body.add_child(shape)
+	body.position = center
+	add_child(body)
 
 
 func _run_seconds(seconds: float) -> void:

@@ -21,6 +21,13 @@ signal died
 @export_range(0.0, 20.0, 0.1, "suffix:m/s") var jump_velocity: float = 8.0
 @export_range(0.0, 60.0, 0.1, "suffix:m/s²") var gravity: float = 25.0
 
+@export_group("Crouch")
+@export_range(0.0, 10.0, 0.1, "suffix:m/s") var crouch_speed: float = 2.5
+## Collision height while crouched. Standing height comes from the capsule in the scene.
+@export_range(0.7, 1.8, 0.05, "suffix:m") var crouch_height: float = 1.0
+## How fast the camera moves down and up when the player crouches and stands.
+@export_range(0.1, 20.0, 0.1, "suffix:m/s") var crouch_camera_speed: float = 6.0
+
 @export_group("Look")
 @export_range(0.0001, 0.02, 0.0001, "suffix:rad/px") var mouse_sensitivity: float = 0.0025
 @export_range(0.0, 90.0, 0.5, "suffix:°") var max_pitch_degrees: float = 89.0
@@ -28,11 +35,22 @@ signal died
 @onready var _head: Node3D = $Head
 @onready var _weapon: Weapon = $Head/Camera3D/Weapon
 @onready var _health: Health = $Health
+@onready var _collision: CollisionShape3D = $CollisionShape3D
+
+var _crouched := false
+var _shape: CapsuleShape3D
+var _stand_height: float
+var _stand_head_height: float
 
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_health.died.connect(_on_health_died)
+	# Every Player instance shares the scene's capsule, so crouching must resize a copy.
+	_shape = _collision.shape.duplicate() as CapsuleShape3D
+	_collision.shape = _shape
+	_stand_height = _shape.height
+	_stand_head_height = _head.position.y
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -53,6 +71,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_update_crouch(delta)
 	var on_floor := is_on_floor()
 	# Holding jump hops again on the first floor frame, before friction can slow the player.
 	var jumping := on_floor and Input.is_action_pressed("jump") and not is_dead()
@@ -66,7 +85,7 @@ func _physics_process(delta: float) -> void:
 
 	var move_input := _move_input()
 	var wish_dir := (global_basis * Vector3(move_input.x, 0.0, move_input.y)).normalized()
-	var target_speed := (sprint_speed if is_sprinting() else walk_speed) * move_input.length()
+	var target_speed := (crouch_speed if _crouched else sprint_speed if is_sprinting() else walk_speed) * move_input.length()
 	if on_floor:
 		_accelerate(wish_dir, target_speed, target_speed, ground_acceleration, delta)
 	else:
@@ -84,9 +103,15 @@ func look(relative: Vector2) -> void:
 	_head.rotation.x = clampf(_head.rotation.x - relative.y * mouse_sensitivity, -max_pitch, max_pitch)
 
 
-## True while on the floor with the sprint action held and the move input pointing forward.
+## True while on the floor, not crouched, with the sprint action held and the move input pointing forward.
 func is_sprinting() -> bool:
-	return is_on_floor() and Input.is_action_pressed("sprint") and _move_input().y < -0.5
+	return is_on_floor() and not _crouched and Input.is_action_pressed("sprint") and _move_input().y < -0.5
+
+
+## True while the player is crouched. The player stays crouched after the crouch action is released
+## until there is room to stand.
+func is_crouching() -> bool:
+	return _crouched
 
 
 func is_dead() -> bool:
@@ -122,3 +147,31 @@ func _accelerate(wish_dir: Vector3, cap_speed: float, target_speed: float, accel
 	if add_speed <= 0.0:
 		return
 	velocity += wish_dir * minf(acceleration * target_speed * delta, add_speed)
+
+
+func _update_crouch(delta: float) -> void:
+	if Input.is_action_pressed("crouch") and not is_dead():
+		_set_crouched(true)
+	elif _crouched and _has_room_to_stand():
+		_set_crouched(false)
+	var head_height := _stand_head_height - (_stand_height - crouch_height if _crouched else 0.0)
+	_head.position.y = move_toward(_head.position.y, head_height, crouch_camera_speed * delta)
+
+
+func _set_crouched(crouched: bool) -> void:
+	_crouched = crouched
+	_shape.height = crouch_height if crouched else _stand_height
+	_collision.position.y = _shape.height / 2.0
+
+
+func _has_room_to_stand() -> bool:
+	var standing := CapsuleShape3D.new()
+	standing.radius = _shape.radius
+	standing.height = _stand_height
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = standing
+	# Lifted a little, so that the floor under the feet does not count.
+	query.transform = global_transform.translated(Vector3.UP * (_stand_height / 2.0 + 0.05))
+	query.collision_mask = collision_mask
+	query.exclude = [get_rid()]
+	return get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()
