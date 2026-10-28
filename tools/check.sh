@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The gate. Imports the project, loads every script and scene (this enforces strict typing), then runs the tests.
+# The gate. Imports the project, lints the scripts, checks project.godot, loads every script and scene (this enforces strict typing), then runs the tests.
 # Usage: tools/check.sh [test filter]
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -16,6 +16,11 @@ if grep -E '^(ERROR|SCRIPT ERROR|USER ERROR)' "$import_log"; then
 	exit 1
 fi
 echo "check: import took $((SECONDS - phase_start)) s"
+
+phase_start=$SECONDS
+godot --headless --path . -s res://tools/lint.gd
+godot --headless --path . -s res://tools/check_project.gd
+echo "check: lint and project check took $((SECONDS - phase_start)) s"
 
 phase_start=$SECONDS
 godot --headless --path . -s res://tools/check_scripts.gd
