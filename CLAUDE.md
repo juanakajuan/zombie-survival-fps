@@ -9,7 +9,7 @@ An agent writes most of the code. The human uses the Godot editor at the same ti
 
 | Command | Use |
 |---|---|
-| `tools/check.sh [filter]` | The gate. It imports the project, loads every script and scene, and runs the tests. Run it after each change. |
+| `tools/check.sh [filter]` | The gate. It imports the project, lints the scripts, checks `project.godot`, loads every script and scene, and runs the tests. Run it after each change. |
 | `tools/smoke.sh [scene] [frames] [out.png]` | Runs the game off-screen with gamescope and saves a screenshot (default `.smoke/smoke.png`). Read the PNG to see the result. |
 | `godot --path . -e` | Opens the editor. This is for the human. |
 
@@ -22,6 +22,18 @@ A change is done only when `tools/check.sh` passes. For a visual change, also ru
 - Give every variable, parameter, and return value a type. `:=` is correct when the right side has a known type.
 - For a value from a `Dictionary` or another `Variant` API, assign it to a typed variable: `var n: String = data["name"]`.
 - Do not use `as` on a `Variant` value. `unsafe_cast` is an error. Use `as` only between known object types.
+
+## Rules and what enforces them
+
+| Rule | Enforced by |
+|---|---|
+| Strict typing: every declaration has a type, no `unsafe_*` | `project.godot` warnings as errors, loaded by `tools/check_scripts.gd` |
+| An engine error or `push_error()` fails a test | `tests/run_tests.gd` |
+| Tests do not wait for real time (15 s budget, `--fixed-fps 60`) | `tools/check.sh` |
+| No `await` in a node script (an await resumes on a freed node) | `tools/lint.gd` rule `await_in_node` |
+| `project.godot` stays in the editor's canonical form (fix: `tools/canon_project.sh`) | `tools/check_project.gd` |
+
+A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes on the offending line, and only with the human's approval: `# lint-allow <rule>: <reason> (until YYYY-MM-DD, approved: <human>)`. An expired or incomplete line fails the lint.
 
 ## Layout
 
