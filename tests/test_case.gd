@@ -6,6 +6,7 @@ extends Node
 const PLAYER_SCENE: PackedScene = preload("res://player/player.tscn")
 const ZOMBIE_SCENE: PackedScene = preload("res://zombie/zombie.tscn")
 const DUMMY_SCENE: PackedScene = preload("res://targets/target_dummy.tscn")
+const ROUND_SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
 
 var failures: PackedStringArray = []
 
@@ -44,9 +45,10 @@ func spawn_player(at: Vector3 = Vector3.ZERO, settle_frames: int = 1) -> Player:
 	return player
 
 
-## Without a target, the zombie finds the player through the player group.
+## A round 1 zombie of the game's round settings. Without a target, it finds the player through the player group.
 func spawn_zombie(at: Vector3, target: Node3D = null) -> Zombie:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
+	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.zombie_health(1))
 	zombie.position = at
 	zombie.target = target
 	add_child(zombie)
