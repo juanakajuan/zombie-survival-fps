@@ -19,8 +19,7 @@ func test_death_shows_the_round_that_the_player_reached() -> void:
 	await physics_frames(1)
 	var game_over := _game_over(level)
 	assert_true(game_over.visible, "game over shows after death")
-	var round_label := game_over.get_node("%RoundLabel") as Label
-	assert_eq(round_label.text, "You reached round 2", "round text")
+	assert_eq(game_over.round_text(), "You reached round 2", "round text")
 
 
 func test_restart_while_alive_does_nothing() -> void:
@@ -39,7 +38,7 @@ func test_restart_after_death_loads_a_fresh_level() -> void:
 	get_tree().current_scene = old_level
 	await physics_frames(5)
 	var old_player := _player(old_level)
-	var old_weapon := _weapon(old_player)
+	var old_weapon := old_player.weapon
 	old_weapon.try_fire()
 	_kill(old_player)
 	await physics_frames(1)
@@ -50,7 +49,7 @@ func test_restart_after_death_loads_a_fresh_level() -> void:
 	if level != null and level != old_level:
 		var player := _player(level)
 		var health := Health.find_on(player)
-		var weapon := _weapon(player)
+		var weapon := player.weapon
 		assert_true(not player.is_dead(), "player is alive")
 		assert_eq(health.current, health.max_health, "player health")
 		assert_eq(weapon.ammo, weapon.data.magazine_size, "rounds in the magazine")
@@ -91,10 +90,6 @@ func _kill(player: Player) -> void:
 
 func _player(level: Level) -> Player:
 	return level.get_node("Player") as Player
-
-
-func _weapon(player: Player) -> Weapon:
-	return player.get_node("Head/Camera3D/Weapon") as Weapon
 
 
 func _round_manager(level: Level) -> RoundManager:

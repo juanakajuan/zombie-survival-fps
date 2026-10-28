@@ -10,6 +10,16 @@ extends CanvasLayer
 @export var low_health_color: Color = Color(0.95, 0.25, 0.2)
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
 
+## What the HUD shows, as a player sees it. Tests and the verify driver read it.
+class Readout extends RefCounted:
+	var health_text: String
+	var ammo_text: String
+	var reloading: bool
+	var round_visible: bool
+	var round_text: String
+	var in_break: bool
+
+
 @onready var _health_value: Label = %HealthValue
 @onready var _health_bar: ProgressBar = %HealthBar
 @onready var _ammo_value: Label = %AmmoValue
@@ -33,6 +43,17 @@ func _ready() -> void:
 		round_manager.round_started.connect(_update_round.unbind(1))
 		round_manager.round_ended.connect(_update_round.unbind(1))
 	_update_round()
+
+
+func readout() -> Readout:
+	var r := Readout.new()
+	r.health_text = _health_value.text
+	r.ammo_text = _ammo_value.text
+	r.reloading = _reload_label.is_visible_in_tree()
+	r.round_visible = _round_panel.is_visible_in_tree()
+	r.round_text = _round_value.text
+	r.in_break = _break_label.is_visible_in_tree()
+	return r
 
 
 func _on_health_changed(current: float) -> void:

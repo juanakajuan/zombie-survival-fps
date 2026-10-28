@@ -25,6 +25,9 @@ const SKIP_DIRS: PackedStringArray = ["addons", ".godot", ".git", "worktrees"]
 const ALLOW_MARK := "# lint-allow"
 # This file quotes the lint-allow format in its own docs and messages.
 const SELF_PATH := "tools/lint.gd"
+const TEST_CASE_PATH := "res://tests/test_case.gd"
+# The scan skips hidden folders, so files in them are listed here.
+const HIDDEN_FILES: PackedStringArray = [".claude/skills/verify/scripts/driver.gd"]
 
 var _rules: Array[Rule] = []
 var _allow_re := RegEx.create_from_string(
@@ -43,12 +46,29 @@ func _init() -> void:
 			"await in a node script",
 			"An await resumes on a freed node. Connect the signal: timer.timeout.connect(_f).",
 		),
+		Rule.new(
+			"test_node_path",
+			"^(tests/.*|\\.claude/skills/verify/scripts/driver)\\.gd$",
+			"^[^#]*(get_node(_or_null)?\\(\\s*\"[^\"]*[/%]|\\$\"?%?\\w+/|\\$%|[A-Z]_PATH\\b|\"Head/|\"%[A-Z])",
+			"node path into a scene",
+			"Use a typed accessor on the feature class (player.camera, player.weapon, hud.readout()).",
+		),
+		Rule.new(
+			"test_helper_copy",
+			"^tests/(?!test_case\\.gd$).*\\.gd$",
+			"^func\\s+_?(%s)\\s*\\(" % "|".join(_test_case_methods()),
+			"copy of a TestCase helper",
+			"Use TestCase.{1}().",
+		),
 	]
 	var root := "res://"
 	var args := OS.get_cmdline_user_args()
 	if args.size() > 0:
 		root = args[0]
 	_scan(root, root)
+	for rel: String in HIDDEN_FILES:
+		if FileAccess.file_exists(root.path_join(rel)):
+			_lint_file(rel, root.path_join(rel))
 	print("lint: %d hits" % _hits)
 	quit(1 if _hits > 0 else 0)
 
@@ -70,8 +90,20 @@ func _lint_file(rel: String, path: String) -> void:
 		var line := lines[i]
 		var allowed := _allowed_rule(rel, i + 1, line)
 		for rule: Rule in _rules:
-			if rule.path_re.search(rel) != null and rule.line_re.search(line) != null and rule.name != allowed:
-				_report(rel, i + 1, rule.what, rule.fix)
+			if rule.path_re.search(rel) == null or rule.name == allowed:
+				continue
+			var found := rule.line_re.search(line)
+			if found != null:
+				_report(rel, i + 1, rule.what, rule.fix.replace("{1}", found.get_string(1)))
+
+
+## The public methods of TestCase. Reads the names from the file, so a new helper is covered with no edit here.
+func _test_case_methods() -> PackedStringArray:
+	var names: PackedStringArray = []
+	var func_re := RegEx.create_from_string("(?m)^func\\s+([a-z]\\w*)\\s*\\(")
+	for found: RegExMatch in func_re.search_all(FileAccess.get_file_as_string(TEST_CASE_PATH)):
+		names.append(found.get_string(1))
+	return names
 
 
 ## Returns the rule that the line's lint-allow comment excuses, or "" when it has none or it is invalid.

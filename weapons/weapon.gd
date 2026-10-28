@@ -16,6 +16,8 @@ enum State { READY, RELOADING }
 var ammo: int
 ## When false, the fire and reload actions do nothing. The owner turns it off while the mouse is released.
 var trigger_enabled: bool = true
+## The instance of data.view_model, or null when the data has none or its root is not a ViewModel.
+var view_model: ViewModel
 
 var _state: State = State.READY
 ## Seconds until the next shot while READY, or until the reload ends while RELOADING.
@@ -26,7 +28,9 @@ var _excluded: Array[RID] = []
 func _ready() -> void:
 	ammo = data.magazine_size
 	if data.view_model != null:
-		add_child(data.view_model.instantiate())
+		var model := data.view_model.instantiate()
+		add_child(model)
+		view_model = model as ViewModel
 	var ancestor: Node = get_parent()
 	while ancestor != null:
 		if ancestor is CollisionObject3D:

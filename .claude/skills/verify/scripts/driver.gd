@@ -173,7 +173,7 @@ func _aim_nearest_zombie() -> bool:
 	if player == null:
 		printerr("driver: aim found no player")
 		return false
-	var head := player.get_node("Head") as Node3D
+	var head := player.head
 	var nearest: Zombie = null
 	for node: Node in current_scene.find_children("*", "", true, false):
 		if node is Zombie and (nearest == null or _dist(player, node as Zombie) < _dist(player, nearest)):
@@ -227,13 +227,13 @@ func _state() -> Dictionary[String, String]:
 		s["player.position"] = "%.1f %.1f %.1f" % [player.global_position.x, player.global_position.y, player.global_position.z]
 		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
 		s["player.dead"] = str(player.is_dead())
-		var hud := player.get_node("Hud") as Hud
-		s["hud.health"] = _label(hud, "%HealthValue")
-		s["hud.ammo"] = _label(hud, "%AmmoValue")
-		s["hud.reloading"] = str((hud.get_node("%ReloadLabel") as Label).is_visible_in_tree())
-		s["hud.round_visible"] = str((hud.get_node("%RoundPanel") as Control).is_visible_in_tree())
-		s["hud.round"] = _label(hud, "%RoundValue")
-		s["hud.break"] = str((hud.get_node("%BreakLabel") as Label).is_visible_in_tree())
+		var hud := player.hud.readout()
+		s["hud.health"] = hud.health_text
+		s["hud.ammo"] = hud.ammo_text
+		s["hud.reloading"] = str(hud.reloading)
+		s["hud.round_visible"] = str(hud.round_visible)
+		s["hud.round"] = hud.round_text
+		s["hud.break"] = str(hud.in_break)
 	var zombies := 0
 	var dummies_up := 0
 	for node: Node in level.find_children("*", "", true, false):
@@ -246,12 +246,8 @@ func _state() -> Dictionary[String, String]:
 	var game_over := level.get_node_or_null("GameOver") as GameOver
 	if game_over != null:
 		s["game_over.visible"] = str(game_over.visible)
-		s["game_over.text"] = _label(game_over, "%RoundLabel")
+		s["game_over.text"] = game_over.round_text()
 	return s
-
-
-func _label(owner_node: Node, path: String) -> String:
-	return (owner_node.get_node(path) as Label).text
 
 
 func _write_text(file_name: String, text: String) -> void:
