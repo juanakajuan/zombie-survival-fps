@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RoundSettings" format=3]
+
+[ext_resource type="Script" path="res://rounds/round_settings.gd" id="1_settings"]
+
+[resource]
+script = ExtResource("1_settings")
+first_round_zombies = 4
+zombies_per_round = 2
+first_round_health = 100.0
+health_per_round = 20.0
+first_round_speed = 2.5
+speed_per_round = 0.25
+max_speed = 5.0
+break_time = 10.0
+spawn_interval = 1.0
