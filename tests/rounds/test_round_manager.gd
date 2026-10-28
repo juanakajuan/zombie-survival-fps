@@ -20,7 +20,7 @@ func test_round_spawns_the_settings_count_at_the_spawn_points() -> void:
 	# One zombie per point, because zombies that spawn on the same point push each other away from it.
 	settings.first_round_zombies = SPAWN_POINTS.size()
 	var manager := _spawn_manager(settings)
-	await _run_seconds(settings.spawn_interval * settings.zombie_count(1) + 1.0)
+	await run_seconds(settings.spawn_interval * settings.zombie_count(1) + 1.0)
 	var zombies := _zombies(manager)
 	assert_eq(zombies.size(), settings.zombie_count(1), "zombie count in round 1")
 	var used: Array[Vector3] = []
@@ -47,10 +47,10 @@ func test_break_starts_when_the_last_zombie_dies_and_the_next_round_after_it() -
 	assert_eq(manager.state, RoundManager.State.BREAK, "state after the last zombie")
 	assert_eq(_ended, [1] as Array[int], "round_ended signals")
 	assert_eq(_zombies(manager).size(), 0, "zombies during the break")
-	await _run_seconds(settings.break_time * 0.5)
+	await run_seconds(settings.break_time * 0.5)
 	assert_eq(manager.round_number, 1, "round number during the break")
 	assert_eq(_started, [1] as Array[int], "round_started signals during the break")
-	await _run_seconds(settings.break_time * 0.5 + FRAME_MARGIN / 60.0)
+	await run_seconds(settings.break_time * 0.5 + FRAME_MARGIN / 60.0)
 	assert_eq(manager.round_number, 2, "round number after the break")
 	assert_eq(manager.state, RoundManager.State.ACTIVE, "state after the break")
 	assert_eq(_started, [1, 2] as Array[int], "round_started signals after the break")
@@ -80,7 +80,7 @@ func test_next_round_has_more_zombies_with_more_health_and_speed() -> void:
 	assert_almost_eq(first_speed, settings.zombie_speed(1), 0.001, "round 1 speed")
 	for zombie: Zombie in _zombies(manager):
 		Health.find_on(zombie).damage(1.0e6)
-	await _run_seconds(settings.break_time + FRAME_MARGIN / 60.0)
+	await run_seconds(settings.break_time + FRAME_MARGIN / 60.0)
 	await _spawn_all(manager, settings)
 	var zombies := _zombies(manager)
 	assert_eq(zombies.size(), settings.zombie_count(2), "zombie count in round 2")
@@ -132,7 +132,7 @@ func _floor() -> StaticBody3D:
 
 
 func _spawn_all(manager: RoundManager, settings: RoundSettings) -> void:
-	await _run_seconds(settings.spawn_interval * settings.zombie_count(manager.round_number) + 0.2)
+	await run_seconds(settings.spawn_interval * settings.zombie_count(manager.round_number) + 0.2)
 
 
 func _zombies(manager: RoundManager) -> Array[Zombie]:
@@ -153,7 +153,3 @@ func _nearest_spawn_point(zombie: Zombie) -> Vector3:
 
 func _flat_distance(a: Vector3, b: Vector3) -> float:
 	return Vector2(a.x - b.x, a.z - b.z).length()
-
-
-func _run_seconds(seconds: float) -> void:
-	await physics_frames(roundi(seconds * Engine.physics_ticks_per_second))

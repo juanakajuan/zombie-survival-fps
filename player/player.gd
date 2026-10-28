@@ -32,11 +32,13 @@ signal died
 @export_range(0.0001, 0.02, 0.0001, "suffix:rad/px") var mouse_sensitivity: float = 0.0025
 @export_range(0.0, 90.0, 0.5, "suffix:°") var max_pitch_degrees: float = 89.0
 
-@onready var _head: Node3D = $Head
-@onready var _weapon: Weapon = $Head/Camera3D/Weapon
+@onready var head: Node3D = $Head
+@onready var camera: Camera3D = $Head/Camera3D
+@onready var weapon: Weapon = $Head/Camera3D/Weapon
+@onready var hud: Hud = $Hud
+@onready var body: MeshInstance3D = $CollisionShape3D/Body
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
-@onready var _body: MeshInstance3D = $CollisionShape3D/Body
 
 var _crouched := false
 var _shape: CapsuleShape3D
@@ -51,10 +53,10 @@ func _ready() -> void:
 	# Every Player instance shares the scene's capsule, so crouching must resize a copy.
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
-	_body_mesh = _body.mesh.duplicate() as CapsuleMesh
-	_body.mesh = _body_mesh
+	_body_mesh = body.mesh.duplicate() as CapsuleMesh
+	body.mesh = _body_mesh
 	_stand_height = _shape.height
-	_stand_head_height = _head.position.y
+	_stand_head_height = head.position.y
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -65,13 +67,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			look((event as InputEventMouseMotion).screen_relative)
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		_weapon.trigger_enabled = false
+		weapon.trigger_enabled = false
 	elif event is InputEventMouseButton:
 		var click := event as InputEventMouseButton
 		# Capture on release, so the click that takes the mouse back never reaches the weapon as a shot.
 		if not click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-			_weapon.trigger_enabled = true
+			weapon.trigger_enabled = true
 
 
 func _physics_process(delta: float) -> void:
@@ -104,7 +106,7 @@ func look(relative: Vector2) -> void:
 		return
 	rotation.y -= relative.x * mouse_sensitivity
 	var max_pitch := deg_to_rad(max_pitch_degrees)
-	_head.rotation.x = clampf(_head.rotation.x - relative.y * mouse_sensitivity, -max_pitch, max_pitch)
+	head.rotation.x = clampf(head.rotation.x - relative.y * mouse_sensitivity, -max_pitch, max_pitch)
 
 
 ## True while on the floor, not crouched, with the sprint action held and the move input pointing forward.
@@ -123,7 +125,7 @@ func is_dead() -> bool:
 
 
 func _on_health_died() -> void:
-	_weapon.trigger_enabled = false
+	weapon.trigger_enabled = false
 	died.emit()
 
 
@@ -159,7 +161,7 @@ func _update_crouch(delta: float) -> void:
 	elif _crouched and _has_room_to_stand():
 		_set_crouched(false)
 	var head_height := _stand_head_height - (_stand_height - crouch_height if _crouched else 0.0)
-	_head.position.y = move_toward(_head.position.y, head_height, crouch_camera_speed * delta)
+	head.position.y = move_toward(head.position.y, head_height, crouch_camera_speed * delta)
 
 
 func _set_crouched(crouched: bool) -> void:

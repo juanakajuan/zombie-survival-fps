@@ -18,6 +18,10 @@ func _ready() -> void:
 	player.died.connect(_on_player_died)
 
 
+func round_text() -> String:
+	return _round_label.text
+
+
 func _process(_delta: float) -> void:
 	if Input.is_action_just_pressed("restart"):
 		set_process(false)

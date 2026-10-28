@@ -1,7 +1,5 @@
 extends TestCase
 
-const DUMMY_SCENE: PackedScene = preload("res://targets/target_dummy.tscn")
-
 
 func test_killed_dummy_disappears_then_respawns_with_full_health() -> void:
 	var dummy := DUMMY_SCENE.instantiate() as TargetDummy

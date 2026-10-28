@@ -32,6 +32,8 @@ A change is done only when `tools/check.sh` passes. For a visual change, also ru
 | Tests do not wait for real time (15 s budget, `--fixed-fps 60`) | `tools/check.sh` |
 | No `await` in a node script (an await resumes on a freed node) | `tools/lint.gd` rule `await_in_node` |
 | `project.godot` stays in the editor's canonical form (fix: `tools/canon_project.sh`) | `tools/check_project.gd` |
+| Tests and the verify driver use typed accessors (`player.camera`, `player.weapon`, `player.hud.readout()`), not node paths | `tools/lint.gd` rule `test_node_path` |
+| A test does not copy a `TestCase` helper (`spawn_player`, `run_seconds`, ...) | `tools/lint.gd` rule `test_helper_copy` |
 
 A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes on the offending line, and only with the human's approval: `# lint-allow <rule>: <reason> (until YYYY-MM-DD, approved: <human>)`. An expired or incomplete line fails the lint.
 
@@ -47,6 +49,8 @@ A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes o
 
 - A test file is `tests/<area>/test_<thing>.gd`. It `extends TestCase` and its methods start with `test_`.
 - Each test method gets a new instance in the scene tree. Add nodes to the test with `add_child()`. The runner frees them after the test.
+- Use the `TestCase` helpers: `spawn_player()` (with a floor), `spawn_zombie()`, `spawn_dummy()`, `spawn_nav_world()`, and `run_seconds()`.
+- Read a scene through the typed accessors of its feature class (`player.camera`, `player.weapon.view_model`, `player.hud.readout()`, `game_over.round_text()`). If one is missing, add it to the feature class.
 - Use `await physics_frames(n)` to run physics. Use `Input.action_press()` for input. The runner releases all actions after each test.
 - An engine error or a `push_error()` during a test makes the test fail.
 - Test what a player can see, such as position, velocity, or health. Do not test private fields.

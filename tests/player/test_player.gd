@@ -1,14 +1,13 @@
 extends TestCase
 
-const PLAYER_SCENE: PackedScene = preload("res://player/player.tscn")
 const SETTLE_FRAMES := 10
 const SPEED_TOLERANCE := 0.2
 
 
 func test_no_input_stays_on_floor_and_still() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var start := player.global_position
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	assert_true(player.is_on_floor(), "player stays on the floor")
 	assert_almost_eq(player.global_position.y, 0.0, 0.05, "feet stay at floor level")
 	assert_almost_eq(_horizontal_speed(player), 0.0, 0.05, "horizontal speed stays near 0")
@@ -16,9 +15,9 @@ func test_no_input_stays_on_floor_and_still() -> void:
 
 
 func test_forward_moves_toward_negative_z_at_walk_speed() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("move_forward")
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	assert_almost_eq(_horizontal_speed(player), player.walk_speed, SPEED_TOLERANCE, "speed is walk_speed")
 	assert_true(player.global_position.z < -0.75 * player.walk_speed, "moved toward -Z, got z=%s" % player.global_position.z)
 	assert_almost_eq(player.global_position.x, 0.0, 0.05, "no sideways drift")
@@ -26,46 +25,46 @@ func test_forward_moves_toward_negative_z_at_walk_speed() -> void:
 
 
 func test_forward_follows_yaw() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	player.look(Vector2((PI / 2.0) / player.mouse_sensitivity, 0.0))
 	Input.action_press("move_forward")
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	assert_true(player.global_position.x > 0.75 * player.walk_speed, "turning right 90 degrees makes forward +X, got x=%s" % player.global_position.x)
 	assert_almost_eq(player.global_position.z, 0.0, 0.05, "no drift along the old forward axis")
 	assert_almost_eq(_horizontal_speed(player), player.walk_speed, SPEED_TOLERANCE, "speed is walk_speed")
 
 
 func test_sprint_forward_reaches_sprint_speed() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("move_forward")
 	Input.action_press("sprint")
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	assert_almost_eq(_horizontal_speed(player), player.sprint_speed, SPEED_TOLERANCE, "speed is sprint_speed")
 	assert_true(player.is_sprinting(), "is_sprinting is true")
 
 
 func test_sprint_backward_stays_at_walk_speed() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("move_back")
 	Input.action_press("sprint")
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	assert_almost_eq(_horizontal_speed(player), player.walk_speed, SPEED_TOLERANCE, "speed is walk_speed")
 	assert_true(player.global_position.z > 0.75 * player.walk_speed, "moved toward +Z, got z=%s" % player.global_position.z)
 	assert_true(not player.is_sprinting(), "is_sprinting is false")
 
 
 func test_sprint_without_move_input_is_not_sprinting() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("sprint")
 	await physics_frames(5)
 	assert_true(not player.is_sprinting(), "is_sprinting is false while standing")
 
 
 func test_diagonal_is_not_faster_than_walk_speed() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("move_forward")
 	Input.action_press("move_right")
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	var speed := _horizontal_speed(player)
 	assert_true(speed <= player.walk_speed + 0.05, "diagonal speed %s exceeds walk_speed" % speed)
 	assert_true(speed >= player.walk_speed - 0.3, "diagonal speed %s is far below walk_speed" % speed)
@@ -74,7 +73,7 @@ func test_diagonal_is_not_faster_than_walk_speed() -> void:
 
 
 func test_jump_leaves_floor_rises_and_lands() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("jump")
 	await physics_frames(1)
 	Input.action_release("jump")
@@ -97,12 +96,12 @@ func test_jump_leaves_floor_rises_and_lands() -> void:
 
 
 func test_jump_in_air_adds_no_upward_velocity() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("jump")
 	await physics_frames(1)
 	Input.action_release("jump")
 	# Three quarters of the air time: past the peak, before landing.
-	await _run_seconds(1.5 * player.jump_velocity / player.gravity)
+	await run_seconds(1.5 * player.jump_velocity / player.gravity)
 	assert_true(not player.is_on_floor(), "player is still in the air")
 	var velocity_before := player.velocity.y
 	assert_true(velocity_before < 0.0, "player is falling, got vy=%s" % velocity_before)
@@ -115,7 +114,7 @@ func test_jump_in_air_adds_no_upward_velocity() -> void:
 
 
 func test_holding_jump_hops_again_on_landing() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("jump")
 	var takeoffs := 0
 	var was_on_floor := true
@@ -128,9 +127,9 @@ func test_holding_jump_hops_again_on_landing() -> void:
 
 
 func test_air_strafing_gains_speed_above_sprint_speed() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("move_forward")
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	Input.action_release("move_forward")
 	Input.action_press("move_right")
 	Input.action_press("jump")
@@ -142,9 +141,9 @@ func test_air_strafing_gains_speed_above_sprint_speed() -> void:
 
 
 func test_no_input_in_the_air_keeps_horizontal_speed() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("move_forward")
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	Input.action_release("move_forward")
 	Input.action_press("jump")
 	await physics_frames(2)
@@ -156,13 +155,13 @@ func test_no_input_in_the_air_keeps_horizontal_speed() -> void:
 
 
 func test_crouch_lowers_the_camera_and_moves_at_crouch_speed() -> void:
-	var player := await _spawn_player()
-	var camera := player.get_node("Head/Camera3D") as Camera3D
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var camera := player.camera
 	var standing_eye := camera.global_position.y
 	Input.action_press("crouch")
 	Input.action_press("sprint")
 	Input.action_press("move_forward")
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	assert_true(player.is_crouching(), "is_crouching is true")
 	assert_true(not player.is_sprinting(), "crouching is not sprinting")
 	assert_true(camera.global_position.y < standing_eye - 0.5, "camera went down, got %s" % camera.global_position.y)
@@ -170,69 +169,69 @@ func test_crouch_lowers_the_camera_and_moves_at_crouch_speed() -> void:
 
 
 func test_release_crouch_stands_up() -> void:
-	var player := await _spawn_player()
-	var camera := player.get_node("Head/Camera3D") as Camera3D
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var camera := player.camera
 	var standing_eye := camera.global_position.y
 	Input.action_press("crouch")
-	await _run_seconds(0.5)
+	await run_seconds(0.5)
 	Input.action_release("crouch")
-	await _run_seconds(0.5)
+	await run_seconds(0.5)
 	assert_true(not player.is_crouching(), "player stands up")
 	assert_almost_eq(camera.global_position.y, standing_eye, 0.01, "camera is back at standing height")
 
 
 func test_body_is_hidden_from_own_camera_and_shrinks_when_crouched() -> void:
-	var player := await _spawn_player()
-	var camera := player.get_node("Head/Camera3D") as Camera3D
-	var body := player.get_node("CollisionShape3D/Body") as MeshInstance3D
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var camera := player.camera
+	var body := player.body
 	assert_true(camera.cull_mask & body.layers == 0, "own camera does not draw the body")
 	assert_almost_eq(body.get_aabb().size.y, 1.8, 0.01, "standing body is 1.8 m tall")
 	Input.action_press("crouch")
-	await _run_seconds(0.2)
+	await run_seconds(0.2)
 	assert_almost_eq(body.get_aabb().size.y, player.crouch_height, 0.01, "crouched body is crouch_height tall")
 	assert_almost_eq(body.global_position.y - player.global_position.y, player.crouch_height / 2.0, 0.01, "crouched body stands on the feet")
 
 
 func test_only_a_crouched_player_fits_under_a_low_ceiling() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	_add_box(Vector3(0.0, 1.4, -3.0), Vector3(4.0, 0.4, 2.0))
 	Input.action_press("move_forward")
-	await _run_seconds(1.5)
+	await run_seconds(1.5)
 	assert_true(player.global_position.z > -2.0 + 0.3, "standing player is stopped by the ceiling, got z=%s" % player.global_position.z)
 	Input.action_press("crouch")
-	await _run_seconds(1.5)
+	await run_seconds(1.5)
 	assert_true(player.global_position.z < -2.5, "crouched player goes under, got z=%s" % player.global_position.z)
 
 
 func test_player_stays_crouched_under_a_low_ceiling() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("crouch")
-	await _run_seconds(0.2)
+	await run_seconds(0.2)
 	_add_box(Vector3(0.0, 1.4, 0.0), Vector3(4.0, 0.4, 4.0))
 	await physics_frames(2)
 	Input.action_release("crouch")
-	await _run_seconds(0.5)
+	await run_seconds(0.5)
 	assert_true(player.is_crouching(), "player cannot stand under the ceiling")
 	assert_almost_eq(player.global_position.y, 0.0, 0.05, "player is not pushed through the ceiling")
 
 
 func test_look_up_clamps_pitch() -> void:
-	var player := await _spawn_player()
-	var head := player.get_node("Head") as Node3D
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var head := player.head
 	player.look(Vector2(0.0, -1_000_000.0))
 	assert_almost_eq(head.rotation_degrees.x, player.max_pitch_degrees, 0.01, "pitch clamps at +max")
 
 
 func test_look_down_clamps_pitch() -> void:
-	var player := await _spawn_player()
-	var head := player.get_node("Head") as Node3D
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var head := player.head
 	player.look(Vector2(0.0, 1_000_000.0))
 	assert_almost_eq(head.rotation_degrees.x, -player.max_pitch_degrees, 0.01, "pitch clamps at -max")
 
 
 func test_mouse_motion_turns_camera_the_expected_way() -> void:
-	var player := await _spawn_player()
-	var camera := player.get_node("Head/Camera3D") as Camera3D
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var camera := player.camera
 	var forward := -camera.global_basis.z
 	assert_almost_eq(forward.z, -1.0, 0.001, "player starts facing -Z")
 	player.look(Vector2(0.0, -100.0))
@@ -244,15 +243,15 @@ func test_mouse_motion_turns_camera_the_expected_way() -> void:
 
 
 func test_camera_is_the_active_camera() -> void:
-	var player := await _spawn_player()
-	var camera := player.get_node("Head/Camera3D") as Camera3D
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var camera := player.camera
 	assert_true(get_viewport().get_camera_3d() == camera, "player camera is current")
 	assert_almost_eq(camera.fov, 80.0, 0.001, "fov is 80")
 	assert_almost_eq(camera.global_position.y, 1.6, 0.05, "camera is at eye height")
 
 
 func test_dying_emits_died_once() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var deaths: Array[int] = [0]
 	player.died.connect(func() -> void: deaths[0] += 1)
 	var health := Health.find_on(player)
@@ -263,42 +262,42 @@ func test_dying_emits_died_once() -> void:
 
 
 func test_dead_player_does_not_move_or_jump() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	_kill(player)
 	var start := player.global_position
 	Input.action_press("move_forward")
 	Input.action_press("sprint")
 	Input.action_press("jump")
-	await _run_seconds(1.0)
+	await run_seconds(1.0)
 	assert_almost_eq(_horizontal_distance(start, player.global_position), 0.0, 0.05, "dead player does not move")
 	assert_almost_eq(player.global_position.y, 0.0, 0.05, "dead player does not jump")
 	assert_true(not player.is_sprinting(), "dead player is not sprinting")
 
 
 func test_player_that_dies_while_moving_stops() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("move_forward")
-	await _run_seconds(0.5)
+	await run_seconds(0.5)
 	_kill(player)
-	await _run_seconds(0.5)
+	await run_seconds(0.5)
 	assert_almost_eq(_horizontal_speed(player), 0.0, 0.05, "dead player comes to a stop")
 
 
 func test_dead_player_in_the_air_falls_to_the_floor() -> void:
-	var player := await _spawn_player()
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("jump")
 	await physics_frames(5)
 	Input.action_release("jump")
 	assert_true(not player.is_on_floor(), "player is in the air")
 	_kill(player)
-	await _run_seconds(1.5)
+	await run_seconds(1.5)
 	assert_true(player.is_on_floor(), "dead player lands")
 	assert_almost_eq(player.global_position.y, 0.0, 0.05, "dead player is at floor level")
 
 
 func test_dead_player_cannot_look() -> void:
-	var player := await _spawn_player()
-	var head := player.get_node("Head") as Node3D
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var head := player.head
 	_kill(player)
 	player.look(Vector2(100.0, -100.0))
 	assert_almost_eq(player.rotation.y, 0.0, 0.0001, "yaw does not change")
@@ -306,8 +305,8 @@ func test_dead_player_cannot_look() -> void:
 
 
 func test_dead_player_cannot_fire_or_reload() -> void:
-	var player := await _spawn_player()
-	var weapon := player.get_node("Head/Camera3D/Weapon") as Weapon
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var weapon := player.weapon
 	Input.action_press("fire")
 	await physics_frames(2)
 	Input.action_release("fire")
@@ -324,8 +323,8 @@ func test_dead_player_cannot_fire_or_reload() -> void:
 
 
 func test_click_after_death_does_not_enable_the_trigger() -> void:
-	var player := await _spawn_player()
-	var weapon := player.get_node("Head/Camera3D/Weapon") as Weapon
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var weapon := player.weapon
 	_kill(player)
 	var release := InputEventMouseButton.new()
 	release.button_index = MOUSE_BUTTON_LEFT
@@ -342,34 +341,8 @@ func _kill(player: Player) -> void:
 	health.damage(health.max_health)
 
 
-func _spawn_player() -> Player:
-	var floor_body := StaticBody3D.new()
-	var floor_shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = Vector3(200.0, 1.0, 200.0)
-	floor_shape.shape = box
-	floor_shape.position = Vector3(0.0, -0.5, 0.0)
-	floor_body.add_child(floor_shape)
-	add_child(floor_body)
-	var player := PLAYER_SCENE.instantiate() as Player
-	add_child(player)
-	await physics_frames(SETTLE_FRAMES)
-	return player
-
-
 func _add_box(center: Vector3, size: Vector3) -> void:
-	var body := StaticBody3D.new()
-	var shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = size
-	shape.shape = box
-	body.add_child(shape)
-	body.position = center
-	add_child(body)
-
-
-func _run_seconds(seconds: float) -> void:
-	await physics_frames(roundi(seconds * Engine.physics_ticks_per_second))
+	add_child(_box(size, center))
 
 
 func _horizontal_speed(player: Player) -> float:
