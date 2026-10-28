@@ -1,9 +1,11 @@
 class_name Hud
 extends CanvasLayer
-## Shows the player's health, the rounds in the magazine, and when the weapon reloads.
+## Shows the player's health, the rounds in the magazine, when the weapon reloads, the round, and the break between rounds.
 
 @export var health: Health
 @export var weapon: Weapon
+## If it is empty, the HUD uses the first RoundManager in the tree. Without one, the round panel stays hidden.
+@export var round_manager: RoundManager
 @export var health_color: Color = Color(0.35, 0.85, 0.4)
 @export var low_health_color: Color = Color(0.95, 0.25, 0.2)
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
@@ -12,6 +14,9 @@ extends CanvasLayer
 @onready var _health_bar: ProgressBar = %HealthBar
 @onready var _ammo_value: Label = %AmmoValue
 @onready var _reload_label: Label = %ReloadLabel
+@onready var _round_panel: Control = %RoundPanel
+@onready var _round_value: Label = %RoundValue
+@onready var _break_label: Label = %BreakLabel
 
 
 func _ready() -> void:
@@ -22,6 +27,12 @@ func _ready() -> void:
 	_health_bar.max_value = health.max_health
 	_on_health_changed(health.current)
 	_update_ammo()
+	if round_manager == null:
+		round_manager = get_tree().get_first_node_in_group(RoundManager.GROUP) as RoundManager
+	if round_manager != null:
+		round_manager.round_started.connect(_update_round.unbind(1))
+		round_manager.round_ended.connect(_update_round.unbind(1))
+	_update_round()
 
 
 func _on_health_changed(current: float) -> void:
@@ -36,3 +47,11 @@ func _on_health_changed(current: float) -> void:
 func _update_ammo() -> void:
 	_ammo_value.text = "%d / %d" % [weapon.ammo, weapon.data.magazine_size]
 	_reload_label.visible = weapon.is_reloading()
+
+
+func _update_round() -> void:
+	_round_panel.visible = round_manager != null and round_manager.round_number > 0
+	if not _round_panel.visible:
+		return
+	_round_value.text = str(round_manager.round_number)
+	_break_label.visible = round_manager.state == RoundManager.State.BREAK
