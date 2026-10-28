@@ -111,13 +111,13 @@ material = SubResource("wall_material")
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector3(0, 0, 6)
 
-[node name="TargetDummyNear" parent="." instance=ExtResource("3_dummy")]
+[node name="TargetDummyNear" parent="." groups=["navigation_geometry"] instance=ExtResource("3_dummy")]
 position = Vector3(-2, 0, 2)
 
-[node name="TargetDummyMid" parent="." instance=ExtResource("3_dummy")]
+[node name="TargetDummyMid" parent="." groups=["navigation_geometry"] instance=ExtResource("3_dummy")]
 position = Vector3(0, 0, -3)
 
-[node name="TargetDummyFar" parent="." instance=ExtResource("3_dummy")]
+[node name="TargetDummyFar" parent="." groups=["navigation_geometry"] instance=ExtResource("3_dummy")]
 position = Vector3(2, 0, -12)
 
 [node name="ZombieA" parent="." instance=ExtResource("5_zombie")]
