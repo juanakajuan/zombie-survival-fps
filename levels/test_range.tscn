@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://levels/level_navigation.gd" id="4_nav"]
 [ext_resource type="Script" path="res://rounds/round_manager.gd" id="5_rounds"]
 [ext_resource type="Resource" path="res://rounds/round_settings.tres" id="6_settings"]
+[ext_resource type="Script" path="res://levels/level.gd" id="7_level"]
+[ext_resource type="PackedScene" path="res://game_over/game_over.tscn" id="8_game_over"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_source_geometry_mode = 1
@@ -40,7 +42,9 @@ shader = ExtResource("1_grid")
 shader_parameter/base_color = Color(0.72, 0.45, 0.22, 1)
 shader_parameter/line_color = Color(0.5, 0.3, 0.14, 1)
 
-[node name="TestRange" type="Node3D"]
+[node name="TestRange" type="Node3D" node_paths=PackedStringArray("game_over")]
+script = ExtResource("7_level")
+game_over = NodePath("GameOver")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("environment")
@@ -136,3 +140,7 @@ position = Vector3(-17, 0, 0)
 
 [node name="SpawnEast" type="Marker3D" parent="RoundManager"]
 position = Vector3(17, 0, 0)
+
+[node name="GameOver" parent="." node_paths=PackedStringArray("player", "round_manager") instance=ExtResource("8_game_over")]
+player = NodePath("../Player")
+round_manager = NodePath("../RoundManager")
