@@ -35,7 +35,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 func _ready() -> void:
 	if target == null:
-		target = get_tree().get_first_node_in_group("player") as Node3D
+		target = get_tree().get_first_node_in_group(Player.GROUP) as Node3D
 	_material.albedo_color = base_color
 	for child: Node in $Body.get_children():
 		(child as MeshInstance3D).material_override = _material

@@ -1,6 +1,6 @@
 class_name GameOver
 extends CanvasLayer
-## Hidden until the player dies. Then it shows the round that the player reached, releases the mouse, and emits
+## Hidden until the player dies. Then it shows the round that the player reached and emits
 ## restart_requested when the restart action is pressed.
 
 ## The level handles this signal and reloads itself. Tests can connect to it without a reload.
@@ -31,5 +31,4 @@ func _process(_delta: float) -> void:
 func _on_player_died() -> void:
 	_round_label.text = "You reached round %d" % round_manager.round_number
 	show()
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	set_process(true)

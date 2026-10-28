@@ -64,6 +64,21 @@ func _init() -> void:
 			"copy of a TestCase helper",
 			"Use TestCase.{1}().",
 		),
+		Rule.new(
+			"group_literal",
+			"^(?!tests/).*\\.gd$",
+			"\\b(add_to_group|is_in_group|get_first_node_in_group|get_nodes_in_group)\\(\\s*&?[\"']",
+			"group name as a string literal",
+			"Use the owner's constant, for example Player.GROUP.",
+			true,
+		),
+		Rule.new(
+			"mouse_mode_owner",
+			"^(?!player/player\\.gd$|tests/|debug/|\\.claude/).*\\.gd$",
+			"(Input\\.mouse_mode|\\btrigger_enabled)\\s*=[^=]",
+			"mouse mode or trigger written outside Player",
+			"Only Player writes the mouse mode and the trigger. Ask the player (Player.died, a Player method) instead.",
+		),
 	]
 	var root := "res://"
 	var args := OS.get_cmdline_user_args()
