@@ -148,6 +148,97 @@ func test_camera_is_the_active_camera() -> void:
 	assert_almost_eq(camera.global_position.y, 1.6, 0.05, "camera is at eye height")
 
 
+func test_dying_emits_died_once() -> void:
+	var player := await _spawn_player()
+	var deaths: Array[int] = [0]
+	player.died.connect(func() -> void: deaths[0] += 1)
+	var health := Health.find_on(player)
+	health.damage(health.max_health)
+	health.damage(10.0)
+	assert_eq(deaths[0], 1, "died emits once")
+	assert_true(player.is_dead(), "is_dead is true")
+
+
+func test_dead_player_does_not_move_or_jump() -> void:
+	var player := await _spawn_player()
+	_kill(player)
+	var start := player.global_position
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	Input.action_press("jump")
+	await _run_seconds(1.0)
+	assert_almost_eq(_horizontal_distance(start, player.global_position), 0.0, 0.05, "dead player does not move")
+	assert_almost_eq(player.global_position.y, 0.0, 0.05, "dead player does not jump")
+	assert_true(not player.is_sprinting(), "dead player is not sprinting")
+
+
+func test_player_that_dies_while_moving_stops() -> void:
+	var player := await _spawn_player()
+	Input.action_press("move_forward")
+	await _run_seconds(0.5)
+	_kill(player)
+	await _run_seconds(0.5)
+	assert_almost_eq(_horizontal_speed(player), 0.0, 0.05, "dead player comes to a stop")
+
+
+func test_dead_player_in_the_air_falls_to_the_floor() -> void:
+	var player := await _spawn_player()
+	Input.action_press("jump")
+	await physics_frames(5)
+	Input.action_release("jump")
+	assert_true(not player.is_on_floor(), "player is in the air")
+	_kill(player)
+	await _run_seconds(1.5)
+	assert_true(player.is_on_floor(), "dead player lands")
+	assert_almost_eq(player.global_position.y, 0.0, 0.05, "dead player is at floor level")
+
+
+func test_dead_player_cannot_look() -> void:
+	var player := await _spawn_player()
+	var head := player.get_node("Head") as Node3D
+	_kill(player)
+	player.look(Vector2(100.0, -100.0))
+	assert_almost_eq(player.rotation.y, 0.0, 0.0001, "yaw does not change")
+	assert_almost_eq(head.rotation.x, 0.0, 0.0001, "pitch does not change")
+
+
+func test_dead_player_cannot_fire_or_reload() -> void:
+	var player := await _spawn_player()
+	var weapon := player.get_node("Head/Camera3D/Weapon") as Weapon
+	Input.action_press("fire")
+	await physics_frames(2)
+	Input.action_release("fire")
+	var ammo_before := weapon.ammo
+	assert_true(ammo_before < weapon.data.magazine_size, "the live player fired a shot")
+	_kill(player)
+	Input.action_press("fire")
+	await physics_frames(2)
+	Input.action_release("fire")
+	Input.action_press("reload")
+	await physics_frames(2)
+	assert_eq(weapon.ammo, ammo_before, "dead player does not fire")
+	assert_true(not weapon.is_reloading(), "dead player does not reload")
+
+
+func test_click_after_death_does_not_enable_the_trigger() -> void:
+	var player := await _spawn_player()
+	var weapon := player.get_node("Head/Camera3D/Weapon") as Weapon
+	_kill(player)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	Input.parse_input_event(release)
+	await physics_frames(2)
+	Input.action_press("fire")
+	await physics_frames(2)
+	assert_eq(weapon.ammo, weapon.data.magazine_size, "dead player does not fire after a click")
+
+
+func _kill(player: Player) -> void:
+	var health := Health.find_on(player)
+	health.damage(health.max_health)
+
+
 func _spawn_player() -> Player:
 	var floor_body := StaticBody3D.new()
 	var floor_shape := CollisionShape3D.new()
