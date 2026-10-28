@@ -1,6 +1,6 @@
 # Weapon and targets
 
-The player fires the pistol with the left mouse button and reloads with R. The HUD shows the rounds in the magazine and a RELOADING label. A target dummy flashes red when hit, goes away after 4 hits, and comes back after 2 s.
+The player fires the pistol with the left mouse button and reloads with R. The player sees a cartoon pistol model that kicks back on each shot, and on reload tosses the gun over the shoulder and draws a new one. The HUD shows the rounds in the magazine and a RELOADING label. A target dummy flashes red when hit, goes away after 4 hits, and comes back after 2 s.
 
 ## Sub-features
 
@@ -9,6 +9,7 @@ The player fires the pistol with the left mouse button and reloads with R. The H
 - `dummy-hit` makes a dummy flash red, and 4 hits (25 damage each, 100 health) make it go away.
 - `dummy-respawn` brings the dummy back after 2 s.
 - `reload-key` refills the magazine to 12 in 1.2 s after R, with RELOADING on the HUD.
+- `view-model` shows the pistol model at the bottom right of the view. It bobs while walking and drops out of view on death.
 - `reload-empty` starts a reload when the player fires with an empty magazine.
 
 ## How to get to it (user POV)
@@ -27,7 +28,7 @@ Preconditions:
 - **Respawn.** Run `until dummies.up 3 180`. It passes after about 2 s.
 - **Reload.** Run `tap reload`, `wait 6`. `expect hud.reloading true` passes, and the screenshot shows the yellow RELOADING label. Then `until hud.reloading false 120` and `expect hud.ammo 12 / 12` pass.
 - **Empty magazine.** Run `look 0 -400` to aim at the sky, so that no dummy is hit. Fire 12 times with `wait 12` after each, then `tap fire`. `expect hud.ammo 0 / 12` and `expect hud.reloading true` pass.
-- **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/weapon.steps`. It covers all the sub-features except the red flash. The flash lasts 0.1 s; take a `shot` 2 frames after a `tap fire` to see it.
+- **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/weapon.steps`. It covers all the sub-features except the red flash. The screenshots show the view model. No state key reads its animation; `tests/weapons/test_view_model.gd` covers it. The flash lasts 0.1 s; take a `shot` 2 frames after a `tap fire` to see it.
 
 ## Gotchas
 
