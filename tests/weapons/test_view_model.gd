@@ -25,26 +25,28 @@ func test_shot_kicks_the_gun_back_and_it_returns() -> void:
 	assert_true(_pose(player).origin.distance_to(rest.origin) < 0.005, "the gun is back at rest")
 
 
-func test_reload_takes_the_magazine_out_and_puts_it_back() -> void:
+func test_reload_throws_the_gun_behind_the_player_and_draws_a_new_one() -> void:
 	var player := await _spawn_player(SETTLE_FRAMES)
 	var weapon := player.get_node("Head/Camera3D/Weapon") as Weapon
-	var magazine := player.get_node(MODEL_PATH + "/Magazine") as Node3D
+	var model := player.get_node(MODEL_PATH) as Node3D
 	var rest := _pose(player)
 	weapon.try_fire()
 	await physics_frames(SETTLE_FRAMES)
-	var magazine_rest := magazine.position
 	weapon.start_reload()
-	var magazine_left := false
+	var hands_were_empty := false
 	var frames := ceili(weapon.data.reload_time * Engine.physics_ticks_per_second) + 10
 	for i in frames:
 		await physics_frames(1)
-		if not magazine.is_visible_in_tree() or magazine.position.distance_to(magazine_rest) > 0.05:
-			magazine_left = true
-	assert_true(magazine_left, "the magazine leaves the gun during the reload")
+		if not model.is_visible_in_tree():
+			hands_were_empty = true
+	assert_true(hands_were_empty, "the gun leaves the hand during the reload")
+	var thrown := get_tree().get_nodes_in_group("thrown_gun")
+	assert_eq(thrown.size(), 1, "one gun was thrown")
+	var gun := thrown[0] as Node3D
+	assert_true(gun.global_position.z > player.global_position.z + 0.5, "the thrown gun is behind the player")
 	assert_true(not weapon.is_reloading(), "the reload is over")
-	assert_true(magazine.is_visible_in_tree(), "the magazine is back")
-	assert_true(magazine.position.distance_to(magazine_rest) < 0.001, "the magazine is in place")
-	assert_true(_pose(player).origin.distance_to(rest.origin) < 0.005, "the gun is back at rest")
+	assert_true(model.is_visible_in_tree(), "a new gun is in the hand")
+	assert_true(_pose(player).origin.distance_to(rest.origin) < 0.005, "the new gun is at rest")
 
 
 func test_sprinting_points_the_gun_away_from_the_crosshair() -> void:

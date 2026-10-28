@@ -10,6 +10,8 @@ signal hit(collider: Object, position: Vector3)
 enum State { READY, RELOADING }
 
 @export var data: WeaponData
+## Physics layers that a shot can hit. Debris, such as thrown guns, is not on them.
+@export_flags_3d_physics var hit_mask: int = 1
 
 var ammo: int
 ## When false, the fire and reload actions do nothing. The owner turns it off while the mouse is released.
@@ -81,6 +83,7 @@ func is_reloading() -> bool:
 func _shoot() -> void:
 	var query := PhysicsRayQueryParameters3D.create(global_position, global_position - global_basis.z * data.max_range)
 	query.exclude = _excluded
+	query.collision_mask = hit_mask
 	query.hit_from_inside = true
 	var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
 	if result.is_empty():

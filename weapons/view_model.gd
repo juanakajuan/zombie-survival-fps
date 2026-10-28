@@ -3,12 +3,12 @@ extends Node3D
 ## First-person weapon model. Make it the root of a `view_model` scene, with this layout:
 ## ViewModel > Motion > Model. Motion holds the hand position and follows the player's movement
 ## (bob, sprint, crouch, jump, landing, look sway). Model plays the one-shot motions
-## (raise, recoil, reload, lower on death) relative to Motion.
+## (raise, recoil, reload, lower on death) relative to Motion. A reload throws the gun away
+## over the shoulder as debris and draws an identical new one.
 
 @export var motion: Node3D
 @export var model: Node3D
 @export var slide: Node3D
-@export var magazine: Node3D
 
 @export_group("Raise")
 @export_range(0.0, 2.0, 0.01, "suffix:s") var raise_time: float = 0.45
@@ -21,12 +21,17 @@ extends Node3D
 @export_range(0.01, 1.0, 0.01, "suffix:s") var recoil_time: float = 0.14
 
 @export_group("Reload")
-## Where the gun moves during a reload, so that the player can see the magazine change.
-@export var reload_offset: Vector3 = Vector3(-0.06, 0.08, 0.0)
-@export_range(-90.0, 90.0, 1.0, "suffix:°") var reload_tilt: float = 15.0
-@export_range(-90.0, 90.0, 1.0, "suffix:°") var reload_roll: float = 35.0
-@export_range(-90.0, 90.0, 1.0, "suffix:°") var reload_yaw: float = 20.0
-@export_range(0.0, 0.5, 0.005, "suffix:m") var magazine_drop: float = 0.15
+## The gun that flies away. With none, the gun only goes out of view and comes back.
+@export var thrown_scene: PackedScene
+## Where the gun moves before the throw, relative to its rest place.
+@export var wind_up_offset: Vector3 = Vector3(0.03, 0.06, 0.08)
+@export_range(-90.0, 90.0, 1.0, "suffix:°") var wind_up_angle: float = 35.0
+## How far the gun moves in view space during the toss, before it flies free as debris.
+@export var toss_offset: Vector3 = Vector3(0.06, 0.5, 0.2)
+## Throw velocity in view space: +X is right, +Y is up, +Z is back. The player's own velocity is added.
+@export var throw_velocity: Vector3 = Vector3(1.5, 3.5, 4.0)
+## Spin in view space, in rad/s. +X flips the muzzle up and back.
+@export var throw_spin: Vector3 = Vector3(14.0, 0.0, 3.0)
 
 @export_group("Bob")
 ## Bob cycles for each metre the player moves on the floor.
@@ -61,8 +66,9 @@ extends Node3D
 var _motion_rest: Transform3D
 var _model_rest: Transform3D
 var _slide_rest: Vector3
-var _magazine_rest: Vector3
 var _tween: Tween
+var _wind_up: Transform3D
+var _toss_time := 0.0
 var _player: Player
 var _lowered := false
 
@@ -82,7 +88,6 @@ func _ready() -> void:
 	_motion_rest = motion.transform
 	_model_rest = model.transform
 	_slide_rest = slide.position
-	_magazine_rest = magazine.position
 	_player = _find_player()
 	_last_view = _view_angles()
 	if _player != null:
@@ -164,22 +169,41 @@ func _on_reload_started(weapon: Weapon) -> void:
 		return
 	_restart_tween()
 	var time := weapon.data.reload_time
-	var tilted := _model_rest.translated_local(reload_offset) \
-		.rotated_local(Vector3.UP, deg_to_rad(reload_yaw)) \
-		.rotated_local(Vector3.RIGHT, deg_to_rad(reload_tilt)) \
-		.rotated_local(Vector3.FORWARD, deg_to_rad(reload_roll))
-	var slide_back := _slide_rest + Vector3(0.0, 0.0, slide_travel)
-	_tween.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
-	_tween.tween_property(model, "transform", tilted, time * 0.2)
-	_tween.tween_property(magazine, "position", _magazine_rest + Vector3(0.0, -magazine_drop, 0.0), time * 0.15) \
-		.set_ease(Tween.EASE_IN)
-	_tween.tween_callback(magazine.hide)
+	_wind_up = _model_rest.translated_local(wind_up_offset).rotated_local(Vector3.RIGHT, deg_to_rad(wind_up_angle))
+	_toss_time = time * 0.2
+	slide.position = _slide_rest
+	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_tween.tween_property(model, "transform", _wind_up, time * 0.1)
+	_tween.tween_method(_toss_step, 0.0, 1.0, _toss_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	_tween.tween_callback(_throw)
 	_tween.tween_interval(time * 0.1)
-	_tween.tween_callback(magazine.show)
-	_tween.tween_property(magazine, "position", _magazine_rest, time * 0.15).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	_tween.tween_property(model, "transform", _model_rest, time * 0.2)
-	_tween.tween_property(slide, "position", slide_back, time * 0.08)
+	_tween.tween_callback(_take_out_new_gun)
+	_tween.tween_property(model, "transform", _model_rest, time * 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_tween.tween_property(slide, "position", _slide_rest + Vector3(0.0, 0.0, slide_travel), time * 0.08)
 	_tween.tween_property(slide, "position", _slide_rest, time * 0.07).set_trans(Tween.TRANS_BACK)
+
+
+## Moves the gun along the toss. progress goes from 0 at the wind-up to 1 where the gun flies free.
+func _toss_step(progress: float) -> void:
+	model.transform = _wind_up.translated(toss_offset * progress) \
+		.rotated_local(Vector3.RIGHT, throw_spin.x * _toss_time * progress)
+
+
+func _throw() -> void:
+	model.hide()
+	if thrown_scene == null or _player == null:
+		return
+	var gun := thrown_scene.instantiate() as RigidBody3D
+	_player.get_parent().add_child(gun)
+	gun.global_transform = model.global_transform
+	gun.add_collision_exception_with(_player)
+	gun.linear_velocity = _player.velocity + global_basis * throw_velocity
+	gun.angular_velocity = global_basis * throw_spin
+
+
+func _take_out_new_gun() -> void:
+	model.transform = _lowered_transform()
+	model.show()
 
 
 ## Puts every part at rest, so a reload always ends with the gun ready even if its motion was cut short.
@@ -190,8 +214,7 @@ func _settle() -> void:
 		_tween.kill()
 	model.transform = _model_rest
 	slide.position = _slide_rest
-	magazine.position = _magazine_rest
-	magazine.show()
+	model.show()
 
 
 func _on_player_died() -> void:

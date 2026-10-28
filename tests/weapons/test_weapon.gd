@@ -3,6 +3,7 @@ extends TestCase
 const DUMMY_SCENE: PackedScene = preload("res://targets/target_dummy.tscn")
 const PLAYER_SCENE: PackedScene = preload("res://player/player.tscn")
 const WEAPON_SCENE: PackedScene = preload("res://weapons/weapon.tscn")
+const THROWN_GUN_SCENE: PackedScene = preload("res://weapons/pistol_thrown.tscn")
 const PISTOL: WeaponData = preload("res://weapons/pistol.tres")
 const TARGET_DISTANCE := 5.0
 const FRAME_MARGIN := 2
@@ -164,6 +165,19 @@ func test_player_sees_the_pistol_model() -> void:
 		if mesh.is_visible_in_tree() and camera.is_position_in_frustum(center):
 			in_view += 1
 	assert_true(in_view > 0, "the pistol model is in the camera view")
+
+
+func test_shot_goes_through_a_thrown_gun() -> void:
+	var weapon := _spawn_weapon(_data())
+	var dummy := await _spawn_dummy(Vector3(0.0, 0.0, -TARGET_DISTANCE))
+	var gun := THROWN_GUN_SCENE.instantiate() as RigidBody3D
+	gun.freeze = true
+	add_child(gun)
+	gun.global_position = Vector3(0.0, weapon.global_position.y, -TARGET_DISTANCE / 2.0)
+	await physics_frames(FRAME_MARGIN)
+	var health := Health.find_on(dummy)
+	assert_true(weapon.try_fire(), "shot fires")
+	assert_true(health.current < health.max_health, "the dummy behind the thrown gun is hit")
 
 
 func _data() -> WeaponData:
