@@ -24,13 +24,19 @@ func _ready() -> void:
 
 func _on_damaged(_amount: float) -> void:
 	_material.albedo_color = FLASH_COLOR
-	await get_tree().create_timer(FLASH_SECONDS).timeout
-	_material.albedo_color = base_color
+	get_tree().create_timer(FLASH_SECONDS).timeout.connect(_end_flash)
 
 
 func _on_died() -> void:
 	_set_active(false)
-	await get_tree().create_timer(respawn_delay).timeout
+	get_tree().create_timer(respawn_delay).timeout.connect(_respawn)
+
+
+func _end_flash() -> void:
+	_material.albedo_color = base_color
+
+
+func _respawn() -> void:
 	_health.reset()
 	_material.albedo_color = base_color
 	_set_active(true)

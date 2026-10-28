@@ -19,3 +19,13 @@ func test_killed_dummy_disappears_then_respawns_with_full_health() -> void:
 	assert_true(dummy.visible, "visible after respawn")
 	assert_true(not shape.disabled, "collision enabled after respawn")
 	assert_almost_eq(health.current, health.max_health, 0.001, "health restored")
+
+
+func test_dummy_freed_while_dead_or_flashing_logs_no_error() -> void:
+	var dummy := DUMMY_SCENE.instantiate() as TargetDummy
+	dummy.respawn_delay = 0.2
+	add_child(dummy)
+	await physics_frames(1)
+	Health.find_on(dummy).damage(1000.0)
+	dummy.free()
+	await physics_frames(roundi(0.4 * Engine.physics_ticks_per_second))
