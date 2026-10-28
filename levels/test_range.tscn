@@ -4,7 +4,8 @@
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://targets/target_dummy.tscn" id="3_dummy"]
 [ext_resource type="Script" path="res://levels/level_navigation.gd" id="4_nav"]
-[ext_resource type="PackedScene" path="res://zombie/zombie.tscn" id="5_zombie"]
+[ext_resource type="Script" path="res://rounds/round_manager.gd" id="5_rounds"]
+[ext_resource type="Resource" path="res://rounds/round_settings.tres" id="6_settings"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_source_geometry_mode = 1
@@ -120,8 +121,18 @@ position = Vector3(0, 0, -3)
 [node name="TargetDummyFar" parent="." groups=["navigation_geometry"] instance=ExtResource("3_dummy")]
 position = Vector3(2, 0, -12)
 
-[node name="ZombieA" parent="." instance=ExtResource("5_zombie")]
-position = Vector3(-3, 0, -17)
+[node name="RoundManager" type="Node" parent="."]
+script = ExtResource("5_rounds")
+settings = ExtResource("6_settings")
 
-[node name="ZombieB" parent="." instance=ExtResource("5_zombie")]
-position = Vector3(3, 0, -17)
+[node name="SpawnNorthWest" type="Marker3D" parent="RoundManager"]
+position = Vector3(-6, 0, -17)
+
+[node name="SpawnNorthEast" type="Marker3D" parent="RoundManager"]
+position = Vector3(6, 0, -17)
+
+[node name="SpawnWest" type="Marker3D" parent="RoundManager"]
+position = Vector3(-17, 0, 0)
+
+[node name="SpawnEast" type="Marker3D" parent="RoundManager"]
+position = Vector3(17, 0, 0)
