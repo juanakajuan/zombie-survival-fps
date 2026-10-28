@@ -1,6 +1,6 @@
 class_name Weapon
 extends Node3D
-## Hitscan weapon. It shoots along its own -Z axis and ignores the body it is mounted on.
+## Hitscan weapon. It shoots along its own -Z axis and ignores its wielder.
 
 signal fired
 signal reload_started

@@ -22,6 +22,7 @@ var state: State = State.CHASE
 
 var _material := StandardMaterial3D.new()
 var _attack_cooldown: float = 0.0
+var _configured := false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var _health: Health = $Health
@@ -31,6 +32,8 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 
 func _ready() -> void:
+	if not _configured:
+		push_error("Zombie: call configure() before add_child(), so that RoundSettings sets its speed and health.")
 	if target == null:
 		target = get_tree().get_first_node_in_group(Player.GROUP) as Node3D
 	_material.albedo_color = base_color
@@ -47,6 +50,7 @@ func _ready() -> void:
 func configure(speed: float, max_health: float) -> void:
 	move_speed = speed
 	Health.find_on(self).max_health = max_health
+	_configured = true
 
 
 func _physics_process(delta: float) -> void:
