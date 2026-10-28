@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" path="res://game_over/game_over.tscn" id="8_game_over"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
+geometry_parsed_geometry_type = 1
+geometry_collision_mask = 1
 agent_radius = 0.5
 agent_height = 2.0
 agent_max_climb = 0.25
