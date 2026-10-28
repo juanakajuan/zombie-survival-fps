@@ -94,6 +94,8 @@ restart={
 [layer_names]
 
 3d_render/layer_2="player_body"
+3d_physics/layer_1="world"
+3d_physics/layer_2="debris"
 
 [physics]
 

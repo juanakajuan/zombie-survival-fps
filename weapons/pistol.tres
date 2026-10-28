@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="WeaponData" format=3]
 
 [ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://weapons/pistol_view.tscn" id="2_view"]
 
 [resource]
 script = ExtResource("1_data")
@@ -10,3 +11,4 @@ magazine_size = 12
 reload_time = 1.2
 max_range = 100.0
 automatic = false
+view_model = ExtResource("2_view")

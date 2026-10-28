@@ -4,3 +4,6 @@
 
 # Smoke screenshots
 /.smoke/
+
+# Blender backups
+*.blend1
