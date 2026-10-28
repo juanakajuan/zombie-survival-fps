@@ -1,16 +1,16 @@
 extends TestCase
 
-const LEVEL_SCENE: PackedScene = preload("res://levels/test_range.tscn")
+const ROUND_SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
 
 
 func test_game_over_is_hidden_while_the_player_lives() -> void:
-	var level := _spawn_level()
+	var level := await spawn_level()
 	await physics_frames(5)
 	assert_true(not _game_over(level).visible, "game over is hidden")
 
 
 func test_death_shows_the_round_that_the_player_reached() -> void:
-	var level := _spawn_level(true)
+	var level := await spawn_level(_fast_round_settings())
 	var manager := _round_manager(level)
 	await physics_frames(5)
 	await _clear_round(manager)
@@ -23,7 +23,7 @@ func test_death_shows_the_round_that_the_player_reached() -> void:
 
 
 func test_death_releases_the_mouse_and_shows_game_over() -> void:
-	var level := _spawn_level()
+	var level := await spawn_level()
 	await physics_frames(5)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_kill(_player(level))
@@ -33,7 +33,7 @@ func test_death_releases_the_mouse_and_shows_game_over() -> void:
 
 
 func test_restart_while_alive_does_nothing() -> void:
-	var level := _spawn_level()
+	var level := await spawn_level()
 	var requests: Array[int] = [0]
 	_game_over(level).restart_requested.connect(func() -> void: requests[0] += 1)
 	await physics_frames(5)
@@ -71,17 +71,11 @@ func test_restart_after_death_loads_a_fresh_level() -> void:
 		current.queue_free()
 
 
-## With `fast_rounds`, zombies spawn and the break ends in a few frames.
-func _spawn_level(fast_rounds: bool = false) -> Level:
-	var level := LEVEL_SCENE.instantiate() as Level
-	if fast_rounds:
-		var manager := _round_manager(level)
-		var settings := manager.settings.duplicate() as RoundSettings
-		settings.spawn_interval = 0.02
-		settings.break_time = 0.05
-		manager.settings = settings
-	add_child(level)
-	return level
+func _fast_round_settings() -> RoundSettings:
+	var settings := ROUND_SETTINGS.duplicate() as RoundSettings
+	settings.spawn_interval = 0.02
+	settings.break_time = 0.05
+	return settings
 
 
 func _clear_round(manager: RoundManager) -> void:

@@ -37,6 +37,7 @@ A change is done only when `tools/check.sh` passes. For a visual change, also ru
 | A group name comes from its owner's constant (`Player.GROUP`), not a string literal | `tools/lint.gd` rule `group_literal` |
 | Only `Player` writes `Input.mouse_mode` (or calls `Input.set_mouse_mode`) and `weapon.trigger_enabled` | `tools/lint.gd` rule `mouse_mode_owner` |
 | A gameplay script has no numeric or `Color` `const`; a tunable value is `@export` or in a `.tres` | `tools/lint.gd` rule `magic_const` |
+| A static collider on layer 1 is a navmesh obstacle with no group. A static body that zombies walk through goes on a layer other than 1 | `levels/level_navigation.gd` bakes from layer 1; `tests/levels/test_test_range.gd` checks that each layer-1 static body is off the navmesh |
 
 A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes on the offending line, and only with the human's approval: `# lint-allow <rule>: <reason> (until YYYY-MM-DD, approved: <human>)`. An expired or incomplete line fails the lint.
 
@@ -52,7 +53,7 @@ A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes o
 
 - A test file is `tests/<area>/test_<thing>.gd`. It `extends TestCase` and its methods start with `test_`.
 - Each test method gets a new instance in the scene tree. Add nodes to the test with `add_child()`. The runner frees them after the test.
-- Use the `TestCase` helpers: `spawn_player()` (with a floor), `spawn_zombie()`, `spawn_dummy()`, `spawn_nav_world()`, and `run_seconds()`.
+- Use the `TestCase` helpers: `spawn_player()` (with a floor), `spawn_level()` (the test range, after its navmesh bake), `spawn_zombie()`, `spawn_dummy()`, `spawn_nav_world()`, and `run_seconds()`.
 - Read a scene through the typed accessors of its feature class (`player.camera`, `player.weapon.view_model`, `player.hud.readout()`, `game_over.round_text()`). If one is missing, add it to the feature class.
 - Use `await physics_frames(n)` to run physics. Use `Input.action_press()` for input. The runner releases all actions after each test.
 - An engine error or a `push_error()` during a test makes the test fail.
