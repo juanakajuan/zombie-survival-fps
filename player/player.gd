@@ -2,6 +2,9 @@ class_name Player
 extends CharacterBody3D
 ## First-person controller. The origin is at the feet. Yaw is on this body, pitch is on Head.
 
+## Emitted once when the Health child gets to 0. After it, the player ignores all input.
+signal died
+
 @export_group("Movement")
 @export_range(0.0, 20.0, 0.1, "suffix:m/s") var walk_speed: float = 4.5
 @export_range(0.0, 30.0, 0.1, "suffix:m/s") var sprint_speed: float = 7.0
@@ -15,15 +18,19 @@ extends CharacterBody3D
 
 @onready var _head: Node3D = $Head
 @onready var _weapon: Weapon = $Head/Camera3D/Weapon
+@onready var _health: Health = $Health
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_health.died.connect(_on_health_died)
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_dead():
+		return
 	if event is InputEventMouseMotion:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			look((event as InputEventMouseMotion).screen_relative)
@@ -41,7 +48,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
 	if on_floor:
-		velocity.y = jump_velocity if Input.is_action_just_pressed("jump") else 0.0
+		velocity.y = jump_velocity if Input.is_action_just_pressed("jump") and not is_dead() else 0.0
 	else:
 		velocity.y -= _gravity * delta
 
@@ -56,7 +63,10 @@ func _physics_process(delta: float) -> void:
 
 
 ## Applies a mouse delta in pixels. Moving the mouse right turns right, and moving it up looks up.
+## A dead player does not look.
 func look(relative: Vector2) -> void:
+	if is_dead():
+		return
 	rotation.y -= relative.x * mouse_sensitivity
 	var max_pitch := deg_to_rad(max_pitch_degrees)
 	_head.rotation.x = clampf(_head.rotation.x - relative.y * mouse_sensitivity, -max_pitch, max_pitch)
@@ -67,5 +77,16 @@ func is_sprinting() -> bool:
 	return is_on_floor() and Input.is_action_pressed("sprint") and _move_input().y < -0.5
 
 
+func is_dead() -> bool:
+	return _health.is_dead()
+
+
+func _on_health_died() -> void:
+	_weapon.trigger_enabled = false
+	died.emit()
+
+
 func _move_input() -> Vector2:
+	if is_dead():
+		return Vector2.ZERO
 	return Input.get_vector("move_left", "move_right", "move_forward", "move_back")

@@ -21,7 +21,7 @@ The game is minimal when a player can play the full loop from a fresh start, wit
 
 | Part | Files | Behavior |
 |---|---|---|
-| Player | `player/` | Walk at 4.5 m/s, sprint at 7 m/s, jump, and mouse look. 100 health. **Esc** releases the mouse. The click that captures the mouse again does not fire. |
+| Player | `player/` | Walk at 4.5 m/s, sprint at 7 m/s, jump, and mouse look. 100 health. **Esc** releases the mouse. The click that captures the mouse again does not fire. At 0 health the player emits `died` and cannot move, jump, look, fire, or reload, but still falls under gravity. |
 | Weapon | `weapons/` | The pistol (`pistol.tres`) does 25 damage, fires every 0.15 s, holds 12 rounds, reloads in 1.2 s, and reaches 100 m. Left mouse fires and **R** reloads. A shot with an empty magazine starts a reload. There is no reserve ammo. |
 | Health | `health/` | `damage()`, `reset()`, `is_dead()`, and the `damaged` and `died` signals. |
 | Target dummy | `targets/` | 100 health. It flashes red when hit, goes away at 0 health, and comes back after 2 s. |
@@ -74,16 +74,6 @@ Done when:
 - The HUD shows when the weapon reloads.
 - Each value on the HUD changes when the value in the game changes.
 - The HUD is easy to read in a smoke screenshot at 1280 × 720.
-
-### 3. Add player death
-
-The player stops when their health gets to 0.
-
-Done when:
-
-- At 0 health, the player cannot move, look, fire, or reload.
-- The player emits a signal when they die. Other code uses it to start game over.
-- Zombies stop attacking a dead player. This is true now, and a test keeps it true.
 
 ### 4. Show the round number on the HUD
 
