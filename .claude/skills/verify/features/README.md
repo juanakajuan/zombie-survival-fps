@@ -33,3 +33,7 @@ Each feature file starts with an H1 title and one paragraph about the behavior t
 - [Weapon and targets](./weapon-and-targets.md) covers firing, ammo on the HUD, target dummies, and reload.
 - [Rounds and HUD](./rounds-and-hud.md) covers zombie spawns, clearing a round, the BREAK label, and the next round.
 - [Death, game over, and restart](./death-and-game-over.md) covers zombie attacks, player death, the game-over screen, and restart with Enter.
+
+## Full loop
+
+`../journeys/full_loop.steps` plays the core loop of [DESIGN.md](../../../../DESIGN.md) in one run: clear round 1, see the break and round 2 with 6 zombies, die in round 2, read `You reached round 2`, and restart to round 1. Run it after a change to rounds, death, or restart. The run takes about 30 s.
