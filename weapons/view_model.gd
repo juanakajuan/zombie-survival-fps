@@ -13,6 +13,8 @@ extends Node3D
 @export_group("Raise")
 @export_range(0.0, 2.0, 0.01, "suffix:s") var raise_time: float = 0.45
 @export_range(0.0, 0.5, 0.005, "suffix:m") var lower_distance: float = 0.25
+## Pitch of the lowered gun, before the raise and after the player dies. Negative points the muzzle down.
+@export_range(-90.0, 90.0, 1.0, "suffix:°") var lower_angle: float = -40.0
 
 @export_group("Recoil")
 @export_range(0.0, 0.2, 0.005, "suffix:m") var kick_distance: float = 0.05
@@ -32,6 +34,15 @@ extends Node3D
 @export var throw_velocity: Vector3 = Vector3(1.5, 3.5, 4.0)
 ## Spin in view space, in rad/s. +X flips the muzzle up and back.
 @export var throw_spin: Vector3 = Vector3(14.0, 0.0, 3.0)
+## Each phase of the reload lasts this fraction of the weapon's reload time. The phases run one after the other.
+## Keep their sum at or below 1, so the motion ends before the weapon is ready again.
+@export_range(0.0, 1.0, 0.01) var wind_up_fraction: float = 0.1
+@export_range(0.0, 1.0, 0.01) var toss_fraction: float = 0.2
+## The hands stay empty after the throw for this fraction.
+@export_range(0.0, 1.0, 0.01) var empty_hands_fraction: float = 0.1
+@export_range(0.0, 1.0, 0.01) var draw_fraction: float = 0.4
+@export_range(0.0, 1.0, 0.01) var slide_pull_fraction: float = 0.08
+@export_range(0.0, 1.0, 0.01) var slide_release_fraction: float = 0.07
 
 @export_group("Bob")
 ## Bob cycles for each metre the player moves on the floor.
@@ -88,15 +99,15 @@ func _ready() -> void:
 	_motion_rest = motion.transform
 	_model_rest = model.transform
 	_slide_rest = slide.position
-	_player = _find_player()
 	_last_view = _view_angles()
-	if _player != null:
-		_player.died.connect(_on_player_died)
 	var weapon := get_parent() as Weapon
 	if weapon != null:
+		_player = weapon.wielder
 		weapon.fired.connect(_on_fired)
 		weapon.reload_started.connect(_on_reload_started.bind(weapon))
 		weapon.reload_finished.connect(_settle)
+	if _player != null:
+		_player.died.connect(_on_player_died)
 	_raise()
 
 
@@ -170,17 +181,17 @@ func _on_reload_started(weapon: Weapon) -> void:
 	_restart_tween()
 	var time := weapon.data.reload_time
 	_wind_up = _model_rest.translated_local(wind_up_offset).rotated_local(Vector3.RIGHT, deg_to_rad(wind_up_angle))
-	_toss_time = time * 0.2
+	_toss_time = time * toss_fraction
 	slide.position = _slide_rest
 	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	_tween.tween_property(model, "transform", _wind_up, time * 0.1)
+	_tween.tween_property(model, "transform", _wind_up, time * wind_up_fraction)
 	_tween.tween_method(_toss_step, 0.0, 1.0, _toss_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	_tween.tween_callback(_throw)
-	_tween.tween_interval(time * 0.1)
+	_tween.tween_interval(time * empty_hands_fraction)
 	_tween.tween_callback(_take_out_new_gun)
-	_tween.tween_property(model, "transform", _model_rest, time * 0.4).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	_tween.tween_property(slide, "position", _slide_rest + Vector3(0.0, 0.0, slide_travel), time * 0.08)
-	_tween.tween_property(slide, "position", _slide_rest, time * 0.07).set_trans(Tween.TRANS_BACK)
+	_tween.tween_property(model, "transform", _model_rest, time * draw_fraction).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	_tween.tween_property(slide, "position", _slide_rest + Vector3(0.0, 0.0, slide_travel), time * slide_pull_fraction)
+	_tween.tween_property(slide, "position", _slide_rest, time * slide_release_fraction).set_trans(Tween.TRANS_BACK)
 
 
 ## Moves the gun along the toss. progress goes from 0 at the wind-up to 1 where the gun flies free.
@@ -225,7 +236,7 @@ func _on_player_died() -> void:
 
 
 func _lowered_transform() -> Transform3D:
-	return _model_rest.translated_local(Vector3(0.0, -lower_distance, 0.0)).rotated_local(Vector3.RIGHT, deg_to_rad(-40.0))
+	return _model_rest.translated_local(Vector3(0.0, -lower_distance, 0.0)).rotated_local(Vector3.RIGHT, deg_to_rad(lower_angle))
 
 
 func _restart_tween() -> void:
@@ -238,12 +249,3 @@ func _restart_tween() -> void:
 func _view_angles() -> Vector2:
 	var forward := -global_basis.z
 	return Vector2(atan2(-forward.x, -forward.z), asin(clampf(forward.y, -1.0, 1.0)))
-
-
-func _find_player() -> Player:
-	var ancestor := get_parent()
-	while ancestor != null:
-		if ancestor is Player:
-			return ancestor as Player
-		ancestor = ancestor.get_parent()
-	return null

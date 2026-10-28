@@ -37,17 +37,24 @@ const GROUP := &"player"
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
-@onready var weapon: Weapon = $Head/Camera3D/Weapon
 @onready var hud: Hud = $Hud
 @onready var body: MeshInstance3D = $CollisionShape3D/Body
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
+
+var weapon: Weapon
 
 var _crouched := false
 var _shape: CapsuleShape3D
 var _body_mesh: CapsuleMesh
 var _stand_height: float
 var _stand_head_height: float
+
+
+func _enter_tree() -> void:
+	# The weapon and its view model read the wielder in their _ready, which runs before this node's _ready.
+	weapon = $Head/Camera3D/Weapon
+	weapon.wielder = self
 
 
 func _ready() -> void:
