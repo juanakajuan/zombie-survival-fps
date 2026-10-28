@@ -3,6 +3,7 @@ extends Node3D
 ## Reloads the level when the game-over screen asks for a restart.
 
 @export var game_over: GameOver
+@export var navigation: LevelNavigation
 
 
 func _ready() -> void:

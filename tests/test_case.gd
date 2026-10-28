@@ -6,6 +6,7 @@ extends Node
 const PLAYER_SCENE: PackedScene = preload("res://player/player.tscn")
 const ZOMBIE_SCENE: PackedScene = preload("res://zombie/zombie.tscn")
 const DUMMY_SCENE: PackedScene = preload("res://targets/target_dummy.tscn")
+const LEVEL_SCENE: PackedScene = preload("res://levels/test_range.tscn")
 const ROUND_SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
 
 var failures: PackedStringArray = []
@@ -61,6 +62,24 @@ func spawn_dummy(at: Vector3) -> TargetDummy:
 	add_child(dummy)
 	await physics_frames(2)
 	return dummy
+
+
+## Adds the test range and returns when the navigation map answers queries from its baked navmesh.
+## `round_settings` replaces the round settings before round 1 starts.
+func spawn_level(round_settings: RoundSettings = null) -> Level:
+	var level := LEVEL_SCENE.instantiate() as Level
+	if round_settings != null:
+		(level.get_node("RoundManager") as RoundManager).settings = round_settings
+	add_child(level)
+	await level.navigation.bake_finished
+	# The server syncs the new mesh on a worker thread, so it takes a number of physics frames that is not known.
+	var map := level.navigation.get_navigation_map()
+	for _i: int in 60:
+		await physics_frames(1)
+		if NavigationServer3D.map_get_closest_point_owner(map, Vector3.ZERO) == level.navigation.get_rid():
+			return level
+	failures.append("the navigation map never answered queries from the level navmesh")
+	return level
 
 
 ## Bakes a 60 m navigation floor at y = 0, with a 10 m wall across x at z = 0 when `with_wall` is true.
