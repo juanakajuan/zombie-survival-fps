@@ -10,11 +10,13 @@ The player fires the pistol with the left mouse button and reloads with R. The p
 - `dummy-respawn` brings the dummy back after 2 s.
 - `reload-key` refills the magazine to 12 in 1.2 s after R, with RELOADING on the HUD.
 - `view-model` shows the pistol model at the bottom right of the view. It bobs while walking and drops out of view on death.
+- `aim` holds the pistol up to the screen centre with its sights on the crosshair point, zooms the view, and hides the crosshair while the right mouse button is held.
 - `reload-empty` starts a reload when the player fires with an empty magazine.
 
 ## How to get to it (user POV)
 
 - Start the game. The middle target dummy is straight ahead of the crosshair.
+- Hold the right mouse button to aim down the sights.
 - Click the left mouse button to fire. Press R to reload.
 
 ## Driving it with drive.sh
@@ -28,6 +30,7 @@ Preconditions:
 - **Respawn.** Run `until dummies.up 3 180`. It passes after about 2 s.
 - **Reload.** Run `tap reload`, `wait 6`. `expect hud.reloading true` passes, and the screenshot shows the yellow RELOADING label. Then `until hud.reloading false 120` and `expect hud.ammo 12 / 12` pass.
 - **Empty magazine.** Run `look 0 -400` to aim at the sky, so that no dummy is hit. Fire 12 times with `wait 12` after each, then `tap fire`. `expect hud.ammo 0 / 12` and `expect hud.reloading true` pass.
+- **Aim.** Run `hold aim`, `wait 30`, then `shot`. The screenshot shows the pistol centred with its front sight at the screen centre, a narrower view, and no crosshair. `expect player.aiming true` and `expect hud.crosshair false` pass. Run `release aim` to come back.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/weapon.steps`. It covers all the sub-features except the red flash. The screenshots show the view model. No state key reads its animation; `tests/weapons/test_view_model.gd` covers it. The flash lasts 0.1 s; take a `shot` 2 frames after a `tap fire` to see it.
 
 ## Gotchas

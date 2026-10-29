@@ -368,3 +368,39 @@ func _horizontal_speed(player: Player) -> float:
 func _horizontal_distance(from: Vector3, to: Vector3) -> float:
 	return Vector2(to.x - from.x, to.z - from.z).length()
 
+
+
+func test_holding_aim_zooms_the_camera_and_releasing_restores_it() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var base_fov := player.settings.field_of_view
+	assert_true(not player.is_aiming(), "not aiming at start")
+	Input.action_press("aim")
+	await run_seconds(1.0)
+	assert_true(player.is_aiming(), "aim action held")
+	assert_almost_eq(player.camera.fov, base_fov * player.aim_fov_scale, 0.5, "fov is zoomed")
+	Input.action_release("aim")
+	await run_seconds(1.0)
+	assert_true(not player.is_aiming(), "aim action released")
+	assert_almost_eq(player.camera.fov, base_fov, 0.5, "fov is back")
+
+
+func test_aiming_cancels_sprint_and_the_weapon_can_fire() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await run_seconds(0.5)
+	assert_true(player.is_sprinting(), "sprinting before aim")
+	assert_true(not player.weapon.try_fire(), "a sprinting player cannot fire")
+	Input.action_press("aim")
+	await run_seconds(1.0)
+	assert_true(not player.is_sprinting(), "aim cancels sprint")
+	assert_almost_eq(_horizontal_speed(player), player.aim_speed, SPEED_TOLERANCE, "speed is aim_speed")
+	assert_true(player.weapon.try_fire(), "the weapon fires while aiming")
+
+
+func test_dead_player_cannot_aim() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	Input.action_press("aim")
+	Health.find_on(player).damage(10000.0)
+	await run_seconds(0.5)
+	assert_true(not player.is_aiming(), "a dead player does not aim")

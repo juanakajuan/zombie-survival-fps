@@ -69,6 +69,16 @@ extends Node3D
 @export_range(0.0, 0.02, 0.0005, "suffix:m") var land_dip_per_speed: float = 0.004
 @export_range(0.0, 0.1, 0.001, "suffix:m") var max_land_dip: float = 0.05
 
+@export_group("Aim")
+## The change from the rest position of Motion that puts the rear and front sights on the screen centre.
+@export var aim_offset: Vector3 = Vector3(-0.16, 0.067, 0.0)
+## While aimed, bob, sway, air lag, the landing dip and the crouch pose shrink to this fraction.
+@export_range(0.0, 1.0, 0.01) var aim_motion_scale: float = 0.15
+## While aimed, the recoil kick shrinks to this fraction, so the sights stay in view.
+@export_range(0.0, 1.0, 0.01) var aim_kick_scale: float = 0.5
+## Each second, the aim pose closes this much of the gap to its target. Higher is snappier.
+@export_range(0.1, 40.0, 0.1) var aim_sharpness: float = 14.0
+
 @export_group("Look sway")
 ## How far the gun turns behind the view, per radian the view turns in one frame.
 @export_range(0.0, 2.0, 0.01) var look_sway: float = 0.6
@@ -87,6 +97,7 @@ var _bob_phase := 0.0
 var _time := 0.0
 var _sprint := 0.0
 var _crouch := 0.0
+var _aim := 0.0
 var _air_lag := 0.0
 var _land_dip := 0.0
 var _was_on_floor := true
@@ -119,12 +130,14 @@ func _process(delta: float) -> void:
 	var vertical := 0.0
 	var sprinting := false
 	var crouching := false
+	var aiming := false
 	if _player != null and not _player.is_dead():
 		speed = Vector2(_player.velocity.x, _player.velocity.z).length()
 		on_floor = _player.is_on_floor()
 		vertical = _player.velocity.y
 		sprinting = _player.is_sprinting()
 		crouching = _player.is_crouching()
+		aiming = _player.is_aiming()
 
 	if on_floor:
 		_bob_phase = fmod(_bob_phase + speed * delta * bob_cycles_per_metre * TAU, TAU)
@@ -137,6 +150,8 @@ func _process(delta: float) -> void:
 	_air_lag = lerpf(_air_lag, air_target, weight)
 	_sprint = lerpf(_sprint, 1.0 if sprinting else 0.0, weight)
 	_crouch = lerpf(_crouch, 1.0 if crouching else 0.0, weight)
+	_aim = lerpf(_aim, 1.0 if aiming else 0.0, 1.0 - exp(-aim_sharpness * delta))
+	var steady := lerpf(1.0, aim_motion_scale, _aim)
 
 	var view := _view_angles()
 	var turn := Vector2(angle_difference(_last_view.x, view.x), angle_difference(_last_view.y, view.y))
@@ -148,12 +163,12 @@ func _process(delta: float) -> void:
 	var bob_scale := 0.0 if not on_floor else speed / bob_reference_speed
 	var bob := Vector3(sin(_bob_phase), -absf(cos(_bob_phase)), 0.0) * bob_amount * bob_scale
 	var idle := Vector3(sin(_time * 1.1), sin(_time * 2.2) * 0.5, 0.0) * idle_sway_amount
-	var offset := bob + idle + sprint_offset * _sprint + crouch_offset * _crouch \
-		+ Vector3(0.0, _air_lag - _land_dip, 0.0)
+	var offset := (bob + idle + crouch_offset * _crouch + Vector3(0.0, _air_lag - _land_dip, 0.0)) * steady \
+		+ sprint_offset * _sprint + aim_offset * _aim
 	motion.transform = _motion_rest.translated(offset) \
-		.rotated_local(Vector3.UP, deg_to_rad(sprint_yaw) * _sprint + _look_sway.x) \
-		.rotated_local(Vector3.RIGHT, -deg_to_rad(sprint_pitch) * _sprint + _look_sway.y) \
-		.rotated_local(Vector3.FORWARD, -deg_to_rad(crouch_roll) * _crouch)
+		.rotated_local(Vector3.UP, deg_to_rad(sprint_yaw) * _sprint + _look_sway.x * steady) \
+		.rotated_local(Vector3.RIGHT, -deg_to_rad(sprint_pitch) * _sprint + _look_sway.y * steady) \
+		.rotated_local(Vector3.FORWARD, -deg_to_rad(crouch_roll) * _crouch * steady)
 
 
 func _raise() -> void:
@@ -167,8 +182,9 @@ func _on_fired() -> void:
 	if _lowered:
 		return
 	_restart_tween()
-	model.transform = _model_rest.translated_local(Vector3(0.0, 0.0, kick_distance)) \
-		.rotated_local(Vector3.RIGHT, deg_to_rad(kick_angle))
+	var kick := lerpf(1.0, aim_kick_scale, _aim)
+	model.transform = _model_rest.translated_local(Vector3(0.0, 0.0, kick_distance * kick)) \
+		.rotated_local(Vector3.RIGHT, deg_to_rad(kick_angle * kick))
 	slide.position = _slide_rest + Vector3(0.0, 0.0, slide_travel)
 	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	_tween.tween_property(model, "transform", _model_rest, recoil_time)

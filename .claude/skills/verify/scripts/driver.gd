@@ -232,6 +232,7 @@ func _state() -> Dictionary[String, String]:
 		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
 		s["player.dead"] = str(player.is_dead())
 		s["player.crouching"] = str(player.is_crouching())
+		s["player.aiming"] = str(player.is_aiming())
 		s["pause_menu.open"] = str(player.pause_menu.is_open())
 		var hud := player.hud.readout()
 		s["hud.health"] = hud.health_text
@@ -240,6 +241,7 @@ func _state() -> Dictionary[String, String]:
 		s["hud.round_visible"] = str(hud.round_visible)
 		s["hud.round"] = hud.round_text
 		s["hud.break"] = str(hud.in_break)
+		s["hud.crosshair"] = str(hud.crosshair_visible)
 	var zombies := 0
 	var dummies_up := 0
 	for node: Node in level.find_children("*", "", true, false):

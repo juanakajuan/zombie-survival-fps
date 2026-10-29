@@ -22,6 +22,7 @@ class Readout extends RefCounted:
 	var objective_text: String
 	var in_break: bool
 	var hit_marker: bool
+	var crosshair_visible: bool
 
 
 @onready var _crosshair: Crosshair = %Crosshair
@@ -58,6 +59,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
+	_crosshair.visible = weapon.wielder == null or not weapon.wielder.is_aiming()
 	_update_objective()
 
 
@@ -73,6 +75,7 @@ func readout() -> Readout:
 	r.objective_text = _objective.text
 	r.in_break = _break_label.is_visible_in_tree()
 	r.hit_marker = _crosshair.hit_marker_visible()
+	r.crosshair_visible = _crosshair.is_visible_in_tree()
 	return r
 
 

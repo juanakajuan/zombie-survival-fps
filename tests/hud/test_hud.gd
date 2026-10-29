@@ -109,3 +109,15 @@ func test_hit_marker_shows_when_a_shot_hits_a_target() -> void:
 	assert_true(not player.hud.readout().hit_marker, "no hit marker before the shot")
 	assert_true(player.weapon.try_fire(), "shot fires")
 	assert_true(player.hud.readout().hit_marker, "hit marker after a hit")
+
+
+func test_crosshair_hides_while_aiming() -> void:
+	var player := await spawn_player()
+	await physics_frames(FRAME_MARGIN)
+	assert_true(player.hud.readout().crosshair_visible, "crosshair shown at start")
+	Input.action_press("aim")
+	await physics_frames(FRAME_MARGIN)
+	assert_true(not player.hud.readout().crosshair_visible, "crosshair hidden while aiming")
+	Input.action_release("aim")
+	await physics_frames(FRAME_MARGIN)
+	assert_true(player.hud.readout().crosshair_visible, "crosshair back after aiming")
