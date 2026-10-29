@@ -8,6 +8,7 @@
 [ext_resource type="Resource" path="res://rounds/round_settings.tres" id="6_settings"]
 [ext_resource type="Script" path="res://levels/level.gd" id="7_level"]
 [ext_resource type="PackedScene" path="res://game_over/game_over.tscn" id="8_game_over"]
+[ext_resource type="PackedScene" path="res://economy/buy_station.tscn" id="9_station"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -163,3 +164,6 @@ position = Vector3(17, 0, 0)
 [node name="GameOver" parent="." node_paths=PackedStringArray("player", "round_manager") instance=ExtResource("8_game_over")]
 player = NodePath("../Player")
 round_manager = NodePath("../RoundManager")
+
+[node name="AmmoStation" parent="." instance=ExtResource("9_station")]
+position = Vector3(4, 0, 6)

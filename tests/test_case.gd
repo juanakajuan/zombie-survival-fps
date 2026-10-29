@@ -84,6 +84,14 @@ func spawn_station(at: Vector3) -> BuyStation:
 	return station
 
 
+func stations_in(level: Level) -> Array[BuyStation]:
+	var found: Array[BuyStation] = []
+	for node: Node in level.find_children("*", "StaticBody3D", true, false):
+		if node is BuyStation:
+			found.append(node as BuyStation)
+	return found
+
+
 ## Turns the player's view to `point` with one mouse motion, as the driver's aim does.
 func look_at_point(player: Player, point: Vector3) -> void:
 	var to_point := point - player.head.global_position

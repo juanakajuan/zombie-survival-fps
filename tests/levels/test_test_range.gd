@@ -26,3 +26,10 @@ func test_round_1_starts_and_the_level_runs_for_5_seconds() -> void:
 func _distance_to_navmesh(map: RID, at: Vector3) -> float:
 	var closest := NavigationServer3D.map_get_closest_point(map, at)
 	return Vector2(closest.x - at.x, closest.z - at.z).length()
+
+
+func test_the_level_has_a_buy_station_that_sells_ammo() -> void:
+	var level := await spawn_level()
+	var stations := stations_in(level)
+	assert_eq(stations.size(), 1, "one buy station")
+	assert_true(stations.size() == 1 and stations[0].item is AmmoItem, "it sells ammo")
