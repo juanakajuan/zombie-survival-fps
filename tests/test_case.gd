@@ -64,10 +64,10 @@ func spawn_dummy(at: Vector3) -> TargetDummy:
 	return dummy
 
 
-## Adds the test range and returns when the navigation map answers queries from its baked navmesh.
+## Adds a level (the test range by default) and returns when the navigation map answers queries from its baked navmesh.
 ## `round_settings` replaces the round settings before round 1 starts.
-func spawn_level(round_settings: RoundSettings = null) -> Level:
-	var level := LEVEL_SCENE.instantiate() as Level
+func spawn_level(round_settings: RoundSettings = null, scene: PackedScene = LEVEL_SCENE) -> Level:
+	var level := scene.instantiate() as Level
 	if round_settings != null:
 		(level.get_node("RoundManager") as RoundManager).settings = round_settings
 	add_child(level)

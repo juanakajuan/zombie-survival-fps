@@ -31,7 +31,8 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 | Health | `health/` | The `Health` node that takes damage, and `HitFlash`, which flashes a material red on a hit. |
 | Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |
 | Zombie | `zombie/` | A cartoon zombie with a shambling walk, an arm-slam attack, and a fall onto its back when it dies, that follows the navmesh to the player and hits at close range. |
-| Test range | `levels/` | The greybox map and the main scene, with target dummies, zombie spawn points, and a crawl tunnel west of the spawn. `level_navigation.gd` bakes the navmesh at start from the static colliders on physics layer 1. |
+| Test range | `levels/` | The greybox test map for tests and the verify skill, with target dummies, zombie spawn points, and a crawl tunnel west of the spawn. `level_navigation.gd` bakes the navmesh at start from the static colliders on physics layer 1. |
+| Compound | `levels/compound.tscn` | A 72 m walled compound: a warehouse with a mezzanine, a loading dock, an office, a watchtower, and shipping containers in the yard. Zombies come in through three gates in the outer wall. It is the main scene. |
 | Rounds | `rounds/` | `RoundManager` spawns each round's zombies from `RoundSettings`, then starts a break when the last zombie dies. |
 | HUD | `hud/` | A slanted, yellow-accent HUD in the style of The Finals (`hud_theme.tres`): the crosshair with a hit marker, segmented health, the weapon name and ammo, the RELOADING label, the round number, the zombies left, and the BREAK label with a countdown. |
 | Pause menu | `pause_menu/`, `settings/` | **Esc** pauses the game and shows mouse sensitivity, field of view, master volume, and fullscreen. **Esc** or **Resume** goes back to the game. `GameSettings` saves the settings to `user://settings.cfg`. |
@@ -48,4 +49,3 @@ These parts come after the minimal game. The list is not complete, and its order
 - Pickups.
 - Audio.
 - More weapons.
-- An arena map that replaces the test range.

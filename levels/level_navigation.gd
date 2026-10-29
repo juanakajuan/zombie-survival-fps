@@ -4,23 +4,17 @@ extends NavigationRegion3D
 ## Emits `bake_finished` when the mesh is baked.
 
 
+# A mesh that is set before the map's first sync with this region does not get to the navigation server, even when
+# an earlier level already synced the map. So wait for that sync, from before it can happen.
 func _ready() -> void:
-	# CSG shapes build their meshes at the end of the frame, so bake one frame later.
-	get_tree().process_frame.connect(_bake_after_first_map_sync, CONNECT_ONE_SHOT)
-
-
-# A mesh that is set before the first sync of the map does not get to the navigation server.
-func _bake_after_first_map_sync() -> void:
-	if NavigationServer3D.map_get_iteration_id(get_navigation_map()) > 0:
-		_bake()
-	else:
-		NavigationServer3D.map_changed.connect(_on_map_changed)
+	NavigationServer3D.map_changed.connect(_on_map_changed)
 
 
 func _on_map_changed(map: RID) -> void:
 	if map == get_navigation_map():
 		NavigationServer3D.map_changed.disconnect(_on_map_changed)
-		_bake()
+		# CSG shapes build their meshes at the end of the frame.
+		get_tree().process_frame.connect(_bake, CONNECT_ONE_SHOT)
 
 
 func _bake() -> void:

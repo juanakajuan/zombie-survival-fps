@@ -46,7 +46,7 @@ A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes o
 
 ## Layout
 
-- `levels/`: maps. `test_range.tscn` is the greybox test map and the main scene. `greybox_grid.gdshader` draws a 1 m grid.
+- `levels/`: maps. `compound.tscn` is the main scene. `test_range.tscn` is the greybox test map that the tests and the verify skill use. `greybox_grid.gdshader` draws a 1 m grid.
 - `debug/smoke.gd`: the autoload that `tools/smoke.sh` uses. It does nothing in a normal run.
 - `tests/`: `run_tests.gd` (runner), `test_case.gd` (base class), and tests in `tests/<area>/test_*.gd`.
 - `tools/`: agent scripts.
