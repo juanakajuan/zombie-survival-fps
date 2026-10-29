@@ -32,7 +32,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 | Zombie | `zombie/` | A box zombie that follows the navmesh to the player and hits at close range. |
 | Test range | `levels/` | The greybox map and the main scene, with target dummies, zombie spawn points, and a crawl tunnel west of the spawn. `level_navigation.gd` bakes the navmesh at start from the static colliders on physics layer 1. |
 | Rounds | `rounds/` | `RoundManager` spawns each round's zombies from `RoundSettings`, then starts a break when the last zombie dies. |
-| HUD | `hud/` | The crosshair, health, ammo, the RELOADING label, the round number, and the BREAK label. |
+| HUD | `hud/` | A slanted, yellow-accent HUD in the style of The Finals (`hud_theme.tres`): the crosshair with a hit marker, segmented health, the weapon name and ammo, the RELOADING label, the round number, the zombies left, and the BREAK label with a countdown. |
 | Game over | `game_over/`, `levels/level.gd` | The GAME OVER screen with the round reached. **Enter** reloads the level. |
 
 ## After the minimal game

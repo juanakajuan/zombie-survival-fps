@@ -41,6 +41,16 @@ func _ready() -> void:
 	_start_round.call_deferred(1)
 
 
+## The zombies of the current round that are alive or not spawned yet.
+func zombies_left() -> int:
+	return _zombies_alive + _zombies_to_spawn
+
+
+## The seconds until the next round starts. It is 0 during a round.
+func break_time_left() -> float:
+	return maxf(_break_left, 0.0) if state == State.BREAK else 0.0
+
+
 func _physics_process(delta: float) -> void:
 	match state:
 		State.ACTIVE:

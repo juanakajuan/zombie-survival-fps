@@ -1,41 +1,53 @@
 class_name Hud
 extends CanvasLayer
-## Shows the player's health, the rounds in the magazine, when the weapon reloads, the round, and the break between rounds.
+## Shows the player's health, the weapon and the rounds in its magazine, when the weapon reloads, the round, the
+## zombies left, and the break between rounds.
 
 @export var health: Health
 @export var weapon: Weapon
 ## If it is empty, the HUD uses the first RoundManager in the tree. Without one, the round panel stays hidden.
 @export var round_manager: RoundManager
-@export var health_color: Color = Color(0.35, 0.85, 0.4)
-@export var low_health_color: Color = Color(0.95, 0.25, 0.2)
+@export var health_color: Color = Color(1, 1, 1, 0.95)
+@export var low_health_color: Color = Color(0.95, 0.2, 0.2)
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
 
 ## What the HUD shows, as a player sees it. Tests and the verify driver read it.
 class Readout extends RefCounted:
 	var health_text: String
 	var ammo_text: String
+	var weapon_name: String
 	var reloading: bool
 	var round_visible: bool
 	var round_text: String
+	var objective_text: String
 	var in_break: bool
+	var hit_marker: bool
 
 
+@onready var _crosshair: Crosshair = %Crosshair
 @onready var _health_value: Label = %HealthValue
-@onready var _health_bar: ProgressBar = %HealthBar
+@onready var _health_max: Label = %HealthMax
+@onready var _health_bar: SegmentBar = %HealthBar
+@onready var _weapon_name: Label = %WeaponName
 @onready var _ammo_value: Label = %AmmoValue
 @onready var _reload_label: Label = %ReloadLabel
 @onready var _round_panel: Control = %RoundPanel
 @onready var _round_value: Label = %RoundValue
+@onready var _objective: Label = %Objective
 @onready var _break_label: Label = %BreakLabel
 
 
 func _ready() -> void:
 	health.changed.connect(_on_health_changed)
+	weapon.fired.connect(_crosshair.shot)
 	weapon.fired.connect(_update_ammo)
+	weapon.hit.connect(_on_weapon_hit)
 	weapon.reload_started.connect(_update_ammo)
 	weapon.reload_finished.connect(_update_ammo)
 	_health_bar.max_value = health.max_health
+	_health_max.text = "/ %d" % ceili(health.max_health)
 	_on_health_changed(health.current)
+	_weapon_name.text = weapon.data.display_name
 	_update_ammo()
 	if round_manager == null:
 		round_manager = get_tree().get_first_node_in_group(RoundManager.GROUP) as RoundManager
@@ -45,14 +57,22 @@ func _ready() -> void:
 	_update_round()
 
 
+func _process(_delta: float) -> void:
+	_update_objective()
+
+
 func readout() -> Readout:
 	var r := Readout.new()
 	r.health_text = _health_value.text
 	r.ammo_text = _ammo_value.text
+	r.weapon_name = _weapon_name.text
 	r.reloading = _reload_label.is_visible_in_tree()
 	r.round_visible = _round_panel.is_visible_in_tree()
 	r.round_text = _round_value.text
+	_update_objective()
+	r.objective_text = _objective.text
 	r.in_break = _break_label.is_visible_in_tree()
+	r.hit_marker = _crosshair.hit_marker_visible()
 	return r
 
 
@@ -61,8 +81,13 @@ func _on_health_changed(current: float) -> void:
 	_health_bar.value = current
 	var color := low_health_color if current <= health.max_health * low_health_fraction else health_color
 	_health_value.add_theme_color_override("font_color", color)
-	var fill := _health_bar.get_theme_stylebox("fill") as StyleBoxFlat
-	fill.bg_color = color
+	_health_bar.fill_color = color
+
+
+func _on_weapon_hit(collider: Object, _position: Vector3) -> void:
+	var node := collider as Node
+	if node != null and Health.find_on(node) != null:
+		_crosshair.hit()
 
 
 func _update_ammo() -> void:
@@ -76,3 +101,13 @@ func _update_round() -> void:
 		return
 	_round_value.text = str(round_manager.round_number)
 	_break_label.visible = round_manager.state == RoundManager.State.BREAK
+	_update_objective()
+
+
+func _update_objective() -> void:
+	if round_manager == null or not _round_panel.visible:
+		return
+	if round_manager.state == RoundManager.State.BREAK:
+		_objective.text = "NEXT ROUND IN %d" % ceili(round_manager.break_time_left())
+	else:
+		_objective.text = "%d LEFT" % round_manager.zombies_left()
