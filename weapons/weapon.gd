@@ -6,7 +6,7 @@ signal fired
 signal reload_started
 signal reload_finished
 signal hit(collider: Object, position: Vector3)
-## Emitted when a shot damages a Health. `killed` is true when this shot took it from alive to dead.
+## Emitted when a shot damages a Health that is alive. `killed` is true when this shot took it to 0. A dead target takes no damage.
 signal damaged(target: Node, killed: bool)
 ## Emitted after `ammo` or `reserve` changes.
 signal ammo_changed
@@ -120,6 +120,7 @@ func _shoot() -> void:
 	if collider is Node:
 		var health := Health.find_on(collider as Node)
 		if health != null:
-			var was_alive := not health.is_dead()
+			if health.is_dead():
+				return
 			health.damage(data.damage)
-			damaged.emit(collider, was_alive and health.is_dead())
+			damaged.emit(collider, health.is_dead())

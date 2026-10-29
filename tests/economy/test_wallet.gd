@@ -79,3 +79,12 @@ func _still_zombie(at: Vector3, player: Player) -> Zombie:
 	var zombie := spawn_zombie(at, player)
 	zombie.move_speed = 0.0
 	return zombie
+
+
+func test_shooting_a_dead_zombie_gives_no_points() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var zombie := _still_zombie(Vector3(0.0, 0.0, -4.0), player)
+	await physics_frames(2)
+	Health.find_on(zombie).damage(1.0e6)
+	assert_true(player.weapon.try_fire(), "shot fires")
+	assert_eq(player.wallet.points, 0, "a corpse gives no points")
