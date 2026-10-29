@@ -86,3 +86,41 @@ func _pose(player: Player) -> Transform3D:
 
 func _muzzle_pitch(pose: Transform3D) -> float:
 	return asin(clampf(-pose.basis.z.y, -1.0, 1.0))
+
+
+func test_aiming_moves_the_gun_to_the_aim_pose_and_releasing_returns_it() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var view_model := player.weapon.view_model
+	var rest := view_model.motion.position
+	Input.action_press("aim")
+	await run_seconds(1.0)
+	assert_true(view_model.motion.position.distance_to(rest + view_model.aim_offset) < 0.01, "the gun is at the aim pose")
+	Input.action_release("aim")
+	await run_seconds(1.0)
+	assert_true(view_model.motion.position.distance_to(rest) < 0.01, "the gun is back at rest")
+
+
+func test_aiming_keeps_the_sights_still_while_walking() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var view_model := player.weapon.view_model
+	Input.action_press("move_forward")
+	Input.action_press("aim")
+	await run_seconds(1.0)
+	var lowest := INF
+	var highest := -INF
+	for i in SETTLE_FRAMES:
+		await physics_frames(1)
+		var y := view_model.motion.position.y
+		lowest = minf(lowest, y)
+		highest = maxf(highest, y)
+	assert_true(highest - lowest < 0.005, "the gun hardly bobs while aiming")
+
+
+func test_a_shot_while_aiming_still_kicks_the_gun() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	Input.action_press("aim")
+	await run_seconds(1.0)
+	var rest := _pose(player)
+	player.weapon.try_fire()
+	await physics_frames(2)
+	assert_true(_pose(player).origin.z > rest.origin.z + 0.005, "the gun kicks back while aiming")

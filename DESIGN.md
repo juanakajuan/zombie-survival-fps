@@ -25,7 +25,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 
 | Part | Folder | What the player gets |
 |---|---|---|
-| Player | `player/` | Quake-style movement (ground friction, air strafing, jump held to hop again), sprint, crouch, mouse look, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
+| Player | `player/` | Quake-style movement (ground friction, air strafing, jump held to hop again), sprint, crouch, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
 | Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) with a magazine, a reload, and no reserve ammo. The animated view model (`view_model.gd`) and the thrown guns of a reload (debris on physics layer 2). |
 | Health | `health/` | The `Health` node that takes damage, and `HitFlash`, which flashes a mesh red on a hit. |
 | Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |

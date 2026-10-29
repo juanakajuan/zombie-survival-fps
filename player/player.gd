@@ -23,6 +23,8 @@ const GROUP := &"player"
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var stop_speed: float = 2.5
 @export_range(0.0, 20.0, 0.1, "suffix:m/s") var jump_velocity: float = 8.0
 @export_range(0.0, 60.0, 0.1, "suffix:m/s²") var gravity: float = 25.0
+## Walk speed while the aim action is held.
+@export_range(0.0, 20.0, 0.1, "suffix:m/s") var aim_speed: float = 3.0
 
 @export_group("Crouch")
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var crouch_speed: float = 2.5
@@ -34,6 +36,12 @@ const GROUP := &"player"
 @export_group("Look")
 @export_range(0.0001, 0.02, 0.0001, "suffix:rad/px") var mouse_sensitivity: float = 0.0025
 @export_range(0.0, 90.0, 0.5, "suffix:°") var max_pitch_degrees: float = 89.0
+
+@export_group("Aim")
+## The field of view while fully aimed, as a fraction of the field of view in the settings.
+@export_range(0.3, 1.0, 0.01) var aim_fov_scale: float = 0.8
+## Each second, the zoom closes this much of the gap to its target. Higher is snappier.
+@export_range(0.1, 40.0, 0.1) var aim_sharpness: float = 14.0
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -47,6 +55,7 @@ var weapon: Weapon
 var settings: GameSettings
 
 var _crouched := false
+var _aim_blend := 0.0
 var _shape: CapsuleShape3D
 var _body_mesh: CapsuleMesh
 var _stand_height: float
@@ -81,7 +90,9 @@ func _ready() -> void:
 	_place_camera(head.global_position)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_aim_blend = lerpf(_aim_blend, 1.0 if is_aiming() else 0.0, 1.0 - exp(-aim_sharpness * delta))
+	_apply_field_of_view()
 	_place_camera(head.get_global_transform_interpolated().origin)
 
 
@@ -112,7 +123,7 @@ func _physics_process(delta: float) -> void:
 
 	var move_input := _move_input()
 	var wish_dir := (global_basis * Vector3(move_input.x, 0.0, move_input.y)).normalized()
-	var target_speed := (crouch_speed if _crouched else sprint_speed if is_sprinting() else walk_speed) * move_input.length()
+	var target_speed := (crouch_speed if _crouched else aim_speed if is_aiming() else sprint_speed if is_sprinting() else walk_speed) * move_input.length()
 	if on_floor:
 		_accelerate(wish_dir, target_speed, target_speed, ground_acceleration, delta)
 	else:
@@ -135,9 +146,14 @@ func look(relative: Vector2) -> void:
 	camera.global_basis = _look_basis()
 
 
-## True while on the floor, not crouched, with the sprint action held and the move input pointing forward.
+## True while the aim action is held. A dead player does not aim.
+func is_aiming() -> bool:
+	return Input.is_action_pressed("aim") and not is_dead()
+
+
+## True while on the floor, not crouched, not aiming, with the sprint action held and the move input pointing forward.
 func is_sprinting() -> bool:
-	return is_on_floor() and not _crouched and Input.is_action_pressed("sprint") and _move_input().y < -0.5
+	return is_on_floor() and not _crouched and not is_aiming() and Input.is_action_pressed("sprint") and _move_input().y < -0.5
 
 
 ## True while the player is crouched. The player stays crouched after the crouch action is released
@@ -162,8 +178,12 @@ func _resume() -> void:
 
 
 func _apply_settings() -> void:
-	camera.fov = settings.field_of_view
+	_apply_field_of_view()
 	settings.apply_to_engine()
+
+
+func _apply_field_of_view() -> void:
+	camera.fov = settings.field_of_view * lerpf(1.0, aim_fov_scale, _aim_blend)
 
 
 func _place_camera(origin: Vector3) -> void:
