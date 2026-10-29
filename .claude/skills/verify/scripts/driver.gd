@@ -87,7 +87,7 @@ func _step(line: String) -> bool:
 			motion.relative = Vector2(parts[1].to_float(), parts[2].to_float())
 			motion.screen_relative = motion.relative
 			Input.parse_input_event(motion)
-			await _wait_frames(1)
+			await _wait_flush()
 		"shot":
 			await RenderingServer.frame_post_draw
 			var path := _out_dir.path_join(parts[1] + ".png")
@@ -103,6 +103,8 @@ func _step(line: String) -> bool:
 			return _expect(parts[1], " ".join(parts.slice(2)), false)
 		"aim":
 			return await _aim_nearest_zombie()
+		"face":
+			return await _face(deg_to_rad(parts[1].to_float()), deg_to_rad(parts[2].to_float()))
 		"fight_until":
 			return await _fight_until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
 		"until":
@@ -116,6 +118,13 @@ func _step(line: String) -> bool:
 func _wait_frames(count: int) -> void:
 	for i: int in count:
 		await physics_frame
+
+
+## Parsed input is flushed at the start of a main-loop iteration, and a slow frame can run more than one physics frame
+## in one iteration. So wait for the end of this iteration, then one physics frame of the next.
+func _wait_flush() -> void:
+	await process_frame
+	await physics_frame
 
 
 func _send_action(action: StringName, pressed: bool) -> bool:
@@ -184,16 +193,28 @@ func _aim_nearest_zombie() -> bool:
 	if nearest == null:
 		return true
 	var to_target := nearest.global_position + Vector3.UP * 1.2 - head.global_position
-	var yaw := atan2(-to_target.x, -to_target.z)
-	var pitch := atan2(to_target.y, Vector2(to_target.x, to_target.z).length())
+	await _turn(player, atan2(-to_target.x, -to_target.z), atan2(to_target.y, Vector2(to_target.x, to_target.z).length()))
+	return true
+
+
+## Turns the view to an absolute yaw and pitch with one mouse-motion event.
+func _face(yaw: float, pitch: float) -> bool:
+	var player := get_first_node_in_group(Player.GROUP) as Player
+	if player == null:
+		printerr("driver: face found no player")
+		return false
+	await _turn(player, yaw, pitch)
+	return true
+
+
+func _turn(player: Player, yaw: float, pitch: float) -> void:
 	var motion := InputEventMouseMotion.new()
 	motion.relative = Vector2(
 		-wrapf(yaw - player.rotation.y, -PI, PI) / player.mouse_sensitivity,
-		-(pitch - head.rotation.x) / player.mouse_sensitivity)
+		-(pitch - player.head.rotation.x) / player.mouse_sensitivity)
 	motion.screen_relative = motion.relative
 	Input.parse_input_event(motion)
-	await _wait_frames(1)
-	return true
+	await _wait_flush()
 
 
 func _dist(a: Node3D, b: Node3D) -> float:
@@ -230,11 +251,13 @@ func _state() -> Dictionary[String, String]:
 	if player != null:
 		s["player.position"] = "%.1f %.1f %.1f" % [player.global_position.x, player.global_position.y, player.global_position.z]
 		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
+		s["player.pitch_deg"] = "%.0f" % rad_to_deg(player.head.rotation.x)
 		s["player.dead"] = str(player.is_dead())
 		s["player.crouching"] = str(player.is_crouching())
 		s["player.sliding"] = str(player.is_sliding())
 		s["player.speed"] = "%.1f" % Vector2(player.velocity.x, player.velocity.z).length()
 		s["player.aiming"] = str(player.is_aiming())
+		s["player.third_person"] = str(player.is_third_person())
 		s["pause_menu.open"] = str(player.pause_menu.is_open())
 		var hud := player.hud.readout()
 		s["hud.health"] = hud.health_text
@@ -246,15 +269,22 @@ func _state() -> Dictionary[String, String]:
 		s["hud.round_visible"] = str(hud.round_visible)
 		s["hud.round"] = hud.round_text
 		s["hud.break"] = str(hud.in_break)
+		s["hud.objective"] = hud.objective_text
 		s["hud.crosshair"] = str(hud.crosshair_visible)
+		s["hud.hit_marker"] = str(hud.hit_marker)
 	var zombies := 0
+	var bars := 0
 	var dummies_up := 0
 	for node: Node in level.find_children("*", "", true, false):
 		if node is Zombie and not (node as Zombie).is_dead():
 			zombies += 1
+			if (node as Zombie).health_bar.visible:
+				bars += 1
 		elif node is TargetDummy and (node as TargetDummy).visible:
 			dummies_up += 1
 	s["zombies.alive"] = str(zombies)
+	s["zombies.bars"] = str(bars)
+	s["tracers"] = str(get_nodes_in_group(Tracer.GROUP).size())
 	s["dummies.up"] = str(dummies_up)
 	var game_over := level.get_node_or_null("GameOver") as GameOver
 	if game_over != null:
