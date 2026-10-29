@@ -42,7 +42,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | Command | Effect |
 |---|---|
 | `wait <frames>` | Wait for physics frames. |
-| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `interact`, `restart`, `third_person`. |
+| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `interact`, `melee`, `restart`, `third_person`. |
 | `tap <action>` | Press, hold 2 frames, release, wait 1 frame. |
 | `key <name>` | Tap a physical key, for example `key Escape` (opens or closes the pause menu) or `key F5` (the debug third-person view). |
 | `look <dx> <dy>` | One mouse-motion event in pixels. `look 200 0` turns right by 29 degrees. |
