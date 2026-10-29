@@ -12,7 +12,7 @@ The minimal game is done: a player can play the full loop from a fresh start, wi
 
 ## Decided rules
 
-- The zombie is the cartoon Shambler model, `zombie/zombie_model.glb`, in the same style as the pistol: beveled primitives, flat colors, and an ink outline. `art_source/zombie.py` builds it in Blender and writes `art_source/zombie.blend` and the `.glb`. Change the script, not the `.blend`, and run it again. The model has no rig and no animation. A PS1-style generated model with rigged animation was tried and rejected.
+- The zombie is the cartoon Shambler model, `zombie/zombie_model.glb`, in the same style as the pistol: beveled primitives, flat colors, and an ink outline. `art_source/zombie.py` builds it in Blender and writes `art_source/zombie.blend` and the `.glb`. Change the script, not the `.blend`, and run it again. The model is split into six parts (legs, torso, head, arms) with no rig, and `ZombieAnimator` (`zombie/zombie_animator.gd`) animates them in code, as `view_model.gd` animates the pistol. A PS1-style generated model with rigged animation was tried and rejected.
 - The level uses Godot primitives and code for meshes and materials. The only imported models are the pistol view model, `weapons/pistol.glb` (Blender source `art_source/pistol.blend`), and the zombie.
 - Weapons are hitscan. A shot is one ray from the camera.
 - The player cannot shoot while sprinting.
@@ -30,7 +30,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 | Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) with a magazine, a reload, and no reserve ammo. The animated view model (`view_model.gd`) and the thrown guns of a reload (debris on physics layer 2). |
 | Health | `health/` | The `Health` node that takes damage, and `HitFlash`, which flashes a material red on a hit. |
 | Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |
-| Zombie | `zombie/` | A cartoon zombie that follows the navmesh to the player and hits at close range. |
+| Zombie | `zombie/` | A cartoon zombie with a shambling walk and an arm-slam attack that follows the navmesh to the player and hits at close range. |
 | Test range | `levels/` | The greybox map and the main scene, with target dummies, zombie spawn points, and a crawl tunnel west of the spawn. `level_navigation.gd` bakes the navmesh at start from the static colliders on physics layer 1. |
 | Rounds | `rounds/` | `RoundManager` spawns each round's zombies from `RoundSettings`, then starts a break when the last zombie dies. |
 | HUD | `hud/` | A slanted, yellow-accent HUD in the style of The Finals (`hud_theme.tres`): the crosshair with a hit marker, segmented health, the weapon name and ammo, the RELOADING label, the round number, the zombies left, and the BREAK label with a countdown. |

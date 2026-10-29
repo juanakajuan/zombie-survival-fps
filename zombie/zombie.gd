@@ -29,6 +29,8 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var _agent: NavigationAgent3D = $NavigationAgent3D
 @onready var _shape: CollisionShape3D = $CollisionShape3D
 @onready var _hit_flash: HitFlash = $HitFlash
+@onready var animator: ZombieAnimator = $Animator
+@onready var _model: Node3D = $Model
 
 
 func _ready() -> void:
@@ -39,12 +41,13 @@ func _ready() -> void:
 	_tint.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_tint.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_tint.albedo_color = Color.TRANSPARENT
-	for mesh: Node in $Model.find_children("*", "MeshInstance3D"):
+	for mesh: Node in _model.find_children("*", "MeshInstance3D"):
 		(mesh as MeshInstance3D).material_overlay = _tint
 	# Baked navmesh surfaces float two cell heights above the floor, and the agent measures path distance in 3D, so
 	# without this the zombie never reaches a path point that is above its feet.
 	_agent.path_height_offset = 2.0 * NavigationServer3D.map_get_cell_height(_agent.get_navigation_map())
 	_hit_flash.material = _tint
+	animator.attach(_model)
 	_health.died.connect(_on_died)
 
 
@@ -101,6 +104,9 @@ func _physics_process(delta: float) -> void:
 	velocity.x = move_dir.x * move_speed
 	velocity.z = move_dir.z * move_speed
 	move_and_slide()
+	var real_velocity := get_real_velocity()
+	var attack_progress := 1.0 - _attack_cooldown / attack_interval if state == State.ATTACK else -1.0
+	animator.advance(delta, Vector2(real_velocity.x, real_velocity.z).length(), attack_progress)
 
 
 ## The target, or null when there is none or it is dead.

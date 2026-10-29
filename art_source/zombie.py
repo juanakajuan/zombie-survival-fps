@@ -1,7 +1,7 @@
 # Builds the cartoon Shambler zombie in the style of art_source/pistol.blend
 # (beveled primitives, flat colors, an inverted-hull ink outline).
 # Run from the project root: blender -b --factory-startup --python art_source/zombie.py [-- <preview.png>]
-# It writes art_source/zombie.blend and zombie/zombie_model.glb. With a path, it also renders
+# It writes art_source/zombie.blend and zombie/zombie_model.glb, split into the parts in PARTS. With a path, it also renders
 # <preview>_front.png and <preview>_side.png there.
 # Blender is Z up. The zombie faces +Y, which the glTF exporter makes Godot -Z (forward).
 import math
@@ -220,25 +220,56 @@ def build_shambler() -> Builder:
     return z
 
 
-def join(b: Builder) -> bpy.types.Object:
-    """Applies every modifier and joins the parts into one mesh, so Godot gets one MeshInstance3D."""
+# The posable parts that the Godot animator moves, each with its pivot (Blender coordinates).
+# A part takes every piece whose name starts with one of its prefixes; the Torso takes the rest.
+# Head, ArmL, and ArmR are children of the Torso, so they follow its bob and sway.
+PARTS = {
+    "LegL": ((0.12, 0.0, 0.82), ("ThighL", "ShinL", "ShoeL")),
+    "LegR": ((-0.12, 0.0, 0.82), ("ThighR", "CuffR", "RagR", "ShinR", "ShoeR")),
+    "ArmL": ((0.29, 0.1, 1.27), ("UpperArmL", "ForeArmL", "RotArmL", "PalmL", "FingerL")),
+    "ArmR": ((-0.3, 0.1, 1.27), ("SleeveR", "UpperArmR", "ElbowBone", "ForeArmR", "PalmR", "FingerR")),
+    "Head": ((0.02, 0.1, 1.38), ("Head", "Socket", "Eye", "Pupil", "Lid", "Brow", "Nose", "Mouth", "Tooth", "Ear",
+                                  "Scar", "Hair", "RotHead")),
+    "Torso": ((0.0, 0.0, 0.82), ()),
+}
+TORSO_CHILDREN = ("Head", "ArmL", "ArmR")
+
+
+def assemble(b: Builder) -> bpy.types.Object:
+    """Applies every modifier and joins the pieces into the parts in PARTS, each with its origin on its pivot."""
+    groups: dict = {name: [] for name in PARTS}
+    for o in b.root.children:
+        piece = o.name.removeprefix(b.root.name + "_")
+        part = next((n for n, (_, prefixes) in PARTS.items() if piece.startswith(prefixes)), "Torso")
+        groups[part].append(o)
+    joined: dict = {}
+    for name, pieces in groups.items():
+        bpy.ops.object.select_all(action="DESELECT")
+        for o in pieces:
+            o.select_set(True)
+        bpy.context.view_layer.objects.active = pieces[0]
+        bpy.ops.object.convert(target="MESH")
+        bpy.ops.object.join()
+        mesh = bpy.context.active_object
+        mesh.name = name
+        mesh.data.name = name
+        bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+        bpy.context.scene.cursor.location = PARTS[name][0]
+        bpy.ops.object.origin_set(type="ORIGIN_CURSOR")
+        joined[name] = mesh
+    for name in TORSO_CHILDREN:
+        child = joined[name]
+        world = child.matrix_world.copy()
+        child.parent = joined["Torso"]
+        child.matrix_world = world
+    return b.root
+
+
+def export_glb(root: bpy.types.Object, path: str) -> None:
     bpy.ops.object.select_all(action="DESELECT")
-    parts = list(b.root.children)
-    for o in parts:
+    root.select_set(True)
+    for o in root.children_recursive:
         o.select_set(True)
-    bpy.context.view_layer.objects.active = parts[0]
-    bpy.ops.object.convert(target="MESH")
-    bpy.ops.object.join()
-    mesh = bpy.context.active_object
-    mesh.name = b.root.name
-    mesh.parent = None
-    bpy.data.objects.remove(b.root)
-    return mesh
-
-
-def export_glb(mesh: bpy.types.Object, path: str) -> None:
-    bpy.ops.object.select_all(action="DESELECT")
-    mesh.select_set(True)
     bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", use_selection=True,
                               export_apply=True, export_yup=True)
 
@@ -280,8 +311,7 @@ def preview_render(path: str) -> None:
 
 def main() -> None:
     reset()
-    mesh = join(build_shambler())
-    export_glb(mesh, GLB)
+    export_glb(assemble(build_shambler()), GLB)
     bpy.ops.wm.save_as_mainfile(filepath=BLEND)
     if RENDER:
         preview_render(RENDER)
