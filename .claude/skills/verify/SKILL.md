@@ -44,7 +44,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | `wait <frames>` | Wait for physics frames. |
 | `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `reload`, `restart`. |
 | `tap <action>` | Press, hold 2 frames, release, wait 1 frame. |
-| `key <name>` | Tap a physical key that is not an action, for example `key Escape` (releases the mouse). |
+| `key <name>` | Tap a physical key that is not an action, for example `key Escape` (opens or closes the pause menu). |
 | `look <dx> <dy>` | One mouse-motion event in pixels. `look 200 0` turns right by 29 degrees. |
 | `aim` | One mouse-motion event that turns the view to the nearest zombie's chest. |
 | `fight_until <key> <value> <frames>` | Repeat `aim` and `tap fire` (about 6 shots a second) until the state key has the value. Fails at the frame limit. |
@@ -63,6 +63,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `game_over.visible`, `game_over.text` | The game-over screen, and its text, for example `You reached round 1`. |
 | `mouse.mode` | `captured` or `visible`. |
 | `player.position`, `player.yaw_deg`, `player.dead`, `player.crouching` | Feet position (`x y z`, 1 decimal), turn angle, death, and crouch. The player starts at `0.0 0.0 6.0`, yaw `0`, and looks toward -Z. |
+| `game.paused`, `pause_menu.open` | Whether the game tree is paused, and whether the pause menu shows. Esc toggles both. |
 | `zombies.alive`, `dummies.up` | Zombies in the level, and target dummies that show. |
 | `frame` | The physics frame counter. |
 

@@ -25,7 +25,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 
 | Part | Folder | What the player gets |
 |---|---|---|
-| Player | `player/` | Quake-style movement (ground friction, air strafing, jump held to hop again), sprint, crouch, mouse look, and death. **Esc** releases the mouse. Only `Player` writes the mouse mode. |
+| Player | `player/` | Quake-style movement (ground friction, air strafing, jump held to hop again), sprint, crouch, mouse look, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
 | Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) with a magazine, a reload, and no reserve ammo. The animated view model (`view_model.gd`) and the thrown guns of a reload (debris on physics layer 2). |
 | Health | `health/` | The `Health` node that takes damage, and `HitFlash`, which flashes a mesh red on a hit. |
 | Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |
@@ -33,6 +33,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 | Test range | `levels/` | The greybox map and the main scene, with target dummies, zombie spawn points, and a crawl tunnel west of the spawn. `level_navigation.gd` bakes the navmesh at start from the static colliders on physics layer 1. |
 | Rounds | `rounds/` | `RoundManager` spawns each round's zombies from `RoundSettings`, then starts a break when the last zombie dies. |
 | HUD | `hud/` | The crosshair, health, ammo, the RELOADING label, the round number, and the BREAK label. |
+| Pause menu | `pause_menu/`, `settings/` | **Esc** pauses the game and shows mouse sensitivity, field of view, master volume, and fullscreen. **Esc** or **Resume** goes back to the game. `GameSettings` saves the settings to `user://settings.cfg`. |
 | Game over | `game_over/`, `levels/level.gd` | The GAME OVER screen with the round reached. **Enter** reloads the level. |
 
 ## After the minimal game

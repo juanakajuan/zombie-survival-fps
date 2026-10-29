@@ -25,6 +25,9 @@ func _initialize() -> void:
 		quit(2)
 		return
 	DirAccess.make_dir_recursive_absolute(_out_dir)
+	# A fresh settings file, so that the human's saved sensitivity and field of view do not change the expected values.
+	GameSettings.file_path = _out_dir.path_join("settings.cfg")
+	DirAccess.remove_absolute(GameSettings.file_path)
 	var err := change_scene_to_file(_scene)
 	if err != OK:
 		printerr("driver: cannot load %s: %s" % [_scene, error_string(err)])
@@ -219,6 +222,7 @@ func _state() -> Dictionary[String, String]:
 	var s: Dictionary[String, String] = {}
 	s["frame"] = str(Engine.get_physics_frames())
 	s["mouse.mode"] = "captured" if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else "visible"
+	s["game.paused"] = str(paused)
 	var level := current_scene
 	if level == null:
 		return s
@@ -228,6 +232,7 @@ func _state() -> Dictionary[String, String]:
 		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
 		s["player.dead"] = str(player.is_dead())
 		s["player.crouching"] = str(player.is_crouching())
+		s["pause_menu.open"] = str(player.pause_menu.is_open())
 		var hud := player.hud.readout()
 		s["hud.health"] = hud.health_text
 		s["hud.ammo"] = hud.ammo_text

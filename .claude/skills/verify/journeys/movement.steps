@@ -1,4 +1,4 @@
-# Movement and look: walk, sprint, jump, turn with the mouse, release the mouse with Esc, recapture without a shot.
+# Movement and look: walk, sprint, jump, turn with the mouse, pause with Esc, resume with Esc and take the mouse back.
 expect player.position 0.0 0.0 6.0
 expect mouse.mode captured
 hold move_forward
@@ -23,8 +23,13 @@ expect player.yaw_deg -29
 shot 04-after-look
 key Escape
 expect mouse.mode visible
-tap fire
+expect game.paused true
+expect pause_menu.open true
+shot 05-paused
+key Escape
+expect game.paused false
+expect pause_menu.open false
 expect mouse.mode captured
 wait 12
 expect hud.ammo 12 / 12
-state 05-recaptured
+state 06-resumed

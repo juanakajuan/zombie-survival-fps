@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://weapons/weapon.tscn" id="3_weapon"]
 [ext_resource type="Resource" path="res://weapons/pistol.tres" id="4_pistol"]
 [ext_resource type="PackedScene" path="res://hud/hud.tscn" id="5_hud"]
+[ext_resource type="PackedScene" path="res://pause_menu/pause_menu.tscn" id="6_pause_menu"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -46,3 +47,5 @@ script = ExtResource("2_health")
 [node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon") instance=ExtResource("5_hud")]
 health = NodePath("../Health")
 weapon = NodePath("../Head/Camera3D/Weapon")
+
+[node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
