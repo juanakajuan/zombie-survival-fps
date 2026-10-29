@@ -9,6 +9,8 @@
 [ext_resource type="PackedScene" path="res://player/player_model.glb" id="7_model"]
 [ext_resource type="Script" path="res://player/player_animator.gd" id="8_animator"]
 [ext_resource type="Script" path="res://economy/wallet.gd" id="9_wallet"]
+[ext_resource type="Script" path="res://player/melee.gd" id="10_melee"]
+[ext_resource type="PackedScene" path="res://player/slap_view.tscn" id="11_slap_view"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -36,11 +38,16 @@ current = true
 [node name="Weapon" parent="Head/Camera3D" instance=ExtResource("3_weapon")]
 data = ExtResource("4_pistol")
 
+[node name="SlapView" parent="Head/Camera3D" instance=ExtResource("11_slap_view")]
+
 [node name="Health" type="Node" parent="."]
 script = ExtResource("2_health")
 
 [node name="Wallet" type="Node" parent="."]
 script = ExtResource("9_wallet")
+
+[node name="Melee" type="Node" parent="."]
+script = ExtResource("10_melee")
 
 [node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "wallet") instance=ExtResource("5_hud")]
 health = NodePath("../Health")

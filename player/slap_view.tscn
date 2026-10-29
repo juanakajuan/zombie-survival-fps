@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://player/slap_view.gd" id="1_slap"]
+[ext_resource type="PackedScene" path="res://player/player_slap_hand.glb" id="2_hand"]
+
+[node name="SlapView" type="Node3D" node_paths=PackedStringArray("hand")]
+script = ExtResource("1_slap")
+hand = NodePath("Hand")
+
+[node name="Hand" parent="." instance=ExtResource("2_hand")]
+visible = false

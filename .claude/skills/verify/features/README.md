@@ -31,6 +31,7 @@ Each feature file starts with an H1 title and one paragraph about the behavior t
 
 - [Movement and look](./movement-and-look.md) covers walking, jumps, the slide, crouch and the crawl tunnel, mouse look, and the Esc pause menu that releases the mouse and captures it again on resume.
 - [Weapon and targets](./weapon-and-targets.md) covers firing, the pistol view model, ammo on the HUD, target dummies, and reload.
+- [Melee](./melee.md) covers the backhand slap on V: the left hand animation, the damage at short reach, and the points from a slap.
 - [Economy](./economy.md) covers points from zombie hits and kills, the reserve ammo, and the buy station that sells ammo with E.
 - [Rounds and HUD](./rounds-and-hud.md) covers zombie spawns, clearing a round, the BREAK label, and the next round.
 - [Death, game over, and restart](./death-and-game-over.md) covers zombie attacks, player death, the game-over screen, and restart with Enter.
