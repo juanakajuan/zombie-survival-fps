@@ -138,7 +138,7 @@ func _spawn_all(manager: RoundManager, settings: RoundSettings) -> void:
 func _zombies(manager: RoundManager) -> Array[Zombie]:
 	var zombies: Array[Zombie] = []
 	for child: Node in manager.get_children():
-		if child is Zombie and not child.is_queued_for_deletion():
+		if child is Zombie and not (child as Zombie).is_dead():
 			zombies.append(child as Zombie)
 	return zombies
 

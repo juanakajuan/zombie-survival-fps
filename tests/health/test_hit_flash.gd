@@ -3,20 +3,16 @@ extends TestCase
 const FLASH := Color(1.0, 0.15, 0.1)
 
 
-func _body_color(zombie: Zombie) -> Color:
-	return ((zombie.get_child(1).get_child(0) as MeshInstance3D).material_override as StandardMaterial3D).albedo_color
-
-
-func test_zombie_flashes_red_then_returns_to_base_color() -> void:
+func test_zombie_flashes_red_then_returns_to_no_tint() -> void:
 	var zombie := spawn_zombie(Vector3(0.0, 0.0, 50.0))
 	await physics_frames(1)
-	var base := zombie.base_color
+	assert_eq(zombie.tint(), Color.TRANSPARENT, "zombie tint before a hit")
 	Health.find_on(zombie).damage(1.0)
-	assert_eq(_body_color(zombie), FLASH, "zombie flash color")
+	assert_eq(zombie.tint(), FLASH, "zombie flash color")
 	await run_seconds(0.05)
-	assert_eq(_body_color(zombie), FLASH, "zombie still flashing at 0.05 s")
+	assert_eq(zombie.tint(), FLASH, "zombie still flashing at 0.05 s")
 	await run_seconds(0.1)
-	assert_eq(_body_color(zombie), base, "zombie back to base color after 0.1 s")
+	assert_eq(zombie.tint(), Color.TRANSPARENT, "zombie tint after 0.1 s")
 
 
 func test_dummy_flashes_red_then_returns_to_base_color() -> void:

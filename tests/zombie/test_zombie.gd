@@ -75,7 +75,9 @@ func test_enough_pistol_shots_kill_the_zombie_and_remove_it() -> void:
 		assert_true(weapon.try_fire(), "shot fires")
 		await run_seconds(PISTOL.fire_interval + FRAME_MARGIN / 60.0)
 	await physics_frames(2)
-	assert_true(not is_instance_valid(zombie) or not zombie.is_inside_tree(), "zombie left the tree")
+	assert_true(zombie.is_dead(), "zombie is dead")
+	await run_seconds(zombie.animator.death_length() + FRAME_MARGIN / 60.0)
+	assert_true(not is_instance_valid(zombie) or not zombie.is_inside_tree(), "zombie left the tree after its death animation")
 
 
 func test_fewer_pistol_shots_leave_the_zombie_alive() -> void:
