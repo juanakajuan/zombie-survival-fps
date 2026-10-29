@@ -51,14 +51,14 @@ extends Node
 @export_range(0.0, 90.0, 1.0, "suffix:°") var slap_sweep: float = 50.0
 ## The arm leans across the body by this angle at the top of the wind-up.
 @export_range(0.0, 60.0, 1.0, "suffix:°") var slap_roll: float = 20.0
-## The part of the slap that the wind-up takes. It matches the melee's wind_up_time over its whole time.
-@export_range(0.01, 0.99, 0.01) var slap_wind_share: float = 0.28
 ## The part of the slap after the wind-up in which the arm sweeps. Then the arm blends back.
 @export_range(0.01, 0.99, 0.01) var slap_sweep_share: float = 0.3
 
 ## How fast the pose blends between walking, standing, in the air, crouched, and aiming.
 @export_range(0.1, 40.0, 0.1) var blend_sharpness: float = 12.0
 
+## The part of the slap that the wind-up takes. Player sets it from the melee timings.
+var slap_wind_share: float = 0.28
 var _leg_l: Node3D
 var _leg_r: Node3D
 var _shin_l: Node3D

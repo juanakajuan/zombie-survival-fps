@@ -9,19 +9,19 @@ extends Node3D
 @export var hand: Node3D
 
 @export_group("Poses")
-@export var start_position: Vector3 = Vector3(0.3, -0.6, -0.15)
-@export var start_angles: Vector3 = Vector3(20.0, -40.0, -20.0)
+@export var start_position: Vector3 = Vector3(0.24, -0.45, -0.25)
+@export var start_angles: Vector3 = Vector3(70.0, -10.0, 0.0)
 ## The cocked hand, ready to whip.
-@export var cocked_position: Vector3 = Vector3(0.16, -0.2, -0.3)
-@export var cocked_angles: Vector3 = Vector3(10.0, -35.0, -15.0)
+@export var cocked_position: Vector3 = Vector3(0.14, -0.17, -0.3)
+@export var cocked_angles: Vector3 = Vector3(75.0, -10.0, 0.0)
 ## Where the whip ends.
-@export var strike_position: Vector3 = Vector3(-0.22, -0.14, -0.4)
-@export var strike_angles: Vector3 = Vector3(0.0, 80.0, 5.0)
+@export var strike_position: Vector3 = Vector3(-0.1, -0.08, -0.32)
+@export var strike_angles: Vector3 = Vector3(75.0, 60.0, 0.0)
 ## Where the hand leaves the view.
-@export var exit_position: Vector3 = Vector3(-0.35, -0.6, -0.2)
-@export var exit_angles: Vector3 = Vector3(-10.0, 85.0, 10.0)
+@export var exit_position: Vector3 = Vector3(-0.36, -0.45, -0.22)
+@export var exit_angles: Vector3 = Vector3(40.0, 70.0, 0.0)
 ## The hand reaches this far forward in the middle of the whip.
-@export var strike_arc: Vector3 = Vector3(0.0, 0.0, -0.1)
+@export var strike_arc: Vector3 = Vector3(0.0, 0.02, -0.06)
 
 @export_group("Timing")
 ## The whip starts this fraction of the wind-up before the strike, so that the hand is at the screen centre when

@@ -115,6 +115,7 @@ func _ready() -> void:
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
 	animator.attach(body)
+	animator.slap_wind_share = melee.wind_up_time / (melee.wind_up_time + melee.recover_time)
 	_set_third_person(false)
 	_stand_height = _shape.height
 	_stand_head_height = head.position.y
