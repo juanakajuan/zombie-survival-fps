@@ -232,6 +232,8 @@ func _state() -> Dictionary[String, String]:
 		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
 		s["player.dead"] = str(player.is_dead())
 		s["player.crouching"] = str(player.is_crouching())
+		s["player.sliding"] = str(player.is_sliding())
+		s["player.speed"] = "%.1f" % Vector2(player.velocity.x, player.velocity.z).length()
 		s["player.aiming"] = str(player.is_aiming())
 		s["pause_menu.open"] = str(player.pause_menu.is_open())
 		var hud := player.hud.readout()

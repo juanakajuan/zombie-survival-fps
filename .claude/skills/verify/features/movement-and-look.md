@@ -1,13 +1,14 @@
 # Movement and look
 
-The player walks with WASD, sprints with Shift, jumps with Space, crouches with Ctrl, and turns with the mouse. Movement is Quake-style: the player speeds up and slows down with ground friction, can strafe in the air past the sprint speed, and hops again on landing while Space is held. Esc pauses the game, opens the pause menu, and releases the mouse. Esc again resumes the game and captures the mouse.
+The player walks with WASD, sprints with Shift, jumps with Space, crouches with Ctrl, and turns with the mouse. The player speeds up and slows down with ground friction. Ctrl while sprinting starts a slide: a speed boost, low friction, and a low camera. A jump out of a slide keeps the speed. Each jump needs a new press of Space, and steering in the air does not add speed, so there is no bunny hop. Esc pauses the game, opens the pause menu, and releases the mouse. Esc again resumes the game and captures the mouse.
 
 ## Sub-features
 
 - `move-walk` moves the player at 4.5 m/s with W, A, S, and D.
 - `move-sprint` moves the player at 7 m/s with Shift and W held.
-- `move-jump` lifts the player with Space when on the floor. Holding Space hops again on each landing.
-- `move-air-strafe` turns and speeds up the player in the air with the strafe keys and mouse look.
+- `move-jump` lifts the player with Space when on the floor. Holding Space hops only once.
+- `move-air-control` turns the player in the air with the move keys, with no speed gain.
+- `slide` starts with Ctrl at 5.5 m/s or faster (a sprint), adds 3 m/s (once each 1.5 s, up to 10 m/s), and ends at crouch speed or when Ctrl is released.
 - `crouch` makes the player 1 m tall and moves the player at 2.5 m/s while Ctrl is held.
 - `crouch-tunnel` lets a crouched player go through the crawl tunnel west of the spawn. The roof stops a standing player. Under the roof, the player stays crouched after Ctrl is released.
 - `look-mouse` turns the view with mouse motion.
@@ -33,7 +34,7 @@ Preconditions:
 - **Pause.** Run `key Escape`. `expect mouse.mode visible`, `expect game.paused true`, and `expect pause_menu.open true` pass. `05-paused.png` shows the PAUSED panel with the settings.
 - **Resume.** Run `key Escape` again. `expect game.paused false`, `expect mouse.mode captured`, and `expect hud.ammo 12 / 12` pass.
 - **Crouch through the tunnel.** Run `look -628 0` to face -X (`expect player.yaw_deg 90`). Hold W for 3 s. The roof stops the player near `x = -5.6`. Run `hold crouch`, and `expect player.crouching true` passes. Hold W for 1 s, then release W and Ctrl. The player is near `x = -8.1`, and `expect player.crouching true` passes, because the roof is above. Hold W for 3 s. The player comes out at the far side and stands: `expect player.crouching false` passes.
-- **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/movement.steps` for walk, sprint, jump, look, and the mouse. Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/crouch.steps` for crouch and the tunnel. Compare the `x`, `y`, and `z` values in the JSON files by eye. No journey covers the air strafe or the held-jump hop; `tests/player/test_player.gd` covers them.
+- **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/movement.steps` for walk, sprint, jump, look, and the mouse. Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/crouch.steps` for crouch and the tunnel. Compare the `x`, `y`, and `z` values in the JSON files by eye. Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/slide.steps` for the slide: `player.speed` goes from `7.0` to near `9.7` at the slide start, and `player.sliding` is `true` until Ctrl is released. No journey covers the air control or the held jump; `tests/player/test_player.gd` covers them.
 
 ## Gotchas
 

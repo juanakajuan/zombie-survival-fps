@@ -13,10 +13,9 @@ const GROUP := &"player"
 @export_range(0.0, 30.0, 0.1, "suffix:m/s") var sprint_speed: float = 7.0
 ## Each second on the floor, the player gains up to this many times the target speed.
 @export_range(0.0, 50.0, 0.5) var ground_acceleration: float = 10.0
-## Each second in the air, the player gains up to this many times the target speed, along the wish direction.
-@export_range(0.0, 200.0, 0.5) var air_acceleration: float = 10.0
-## Air acceleration stops when speed along the wish direction gets to this value. A low cap is what makes air strafing work.
-@export_range(0.0, 10.0, 0.05, "suffix:m/s") var air_speed_cap: float = 1.0
+## Each second in the air, the player can steer up to this many times the target speed. Steering in the air
+## never takes the speed above the larger of the target speed and the speed at takeoff.
+@export_range(0.0, 50.0, 0.5) var air_acceleration: float = 2.0
 ## Each second on the floor, the player loses this many times its speed.
 @export_range(0.0, 20.0, 0.1) var friction: float = 6.0
 ## Below this speed, friction acts as if the player moves at this speed, so the player comes to a full stop quickly.
@@ -32,6 +31,18 @@ const GROUP := &"player"
 @export_range(0.7, 1.8, 0.05, "suffix:m") var crouch_height: float = 1.0
 ## How fast the camera moves down and up when the player crouches and stands.
 @export_range(0.1, 20.0, 0.1, "suffix:m/s") var crouch_camera_speed: float = 6.0
+
+@export_group("Slide")
+## Pressing crouch on the floor at this speed or faster starts a slide instead of a crouch.
+@export_range(0.0, 30.0, 0.1, "suffix:m/s") var slide_min_speed: float = 5.5
+## Speed added at the start of a slide, when the slide cooldown is over.
+@export_range(0.0, 20.0, 0.1, "suffix:m/s") var slide_boost: float = 3.0
+## The boost does not take the speed above this value.
+@export_range(0.0, 40.0, 0.1, "suffix:m/s") var slide_max_speed: float = 10.0
+## Time after a boost before the next slide gets a boost.
+@export_range(0.0, 10.0, 0.05, "suffix:s") var slide_cooldown: float = 1.5
+## Each second of a slide, the player loses this many times its speed. The slide ends at crouch speed.
+@export_range(0.0, 10.0, 0.05) var slide_friction: float = 0.6
 
 @export_group("Look")
 @export_range(0.0001, 0.02, 0.0001, "suffix:rad/px") var mouse_sensitivity: float = 0.0025
@@ -54,7 +65,10 @@ const GROUP := &"player"
 var weapon: Weapon
 var settings: GameSettings
 
-var _crouched := false
+enum Stance { STANDING, CROUCHED, SLIDING }
+
+var _stance := Stance.STANDING
+var _slide_cooldown_left := 0.0
 var _aim_blend := 0.0
 var _shape: CapsuleShape3D
 var _body_mesh: CapsuleMesh
@@ -109,25 +123,29 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	_update_crouch(delta)
 	var on_floor := is_on_floor()
-	# Holding jump hops again on the first floor frame, before friction can slow the player.
-	var jumping := on_floor and Input.is_action_pressed("jump") and not is_dead()
+	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
+	_update_stance(on_floor, delta)
+	# A new press is needed for each jump, so holding jump does not hop again on landing.
+	var jumping := on_floor and Input.is_action_just_pressed("jump") and not is_dead()
 	if jumping:
 		velocity.y = jump_velocity
 	elif on_floor:
 		velocity.y = 0.0
-		_apply_friction(delta)
+		if _stance == Stance.SLIDING:
+			_apply_friction(slide_friction, 0.0, delta)
+		else:
+			_apply_friction(friction, stop_speed, delta)
 	else:
 		velocity.y -= gravity * delta
 
 	var move_input := _move_input()
 	var wish_dir := (global_basis * Vector3(move_input.x, 0.0, move_input.y)).normalized()
-	var target_speed := (crouch_speed if _crouched else aim_speed if is_aiming() else sprint_speed if is_sprinting() else walk_speed) * move_input.length()
-	if on_floor:
-		_accelerate(wish_dir, target_speed, target_speed, ground_acceleration, delta)
-	else:
-		_accelerate(wish_dir, minf(target_speed, air_speed_cap), target_speed, air_acceleration, delta)
+	var target_speed := (crouch_speed if is_crouching() else aim_speed if is_aiming() else sprint_speed if is_sprinting() else walk_speed) * move_input.length()
+	if not on_floor:
+		_air_accelerate(wish_dir, target_speed, delta)
+	elif _stance != Stance.SLIDING:
+		_accelerate(wish_dir, target_speed, ground_acceleration, delta)
 	move_and_slide()
 	# The weapon is a child of the camera and fires in its own _physics_process, after this one.
 	# This puts the shot at the true head position, not the one drawn on screen.
@@ -153,13 +171,19 @@ func is_aiming() -> bool:
 
 ## True while on the floor, not crouched, not aiming, with the sprint action held and the move input pointing forward.
 func is_sprinting() -> bool:
-	return is_on_floor() and not _crouched and not is_aiming() and Input.is_action_pressed("sprint") and _move_input().y < -0.5
+	return is_on_floor() and _stance == Stance.STANDING and not is_aiming() and Input.is_action_pressed("sprint") and _move_input().y < -0.5
 
 
-## True while the player is crouched. The player stays crouched after the crouch action is released
+## True while the player is low: crouched or sliding. The player stays low after the crouch action is released
 ## until there is room to stand.
 func is_crouching() -> bool:
-	return _crouched
+	return _stance != Stance.STANDING
+
+
+## True while the player slides: crouch was pressed on the floor at slide_min_speed or faster, and the speed
+## is still above crouch_speed.
+func is_sliding() -> bool:
+	return _stance == Stance.SLIDING
 
 
 func is_dead() -> bool:
@@ -200,38 +224,71 @@ func _move_input() -> Vector2:
 	return Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 
 
-func _apply_friction(delta: float) -> void:
+func _horizontal_speed() -> float:
+	return Vector2(velocity.x, velocity.z).length()
+
+
+func _apply_friction(amount: float, min_speed: float, delta: float) -> void:
 	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
 	var speed := horizontal.length()
 	if speed == 0.0:
 		return
-	var new_speed := maxf(speed - maxf(speed, stop_speed) * friction * delta, 0.0)
+	var new_speed := maxf(speed - maxf(speed, min_speed) * amount * delta, 0.0)
 	horizontal *= new_speed / speed
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
 
 
-## Adds speed along wish_dir until the speed along it gets to cap_speed. The step size uses target_speed,
-## so a low cap in the air still turns velocity fast. This is what lets air strafing gain speed.
-func _accelerate(wish_dir: Vector3, cap_speed: float, target_speed: float, acceleration: float, delta: float) -> void:
-	var add_speed := cap_speed - velocity.dot(wish_dir)
+## Adds speed along wish_dir until the speed along it gets to target_speed.
+func _accelerate(wish_dir: Vector3, target_speed: float, acceleration: float, delta: float) -> void:
+	var add_speed := target_speed - velocity.dot(wish_dir)
 	if add_speed <= 0.0:
 		return
 	velocity += wish_dir * minf(acceleration * target_speed * delta, add_speed)
 
 
-func _update_crouch(delta: float) -> void:
-	if Input.is_action_pressed("crouch") and not is_dead():
-		_set_crouched(true)
-	elif _crouched and _has_room_to_stand():
-		_set_crouched(false)
-	var head_height := _stand_head_height - (_stand_height - crouch_height if _crouched else 0.0)
+## Turns the horizontal velocity toward wish_dir. The speed can go down, but never above the larger of the
+## speed before this frame and target_speed, so strafing in the air does not gain speed.
+func _air_accelerate(wish_dir: Vector3, target_speed: float, delta: float) -> void:
+	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
+	var limit := maxf(horizontal.length(), target_speed)
+	horizontal = (horizontal + wish_dir * air_acceleration * target_speed * delta).limit_length(limit)
+	velocity.x = horizontal.x
+	velocity.z = horizontal.z
+
+
+func _update_stance(on_floor: bool, delta: float) -> void:
+	var crouch_held := Input.is_action_pressed("crouch") and not is_dead()
+	if not crouch_held:
+		if _stance != Stance.STANDING and _has_room_to_stand():
+			_set_stance(Stance.STANDING)
+		elif _stance == Stance.SLIDING:
+			_set_stance(Stance.CROUCHED)
+	elif _stance == Stance.SLIDING:
+		if not on_floor or _horizontal_speed() <= crouch_speed:
+			_set_stance(Stance.CROUCHED)
+	elif on_floor and _horizontal_speed() >= slide_min_speed:
+		_start_slide()
+	else:
+		_set_stance(Stance.CROUCHED)
+	var head_height := _stand_head_height - (_stand_height - crouch_height if is_crouching() else 0.0)
 	head.position.y = move_toward(head.position.y, head_height, crouch_camera_speed * delta)
 
 
-func _set_crouched(crouched: bool) -> void:
-	_crouched = crouched
-	_shape.height = crouch_height if crouched else _stand_height
+func _start_slide() -> void:
+	_set_stance(Stance.SLIDING)
+	if _slide_cooldown_left > 0.0:
+		return
+	_slide_cooldown_left = slide_cooldown
+	var speed := _horizontal_speed()
+	var boosted := maxf(speed, minf(speed + slide_boost, slide_max_speed))
+	velocity.x *= boosted / speed
+	velocity.z *= boosted / speed
+
+
+func _set_stance(stance: Stance) -> void:
+	_stance = stance
+	_shape.height = crouch_height if is_crouching() else _stand_height
 	_body_mesh.height = _shape.height
 	_collision.position.y = _shape.height / 2.0
 

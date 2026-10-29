@@ -62,7 +62,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `hud.round` | The round number on the HUD. |
 | `game_over.visible`, `game_over.text` | The game-over screen, and its text, for example `You reached round 1`. |
 | `mouse.mode` | `captured` or `visible`. |
-| `player.position`, `player.yaw_deg`, `player.dead`, `player.crouching` | Feet position (`x y z`, 1 decimal), turn angle, death, and crouch. The player starts at `0.0 0.0 6.0`, yaw `0`, and looks toward -Z. |
+| `player.position`, `player.yaw_deg`, `player.dead`, `player.crouching`, `player.sliding`, `player.speed` | Feet position (`x y z`, 1 decimal), turn angle, death, crouch (true while sliding too), slide, and horizontal speed in m/s (1 decimal). The player starts at `0.0 0.0 6.0`, yaw `0`, and looks toward -Z. |
 | `game.paused`, `pause_menu.open` | Whether the game tree is paused, and whether the pause menu shows. Esc toggles both. |
 | `zombies.alive`, `dummies.up` | Zombies in the level, and target dummies that show. |
 | `frame` | The physics frame counter. |
