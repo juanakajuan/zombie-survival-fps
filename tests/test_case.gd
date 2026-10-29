@@ -5,6 +5,7 @@ extends Node
 
 const PLAYER_SCENE: PackedScene = preload("res://player/player.tscn")
 const ZOMBIE_SCENE: PackedScene = preload("res://zombie/zombie.tscn")
+const STATION_SCENE: PackedScene = preload("res://economy/buy_station.tscn")
 const DUMMY_SCENE: PackedScene = preload("res://targets/target_dummy.tscn")
 const LEVEL_SCENE: PackedScene = preload("res://levels/test_range.tscn")
 const ROUND_SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
@@ -74,6 +75,22 @@ func spawn_dummy(at: Vector3) -> TargetDummy:
 	add_child(dummy)
 	await physics_frames(2)
 	return dummy
+
+
+func spawn_station(at: Vector3) -> BuyStation:
+	var station := STATION_SCENE.instantiate() as BuyStation
+	station.position = at
+	add_child(station)
+	return station
+
+
+## Turns the player's view to `point` with one mouse motion, as the driver's aim does.
+func look_at_point(player: Player, point: Vector3) -> void:
+	var to_point := point - player.head.global_position
+	var yaw := atan2(-to_point.x, -to_point.z)
+	var pitch := atan2(to_point.y, Vector2(to_point.x, to_point.z).length())
+	var sensitivity := player.mouse_sensitivity * player.settings.mouse_sensitivity_scale
+	player.look(Vector2(-wrapf(yaw - player.rotation.y, -PI, PI), -(pitch - player.head.rotation.x)) / sensitivity)
 
 
 ## Adds a level (the test range by default) and returns when the navigation map answers queries from its baked navmesh.
