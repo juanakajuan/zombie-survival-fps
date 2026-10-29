@@ -176,20 +176,14 @@ func _aim_nearest_zombie() -> bool:
 	if player == null:
 		printerr("driver: aim found no player")
 		return false
-	var head := player.head
 	var nearest: Zombie = null
 	for node: Node in current_scene.find_children("*", "", true, false):
 		if node is Zombie and not (node as Zombie).is_dead() and (nearest == null or _dist(player, node as Zombie) < _dist(player, nearest)):
 			nearest = node as Zombie
 	if nearest == null:
 		return true
-	var to_target := nearest.global_position + Vector3.UP * 1.2 - head.global_position
-	var yaw := atan2(-to_target.x, -to_target.z)
-	var pitch := atan2(to_target.y, Vector2(to_target.x, to_target.z).length())
 	var motion := InputEventMouseMotion.new()
-	motion.relative = Vector2(
-		-wrapf(yaw - player.rotation.y, -PI, PI) / player.mouse_sensitivity,
-		-(pitch - head.rotation.x) / player.mouse_sensitivity)
+	motion.relative = player.mouse_delta_to(nearest.global_position + Vector3.UP * 1.2)
 	motion.screen_relative = motion.relative
 	Input.parse_input_event(motion)
 	await _wait_frames(1)

@@ -92,13 +92,9 @@ func stations_in(level: Level) -> Array[BuyStation]:
 	return found
 
 
-## Turns the player's view to `point` with one mouse motion, as the driver's aim does.
+## Turns the player's view to `point` with one mouse motion.
 func look_at_point(player: Player, point: Vector3) -> void:
-	var to_point := point - player.head.global_position
-	var yaw := atan2(-to_point.x, -to_point.z)
-	var pitch := atan2(to_point.y, Vector2(to_point.x, to_point.z).length())
-	var sensitivity := player.mouse_sensitivity * player.settings.mouse_sensitivity_scale
-	player.look(Vector2(-wrapf(yaw - player.rotation.y, -PI, PI), -(pitch - player.head.rotation.x)) / sensitivity)
+	player.look(player.mouse_delta_to(point))
 
 
 ## Adds a level (the test range by default) and returns when the navigation map answers queries from its baked navmesh.

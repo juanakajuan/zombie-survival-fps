@@ -189,6 +189,16 @@ func look(relative: Vector2) -> void:
 	camera.global_basis = _look_basis()
 
 
+
+## The mouse delta in pixels that turns the view to `point` when it goes to look().
+func mouse_delta_to(point: Vector3) -> Vector2:
+	var to_point := point - head.global_position
+	var yaw := atan2(-to_point.x, -to_point.z)
+	var pitch := atan2(to_point.y, Vector2(to_point.x, to_point.z).length())
+	var sensitivity := mouse_sensitivity * settings.mouse_sensitivity_scale
+	return Vector2(-wrapf(yaw - rotation.y, -PI, PI), -(pitch - head.rotation.x)) / sensitivity
+
+
 ## The buy station within interact_range that the player looks at, or null. A dead player has none.
 func focused_station() -> BuyStation:
 	return _focused
