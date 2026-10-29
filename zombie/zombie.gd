@@ -56,6 +56,11 @@ func tint() -> Color:
 	return _tint.albedo_color
 
 
+## Whether the zombie is dead. A dead zombie stays in the tree while its body falls and sinks.
+func is_dead() -> bool:
+	return state == State.DEAD
+
+
 ## Sets the speed and health of this zombie. Call it before the zombie enters the tree.
 func configure(speed: float, max_health: float) -> void:
 	move_speed = speed
@@ -65,6 +70,9 @@ func configure(speed: float, max_health: float) -> void:
 
 func _physics_process(delta: float) -> void:
 	if state == State.DEAD:
+		animator.advance_death(delta)
+		if animator.death_finished():
+			queue_free()
 		return
 	velocity.y = 0.0 if is_on_floor() else velocity.y - _gravity * delta
 
@@ -123,4 +131,3 @@ func _on_died() -> void:
 	state = State.DEAD
 	velocity = Vector3.ZERO
 	_shape.set_deferred("disabled", true)
-	queue_free()

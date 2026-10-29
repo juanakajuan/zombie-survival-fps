@@ -179,7 +179,7 @@ func _aim_nearest_zombie() -> bool:
 	var head := player.head
 	var nearest: Zombie = null
 	for node: Node in current_scene.find_children("*", "", true, false):
-		if node is Zombie and (nearest == null or _dist(player, node as Zombie) < _dist(player, nearest)):
+		if node is Zombie and not (node as Zombie).is_dead() and (nearest == null or _dist(player, node as Zombie) < _dist(player, nearest)):
 			nearest = node as Zombie
 	if nearest == null:
 		return true
@@ -247,7 +247,7 @@ func _state() -> Dictionary[String, String]:
 	var zombies := 0
 	var dummies_up := 0
 	for node: Node in level.find_children("*", "", true, false):
-		if node is Zombie:
+		if node is Zombie and not (node as Zombie).is_dead():
 			zombies += 1
 		elif node is TargetDummy and (node as TargetDummy).visible:
 			dummies_up += 1

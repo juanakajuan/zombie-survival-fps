@@ -39,3 +39,14 @@ func _pitch_range(value: Callable, seconds: float) -> Vector2:
 		lowest = minf(lowest, sample)
 		highest = maxf(highest, sample)
 	return Vector2(lowest, highest)
+
+
+func test_dying_zombie_falls_on_its_back_and_stays_until_it_sinks() -> void:
+	await spawn_nav_world()
+	var zombie := spawn_zombie(Vector3(0.0, 0.0, 0.0), null)
+	await physics_frames(2)
+	Health.find_on(zombie).damage(1.0e6)
+	var animator := zombie.animator
+	await run_seconds(animator.fall_time + animator.bounce_time + 0.1)
+	assert_almost_eq(animator.fall_tilt(), deg_to_rad(animator.fall_angle), 0.05, "zombie lies on its back")
+	assert_true(zombie.is_inside_tree(), "the body stays while it lies there")
