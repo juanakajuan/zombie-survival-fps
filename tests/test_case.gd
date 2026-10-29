@@ -100,6 +100,23 @@ func stations_in(level: Level) -> Array[BuyStation]:
 	return found
 
 
+## Whether a buy station of the level sells an item of this class.
+func sells(level: Level, item_class: GDScript) -> bool:
+	for station: BuyStation in stations_in(level):
+		if is_instance_of(station.item, item_class):
+			return true
+	return false
+
+
+## Whether a buy station of the level sells the weapon with this display name.
+func sells_weapon(level: Level, weapon_name: String) -> bool:
+	for station: BuyStation in stations_in(level):
+		var item := station.item as WeaponItem
+		if item != null and item.weapon.display_name == weapon_name:
+			return true
+	return false
+
+
 ## Turns the player's view to `point` with one mouse motion.
 func look_at_point(player: Player, point: Vector3) -> void:
 	player.look(player.mouse_delta_to(point))
