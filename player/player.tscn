@@ -11,6 +11,7 @@
 [ext_resource type="Script" path="res://economy/wallet.gd" id="9_wallet"]
 [ext_resource type="Script" path="res://player/melee.gd" id="10_melee"]
 [ext_resource type="PackedScene" path="res://player/punch_view.tscn" id="11_punch_view"]
+[ext_resource type="AudioStream" path="res://audio/player_hurt.tres" id="12_hurt"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -50,9 +51,15 @@ script = ExtResource("9_wallet")
 [node name="Melee" type="Node" parent="."]
 script = ExtResource("10_melee")
 
-[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "wallet") instance=ExtResource("5_hud")]
+[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "melee", "wallet") instance=ExtResource("5_hud")]
 health = NodePath("../Health")
 weapon = NodePath("../Head/Camera3D/Weapon")
+melee = NodePath("../Melee")
 wallet = NodePath("../Wallet")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
+
+[node name="HurtSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("12_hurt")
+volume_db = -4.0
+bus = &"SFX"

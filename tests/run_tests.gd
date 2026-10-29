@@ -5,6 +5,7 @@ extends SceneTree
 
 const TEST_DIR := "res://tests"
 const SETTINGS_FILE := "user://test_settings.cfg"
+const AUDIO_DRAIN_MSEC := 100
 
 
 class ErrorLog extends Logger:
@@ -66,6 +67,10 @@ func _run() -> void:
 	var nothing_matched := not filter.is_empty() and passed + failed == 0
 	if nothing_matched:
 		print("No test matches filter '%s'" % filter)
+	# --fixed-fps runs frames faster than real time, so the audio thread can still hold the playbacks of freed sound
+	# players. It releases them after it mixes once more and the next frame runs. Without this, they leak at exit.
+	OS.delay_msec(AUDIO_DRAIN_MSEC)
+	await process_frame
 	quit(1 if failed > 0 or nothing_matched else 0)
 
 

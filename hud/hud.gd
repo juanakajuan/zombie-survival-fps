@@ -11,14 +11,17 @@ extends CanvasLayer
 			weapon.hit.disconnect(_on_weapon_hit)
 			weapon.reload_started.disconnect(_update_ammo)
 			weapon.reload_finished.disconnect(_update_ammo)
+			weapon.damaged.disconnect(_on_damaged)
 		weapon = value
 		weapon.fired.connect(_on_weapon_fired)
 		weapon.ammo_changed.connect(_update_ammo)
 		weapon.hit.connect(_on_weapon_hit)
 		weapon.reload_started.connect(_update_ammo)
 		weapon.reload_finished.connect(_update_ammo)
+		weapon.damaged.connect(_on_damaged)
 		if is_node_ready():
 			_show_weapon()
+@export var melee: Melee
 @export var wallet: Wallet
 @export var health_color: Color = Color(1, 1, 1, 0.95)
 @export var low_health_color: Color = Color(0.95, 0.2, 0.2)
@@ -30,6 +33,8 @@ var round_manager: RoundManager:
 		round_manager = value
 		round_manager.round_started.connect(_update_round.unbind(1))
 		round_manager.round_ended.connect(_update_round.unbind(1))
+		round_manager.round_started.connect(round_start_sound.play.unbind(1))
+		round_manager.round_ended.connect(break_sound.play.unbind(1))
 		_update_round()
 
 ## What the HUD shows, as a player sees it. Tests and the verify driver read it.
@@ -49,6 +54,10 @@ class Readout extends RefCounted:
 	var crosshair_visible: bool
 
 
+@onready var hit_sound: AudioStreamPlayer = $HitSound
+@onready var kill_sound: AudioStreamPlayer = $KillSound
+@onready var round_start_sound: AudioStreamPlayer = $RoundStartSound
+@onready var break_sound: AudioStreamPlayer = $BreakSound
 @onready var _crosshair: Crosshair = %Crosshair
 @onready var _health_value: Label = %HealthValue
 @onready var _health_max: Label = %HealthMax
@@ -66,6 +75,7 @@ class Readout extends RefCounted:
 
 func _ready() -> void:
 	health.changed.connect(_on_health_changed)
+	melee.damaged.connect(_on_damaged)
 	wallet.changed.connect(_update_points.unbind(1))
 	_health_bar.max_value = health.max_health
 	_health_max.text = "/ %d" % ceili(health.max_health)
@@ -122,6 +132,10 @@ func _on_weapon_hit(collider: Object, _position: Vector3) -> void:
 	var node := collider as Node
 	if node != null and Health.find_on(node) != null:
 		_crosshair.hit()
+
+
+func _on_damaged(_target: Node, killed: bool) -> void:
+	(kill_sound if killed else hit_sound).play()
 
 
 func _update_ammo() -> void:

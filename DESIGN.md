@@ -44,6 +44,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 | HUD | `hud/` | A slanted, yellow-accent HUD in the style of The Finals (`hud_theme.tres`): the crosshair with a hit marker, segmented health, the points, the weapon name and the ammo as magazine and reserve, the RELOADING label, the buy prompt, the round number, the zombies left, and the BREAK label with a countdown. |
 | Economy | `economy/` | Points on a `Wallet` on the player: 10 for each zombie hit and 60 more for a kill. A buy station is a crate that sells one `BuyItem`. The player looks at it within 2.5 m, sees the prompt, and presses **E** to buy. The ammo station costs 250 points and fills the reserve. The weapon station (a teal crate) sells the SMG for 1000 points, then its ammo for 300. The test range and the Compound each have both. |
 | Pause menu | `pause_menu/`, `settings/` | **Esc** pauses the game and shows mouse sensitivity, field of view, master volume, and fullscreen. **Esc** or **Resume** goes back to the game. `GameSettings` saves the settings to `user://settings.cfg`. |
+| Audio | `audio/` | Sound for the pistol (shot, dry click, reload), a hit-marker tick and a kill sound, zombie groans, attack, and death that come from the zombie in 3D, a hurt grunt, and stings at round start and break start. Each event is an `AudioStreamRandomizer` (`audio/*.tres`) with a little random pitch. All play on the `SFX` bus (`default_bus_layout.tres`), so the master volume in the pause menu controls them. `tools/gen_sfx.py` generates the sounds. |
 | Game over | `game_over/`, `levels/level.gd` | The GAME OVER screen with the round reached. **Enter** reloads the level. |
 
 ## After the minimal game
@@ -52,5 +53,4 @@ These parts come after the minimal game. The list is not complete, and its order
 
 - Doors that open new areas of the map.
 - Pickups.
-- Audio.
 - More weapons, such as a shotgun.

@@ -79,6 +79,7 @@ const GROUP := &"player"
 @onready var body: Node3D = $Body
 @onready var animator: PlayerAnimator = $Animator
 @onready var wallet: Wallet = $Wallet
+@onready var hurt_sound: AudioStreamPlayer = $HurtSound
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
@@ -116,6 +117,7 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_health.died.connect(_on_health_died)
+	_health.damaged.connect(hurt_sound.play.unbind(1))
 	weapon.damaged.connect(_on_damaged)
 	melee.damaged.connect(_on_damaged)
 	pause_menu.resume_requested.connect(_resume)
