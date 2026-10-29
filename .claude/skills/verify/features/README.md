@@ -6,7 +6,7 @@ This folder is the maintained source for proof of what a player can do in the ga
 
 - Run `godot --headless --path . --import` once in the checkout.
 - `.claude/skills/verify/scripts/doctor.sh` reports no `FAIL`.
-- Each run starts from a new load of `res://levels/test_range.tscn`: round 1, 100 health, `12 / 48` ammo, the mouse captured, the player at `0.0 0.0 6.0` and looking toward -Z, 3 target dummies, and zombies that spawn one each second.
+- Each run starts from a new load of `res://levels/test_range.tscn` (not the main scene, `levels/compound.tscn`): round 1, 100 health, `12 / 48` ammo, the mouse captured, the player at `0.0 0.0 6.0` and looking toward -Z, 3 target dummies, and zombies that spawn one each second.
 - Never drive the game that the human runs from the editor.
 
 ## Driving conventions
@@ -29,11 +29,11 @@ Each feature file starts with an H1 title and one paragraph about the behavior t
 
 ## Features
 
-- [Movement and look](./movement-and-look.md) covers walking, jumps, the slide, crouch and the crawl tunnel, mouse look, and the Esc pause menu that releases the mouse and captures it again on resume.
-- [Weapon and targets](./weapon-and-targets.md) covers firing, the pistol view model, ammo on the HUD, target dummies, and reload.
+- [Movement and look](./movement-and-look.md) covers walking, jumps, the slide, crouch and the crawl tunnel, mouse look and its pitch limit, the debug third-person view, and the Esc pause menu that releases the mouse and captures it again on resume.
+- [Weapon and targets](./weapon-and-targets.md) covers firing, the tracer and the hit marker, the pistol in the player's hand, aim down the sights, ammo on the HUD, target dummies, and reload.
 - [Melee](./melee.md) covers the punch on V: the left hand animation, the damage at short reach, and the points from a punch.
 - [Economy](./economy.md) covers points from zombie hits and kills, the reserve ammo, and the buy station that sells ammo with E.
-- [Rounds and HUD](./rounds-and-hud.md) covers zombie spawns, clearing a round, the BREAK label, and the next round.
+- [Rounds and HUD](./rounds-and-hud.md) covers zombie spawns, the zombie health bar, the zombies-left line, clearing a round, the BREAK label, and the next round with stronger zombies.
 - [Death, game over, and restart](./death-and-game-over.md) covers zombie attacks, player death, the game-over screen, and restart with Enter.
 
 ## Full loop

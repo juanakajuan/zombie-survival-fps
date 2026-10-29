@@ -4,7 +4,7 @@ Zombies hit the player for 10 damage each second when they are close. At 0 healt
 
 ## Sub-features
 
-- `zombie-attack` removes 10 health each second for each zombie within 1.3 m.
+- `zombie-attack` removes 10 health each second for each zombie within 1.3 m (flat distance). The first hit comes 1 s after the zombie gets close, and the zombie keeps hitting until the player is more than 1.6 m away.
 - `player-death` stops all player input at 0 health.
 - `game-over-screen` shows GAME OVER, `You reached round N`, and `Press Enter to restart`, and releases the mouse.
 - `restart` reloads the level on Enter: round 1, 100 health, `12 / 48`, the mouse captured.
@@ -12,7 +12,7 @@ Zombies hit the player for 10 damage each second when they are close. At 0 healt
 
 ## How to get to it (user POV)
 
-- Start the game and do not shoot. The zombies of round 1 reach the player and kill the player in about 10 s.
+- Start the game and do not shoot. The zombies of round 1 reach the player and kill the player in about 12 s.
 - On the GAME OVER screen, press Enter.
 
 ## Driving it with drive.sh
@@ -31,4 +31,5 @@ Preconditions:
 ## Gotchas
 
 - To see the game-over text for a later round, the player must clear round 1 first. Use `fight_until hud.break true 3600`, then `until hud.round 2 700`, then stop firing.
-- After the restart, the new round 1 zombies spawn at once. Take the restart proof within about 5 s.
+- After the restart, the first new round 1 zombie spawns at once and the rest follow one each second. Take the restart proof within about 5 s.
+- A reload that started before death still finishes after it.
