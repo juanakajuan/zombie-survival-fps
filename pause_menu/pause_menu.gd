@@ -49,7 +49,6 @@ func open(settings: GameSettings) -> void:
 	resume_button.grab_focus()
 
 
-## Hides the menu, saves the settings, and resumes the tree.
 func close() -> void:
 	hide()
 	get_tree().paused = false

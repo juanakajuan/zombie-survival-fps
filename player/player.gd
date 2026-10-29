@@ -22,14 +22,12 @@ const GROUP := &"player"
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var stop_speed: float = 2.5
 @export_range(0.0, 20.0, 0.1, "suffix:m/s") var jump_velocity: float = 8.0
 @export_range(0.0, 60.0, 0.1, "suffix:m/s²") var gravity: float = 25.0
-## Walk speed while the aim action is held.
 @export_range(0.0, 20.0, 0.1, "suffix:m/s") var aim_speed: float = 3.0
 
 @export_group("Crouch")
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var crouch_speed: float = 2.5
 ## Collision height while crouched. Standing height comes from the capsule in the scene.
 @export_range(0.7, 1.8, 0.05, "suffix:m") var crouch_height: float = 1.0
-## How fast the camera moves down and up when the player crouches and stands.
 @export_range(0.1, 20.0, 0.1, "suffix:m/s") var crouch_camera_speed: float = 6.0
 
 @export_group("Slide")
@@ -156,7 +154,6 @@ func _physics_process(delta: float) -> void:
 		melee.try_swing()
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_update_stance(on_floor, delta)
-	# A new press is needed for each jump, so holding jump does not hop again on landing.
 	var jumping := on_floor and Input.is_action_just_pressed("jump") and not is_dead()
 	if jumping:
 		velocity.y = jump_velocity
@@ -323,7 +320,6 @@ func _apply_friction(amount: float, min_speed: float, delta: float) -> void:
 	velocity.z = horizontal.z
 
 
-## Adds speed along wish_dir until the speed along it gets to target_speed.
 func _accelerate(wish_dir: Vector3, target_speed: float, acceleration: float, delta: float) -> void:
 	var add_speed := target_speed - velocity.dot(wish_dir)
 	if add_speed <= 0.0:
@@ -331,8 +327,6 @@ func _accelerate(wish_dir: Vector3, target_speed: float, acceleration: float, de
 	velocity += wish_dir * minf(acceleration * target_speed * delta, add_speed)
 
 
-## Turns the horizontal velocity toward wish_dir. The speed can go down, but never above the larger of the
-## speed before this frame and target_speed, so strafing in the air does not gain speed.
 func _air_accelerate(wish_dir: Vector3, target_speed: float, delta: float) -> void:
 	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
 	var limit := maxf(horizontal.length(), target_speed)

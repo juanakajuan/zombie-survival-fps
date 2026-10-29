@@ -1,7 +1,5 @@
 class_name Hud
 extends CanvasLayer
-## Shows the player's health and points, the weapon with the rounds in its magazine and its reserve, when the weapon
-## reloads, the buy prompt, the round, the zombies left, and the break between rounds.
 
 @export var health: Health
 @export var weapon: Weapon

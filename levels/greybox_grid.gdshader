@@ -1,4 +1,3 @@
-// World-space 1 m grid for greybox geometry, so distances and speeds are easy to read.
 shader_type spatial;
 
 uniform vec3 base_color : source_color = vec3(0.35);

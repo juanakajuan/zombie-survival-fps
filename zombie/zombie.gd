@@ -118,7 +118,6 @@ func _physics_process(delta: float) -> void:
 	animator.advance(delta, Vector2(real_velocity.x, real_velocity.z).length(), attack_progress)
 
 
-## The target, or null when there is none or it is dead.
 func _live_target() -> Node3D:
 	if target == null:
 		return null

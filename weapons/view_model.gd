@@ -50,7 +50,6 @@ extends Node3D
 @export_range(0.0, 1.0, 0.01) var slide_release_fraction: float = 0.07
 
 @export_group("Bob")
-## Bob cycles for each metre the player moves on the floor.
 @export_range(0.0, 2.0, 0.01) var bob_cycles_per_metre: float = 0.32
 @export_range(0.0, 0.05, 0.001, "suffix:m") var bob_amount: float = 0.012
 ## Speed at which the bob is at full bob_amount. It grows past that while sprinting.
@@ -100,7 +99,6 @@ var _slide_rest: Vector3
 var _tween: Tween
 var _wind_up: Transform3D
 var _toss_time := 0.0
-## One copy of each view model material that does not receive shadows, shared by every view model.
 static var _unshadowed_copies: Dictionary[BaseMaterial3D, BaseMaterial3D] = {}
 var _player: Player
 var _lowered := false
@@ -229,7 +227,6 @@ func _on_reload_started(weapon: Weapon) -> void:
 	_tween.tween_property(slide, "position", _slide_rest, time * slide_release_fraction).set_trans(Tween.TRANS_BACK)
 
 
-## Moves the gun along the toss. progress goes from 0 at the wind-up to 1 where the gun flies free.
 func _toss_step(progress: float) -> void:
 	model.transform = _wind_up.translated(toss_offset * progress) \
 		.rotated_local(Vector3.RIGHT, throw_spin.x * _toss_time * progress)
@@ -276,7 +273,6 @@ func _lowered_transform() -> Transform3D:
 	return _model_rest.translated_local(Vector3(0.0, -lower_distance, 0.0)).rotated_local(Vector3.RIGHT, deg_to_rad(lower_angle))
 
 
-## While the reload throw spins the gun, the hand follows the gun's path but does not spin with it.
 func _hold_hand_upright(upright: bool) -> void:
 	if hand_anchor != null:
 		hand_anchor.update_rotation = not upright

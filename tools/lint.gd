@@ -159,7 +159,6 @@ func _code(line: String, keep_strings: bool) -> String:
 	return out
 
 
-## The public methods of TestCase. Reads the names from the file, so a new helper is covered with no edit here.
 func _test_case_methods() -> PackedStringArray:
 	var names: PackedStringArray = []
 	var func_re := RegEx.create_from_string("(?m)^func\\s+([a-z]\\w*)\\s*\\(")
@@ -168,7 +167,6 @@ func _test_case_methods() -> PackedStringArray:
 	return names
 
 
-## Returns the rule that the line's lint-allow comment excuses, or "" when it has none or it is invalid.
 func _allowed_rule(rel: String, line_number: int, line: String) -> String:
 	if not line.contains(ALLOW_MARK):
 		return ""

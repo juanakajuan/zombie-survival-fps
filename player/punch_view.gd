@@ -17,7 +17,6 @@ extends Node3D
 ## Where the jab ends.
 @export var strike_position: Vector3 = Vector3(-0.04, -0.1, -0.5)
 @export var strike_angles: Vector3 = Vector3(0.0, -8.0, 0.0)
-## Where the fist leaves the view.
 @export var exit_position: Vector3 = Vector3(-0.14, -0.45, -0.15)
 @export var exit_angles: Vector3 = Vector3(30.0, 0.0, 0.0)
 ## The fist rises this far in the middle of the jab.

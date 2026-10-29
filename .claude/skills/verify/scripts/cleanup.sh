@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Stops drive runs that this skill started (by the process group in each run's pid file) and removes the pid files.
 # It never deletes evidence: PNG, JSON, logs, and steps stay in .smoke/verify/<run-id>/.
-# Usage: .claude/skills/verify/scripts/cleanup.sh
 repo="$(cd "$(dirname "$0")/../../../.." && pwd)"
 for pidfile in "$repo"/.smoke/verify/*/pid; do
 	[[ -f "$pidfile" ]] || continue

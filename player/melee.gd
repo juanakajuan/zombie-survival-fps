@@ -16,14 +16,12 @@ enum State { READY, WIND_UP, RECOVER }
 @export_range(0.1, 2.0, 0.05, "suffix:m") var radius: float = 0.45
 @export_range(0.01, 1.0, 0.01, "suffix:s") var wind_up_time: float = 0.1
 @export_range(0.01, 2.0, 0.01, "suffix:s") var recover_time: float = 0.22
-## Physics layers that the strike can hit.
 @export_flags_3d_physics var hit_mask: int = 1
 
 ## The player who punches. The strike never hits the wielder. Player sets it.
 var wielder: Player
 
 var _state: State = State.READY
-## Seconds until the current phase ends.
 var _time_left: float = 0.0
 
 

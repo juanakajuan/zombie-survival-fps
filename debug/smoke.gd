@@ -1,7 +1,6 @@
 extends Node
 ## Smoke-test hook (autoload). It does nothing unless the game runs with `-- --smoke-out=<png path>`.
 ## Then it waits `--smoke-frames=<n>` frames (default 90), saves a screenshot, and quits.
-## tools/smoke.sh is the normal way to use it.
 
 var _out_path: String = ""
 var _frames_left: int = 90

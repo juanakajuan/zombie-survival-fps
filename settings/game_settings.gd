@@ -4,10 +4,8 @@ extends RefCounted
 
 const SECTION := "settings"
 
-## tests/run_tests.gd and the verify driver use a different file, so that the human's settings do not change their results.
 static var file_path: String = "user://settings.cfg"
 
-## Multiplies the player's mouse sensitivity.
 var mouse_sensitivity_scale: float = 1.0
 var field_of_view: float = 80.0
 ## Linear volume of the master bus, from 0 to 1.

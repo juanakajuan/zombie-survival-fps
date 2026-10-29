@@ -1,5 +1,4 @@
 // A cartoon bar that always faces the camera: an ink outline, round corners, and a light band on top.
-// `fill` is per instance, so all bars share one material.
 shader_type spatial;
 render_mode unshaded, cull_disabled, shadows_disabled;
 
