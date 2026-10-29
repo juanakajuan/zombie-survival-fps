@@ -30,7 +30,7 @@ script = ExtResource("2_health")
 script = ExtResource("3_flash")
 
 [node name="HealthBar" parent="." instance=ExtResource("6_bar")]
-position = Vector3(0, 2.15, 0)
+position = Vector3(0, 2.2, 0)
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.4

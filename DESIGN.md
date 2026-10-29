@@ -33,7 +33,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 |---|---|---|
 | Player | `player/` | Movement with ground friction, sprint, crouch, a slide (crouch while sprinting: a speed boost, low friction, and a jump that keeps the speed), limited air control, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, using a buy station with **E**, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
 | Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) with a magazine, a reserve of 48 rounds that a reload draws from, and a reload that needs a reserve. The animated view model (`view_model.gd`) and the thrown guns of a reload (debris on physics layer 2). |
-| Health | `health/` | The `Health` node that takes damage, `HitFlash`, which flashes a material red on a hit, and `HealthBar`, a slanted bar over a zombie that shows after its first hit and hides when it dies. |
+| Health | `health/` | The `Health` node that takes damage, `HitFlash`, which flashes a material red on a hit, and `HealthBar`, a cartoon bar over a zombie that shows after its first hit and hides when it dies. |
 | Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |
 | Zombie | `zombie/` | A cartoon zombie with a shambling walk, an arm-slam attack, and a fall onto its back when it dies, that follows the navmesh to the player and hits at close range. |
 | Test range | `levels/` | The greybox test map for tests and the verify skill, with target dummies, zombie spawn points, and a crawl tunnel west of the spawn. `level_navigation.gd` bakes the navmesh at start from the static colliders on physics layer 1. |
