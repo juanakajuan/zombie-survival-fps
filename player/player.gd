@@ -175,9 +175,6 @@ func _physics_process(delta: float) -> void:
 		_accelerate(wish_dir, target_speed, ground_acceleration, delta)
 	move_and_slide()
 	animator.advance(delta, _horizontal_speed(), not is_on_floor() or is_sliding(), is_crouching(), is_aiming(), head.rotation.x, melee.progress())
-	# The weapon is a child of the camera and fires in its own _physics_process, after this one.
-	# This puts the shot at the true head position, not the one drawn on screen.
-	_place_camera(head.global_position)
 
 
 ## Applies a mouse delta in pixels. Moving the mouse right turns right, and moving it up looks up.
@@ -232,8 +229,8 @@ func _update_focus() -> void:
 	_focused = null
 	if is_dead():
 		return
-	var from := head.global_position
-	var query := PhysicsRayQueryParameters3D.create(from, from - _look_basis().z * interact_range, collision_mask, [get_rid()])
+	var aim := aim_transform()
+	var query := PhysicsRayQueryParameters3D.create(aim.origin, aim.origin - aim.basis.z * interact_range, collision_mask, [get_rid()])
 	var result := get_world_3d().direct_space_state.intersect_ray(query)
 	if not result.is_empty():
 		var collider: Object = result["collider"]
@@ -293,6 +290,11 @@ func _set_third_person(on: bool) -> void:
 	if weapon.view_model != null:
 		weapon.view_model.visible = not on
 	punch_view.visible = not on
+
+
+## The head position with the look rotation. Shots, punches, and the buy-station check start here and point along -Z.
+func aim_transform() -> Transform3D:
+	return Transform3D(_look_basis(), head.global_position)
 
 
 func _look_basis() -> Basis:

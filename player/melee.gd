@@ -78,8 +78,8 @@ func _strike() -> void:
 	shape.radius = radius
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = shape
-	var forward := -wielder.camera.global_basis.z
-	query.transform = Transform3D(Basis.IDENTITY, wielder.head.global_position + forward * (reach - radius))
+	var aim := wielder.aim_transform()
+	query.transform = Transform3D(Basis.IDENTITY, aim.origin - aim.basis.z * (reach - radius))
 	query.collision_mask = hit_mask
 	query.exclude = [wielder.get_rid()]
 	var struck: Array[Health] = []

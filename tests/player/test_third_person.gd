@@ -37,6 +37,17 @@ func test_third_person_camera_stops_short_of_a_wall() -> void:
 	assert_true(player.camera.global_position.z < 1.3, "camera stays in front of the wall, z %s" % player.camera.global_position.z)
 
 
+func test_third_person_shot_starts_at_the_head_not_the_camera() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	await spawn_dummy(Vector3(0.0, 0.0, -5.0))
+	_press_third_person()
+	await physics_frames(2)
+	var points: Array[Vector3] = []
+	player.weapon.hit.connect(func(_collider: Object, point: Vector3) -> void: points.append(point))
+	assert_true(player.weapon.try_fire(), "shot fires")
+	assert_eq(points.size(), 1, "shot hits the dummy")
+	assert_almost_eq(points[0].x, player.head.global_position.x, 0.01, "shot is in line with the head, not the shoulder camera")
+
 func _press_third_person() -> void:
 	var event := InputEventAction.new()
 	event.action = &"third_person"

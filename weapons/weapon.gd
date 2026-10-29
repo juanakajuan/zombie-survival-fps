@@ -1,6 +1,6 @@
 class_name Weapon
 extends Node3D
-## Hitscan weapon. It shoots along its own -Z axis and ignores its wielder. Each shot shows a tracer from the muzzle.
+## Hitscan weapon. It shoots along its wielder's aim, or along its own -Z axis when it has no wielder. It ignores its wielder. Each shot shows a tracer from the muzzle.
 
 signal fired
 signal reload_started
@@ -108,7 +108,8 @@ func is_reloading() -> bool:
 
 
 func _shoot() -> void:
-	var query := PhysicsRayQueryParameters3D.create(global_position, global_position - global_basis.z * data.max_range)
+	var aim := wielder.aim_transform() if wielder != null else global_transform
+	var query := PhysicsRayQueryParameters3D.create(aim.origin, aim.origin - aim.basis.z * data.max_range)
 	if wielder != null:
 		query.exclude = [wielder.get_rid()]
 	query.collision_mask = hit_mask
