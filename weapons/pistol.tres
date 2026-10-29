@@ -9,6 +9,7 @@ display_name = "PISTOL"
 damage = 25.0
 fire_interval = 0.15
 magazine_size = 12
+max_reserve = 48
 reload_time = 1.2
 max_range = 100.0
 automatic = false

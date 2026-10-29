@@ -1,0 +1,36 @@
+# Economy: earn points by clearing round 1, walk to the ammo station, see the prompt, press E, and check the purchase.
+expect hud.points 0
+expect hud.ammo 12 / 48
+expect hud.prompt_visible false
+until zombies.alive 4 300
+fight_until hud.break true 3600
+expect zombies.alive 0
+expect hud.points 400
+expect_not hud.ammo 12 / 48
+state 01-earned
+shot 01-earned
+look 628 0
+hold move_forward
+wait 30
+release move_forward
+wait 30
+look 0 240
+until hud.prompt_visible true 60
+expect hud.prompt E BUY AMMO 250
+state 02-prompt
+shot 02-prompt
+tap reload
+wait 90
+tap interact
+wait 5
+expect hud.points 150
+expect hud.ammo 12 / 48
+state 03-bought
+shot 03-bought
+tap interact
+wait 5
+expect hud.points 150
+look 0 -400
+wait 5
+expect hud.prompt_visible false
+state 04-looked-away

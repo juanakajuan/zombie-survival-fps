@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://pause_menu/pause_menu.tscn" id="6_pause_menu"]
 [ext_resource type="PackedScene" path="res://player/player_model.glb" id="7_model"]
 [ext_resource type="Script" path="res://player/player_animator.gd" id="8_animator"]
+[ext_resource type="Script" path="res://economy/wallet.gd" id="9_wallet"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -38,8 +39,12 @@ data = ExtResource("4_pistol")
 [node name="Health" type="Node" parent="."]
 script = ExtResource("2_health")
 
-[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon") instance=ExtResource("5_hud")]
+[node name="Wallet" type="Node" parent="."]
+script = ExtResource("9_wallet")
+
+[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "wallet") instance=ExtResource("5_hud")]
 health = NodePath("../Health")
 weapon = NodePath("../Head/Camera3D/Weapon")
+wallet = NodePath("../Wallet")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]

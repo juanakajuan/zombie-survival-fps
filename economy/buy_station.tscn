@@ -1,0 +1,36 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://economy/buy_station.gd" id="1_station"]
+[ext_resource type="Resource" path="res://economy/ammo.tres" id="2_ammo"]
+
+[sub_resource type="StandardMaterial3D" id="crate_material"]
+albedo_color = Color(0.16, 0.17, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="crate_mesh"]
+material = SubResource("crate_material")
+size = Vector3(1, 1.2, 1)
+
+[sub_resource type="BoxShape3D" id="crate_shape"]
+size = Vector3(1, 1.2, 1)
+
+[node name="BuyStation" type="StaticBody3D"]
+script = ExtResource("1_station")
+item = ExtResource("2_ammo")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.6, 0)
+mesh = SubResource("crate_mesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.6, 0)
+shape = SubResource("crate_shape")
+
+[node name="Label" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+billboard = 1
+modulate = Color(1, 0.9, 0, 1)
+outline_modulate = Color(0.08, 0.08, 0.08, 1)
+text = "AMMO"
+pixel_size = 0.0025
+font_size = 48
+outline_size = 12

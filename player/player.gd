@@ -54,6 +54,10 @@ const GROUP := &"player"
 ## Each second, the zoom closes this much of the gap to its target. Higher is snappier.
 @export_range(0.1, 40.0, 0.1) var aim_sharpness: float = 14.0
 
+@export_group("Interact")
+## How far the player reaches to use a buy station.
+@export_range(0.5, 10.0, 0.1, "suffix:m") var interact_range: float = 2.5
+
 @export_group("Third person (debug)")
 ## In a debug build, the third_person action moves the camera behind the player so the body shows.
 ## The camera sits this far behind the head, and stops short of walls.
@@ -67,6 +71,7 @@ const GROUP := &"player"
 @onready var pause_menu: PauseMenu = $PauseMenu
 @onready var body: Node3D = $Body
 @onready var animator: PlayerAnimator = $Animator
+@onready var wallet: Wallet = $Wallet
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
@@ -82,6 +87,7 @@ var _shape: CapsuleShape3D
 var _stand_height: float
 var _stand_head_height: float
 var _third_person := false
+var _focused: BuyStation
 
 
 func _enter_tree() -> void:
@@ -93,6 +99,7 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_health.died.connect(_on_health_died)
+	weapon.damaged.connect(_on_weapon_damaged)
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.settings_changed.connect(_apply_settings)
 	settings = GameSettings.load_saved()
@@ -134,6 +141,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
+	_update_focus()
+	if _focused != null and weapon.trigger_enabled and Input.is_action_just_pressed("interact"):
+		_focused.buy(self)
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_update_stance(on_floor, delta)
 	# A new press is needed for each jump, so holding jump does not hop again on landing.
@@ -175,6 +185,11 @@ func look(relative: Vector2) -> void:
 	camera.global_basis = _look_basis()
 
 
+## The buy station within interact_range that the player looks at, or null. A dead player has none.
+func focused_station() -> BuyStation:
+	return _focused
+
+
 ## True while the aim action is held. A dead player does not aim.
 func is_aiming() -> bool:
 	return Input.is_action_pressed("aim") and not is_dead()
@@ -201,10 +216,27 @@ func is_dead() -> bool:
 	return _health.is_dead()
 
 
+func _update_focus() -> void:
+	_focused = null
+	if is_dead():
+		return
+	var from := head.global_position
+	var query := PhysicsRayQueryParameters3D.create(from, from - _look_basis().z * interact_range, collision_mask, [get_rid()])
+	var result := get_world_3d().direct_space_state.intersect_ray(query)
+	if not result.is_empty():
+		var collider: Object = result["collider"]
+		_focused = collider as BuyStation
+
+
 func _on_health_died() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	weapon.trigger_enabled = false
 	died.emit()
+
+
+func _on_weapon_damaged(target: Node, killed: bool) -> void:
+	if target is Zombie:
+		wallet.reward_hit(killed)
 
 
 func _resume() -> void:

@@ -113,6 +113,86 @@ func test_reload_when_full_or_reloading_is_a_no_op() -> void:
 	assert_eq(started[0], 1, "reload_started emitted once")
 
 
+func test_reload_takes_rounds_from_the_reserve() -> void:
+	var data := _data()
+	data.max_reserve = 10
+	var weapon := _spawn_weapon(data)
+	assert_eq(weapon.reserve, 10, "starts with a full reserve")
+	weapon.try_fire()
+	weapon.try_fire()
+	weapon.start_reload()
+	await run_seconds(data.reload_time + FRAME_MARGIN / float(Engine.physics_ticks_per_second))
+	assert_eq(weapon.ammo, data.magazine_size, "magazine refilled")
+	assert_eq(weapon.reserve, 8, "two rounds left the reserve")
+
+
+func test_reload_with_a_small_reserve_fills_only_what_it_has() -> void:
+	var data := _data()
+	data.max_reserve = 1
+	var weapon := _spawn_weapon(data)
+	for _i: int in 3:
+		weapon.try_fire()
+	weapon.start_reload()
+	await run_seconds(data.reload_time + FRAME_MARGIN / float(Engine.physics_ticks_per_second))
+	assert_eq(weapon.ammo, 2, "one round added to the one left")
+	assert_eq(weapon.reserve, 0, "reserve empty")
+
+
+func test_no_reserve_means_no_reload() -> void:
+	var data := _data()
+	data.max_reserve = 0
+	var weapon := _spawn_weapon(data)
+	for _i: int in data.magazine_size:
+		weapon.try_fire()
+	weapon.start_reload()
+	assert_true(not weapon.is_reloading(), "reload refused")
+	assert_true(not weapon.try_fire(), "empty magazine does not fire")
+	assert_true(not weapon.is_reloading(), "firing empty does not reload either")
+	assert_eq(weapon.ammo, 0, "magazine still empty")
+
+
+func test_refill_reserve_fills_it_and_reports_whether_it_changed() -> void:
+	var data := _data()
+	data.max_reserve = 10
+	var weapon := _spawn_weapon(data)
+	assert_true(not weapon.refill_reserve(), "a full reserve is not refilled")
+	weapon.reserve = 3
+	assert_true(weapon.refill_reserve(), "a partial reserve is refilled")
+	assert_eq(weapon.reserve, 10, "reserve full")
+
+
+func test_ammo_changed_follows_shots_and_reloads() -> void:
+	var data := _data()
+	var weapon := _spawn_weapon(data)
+	var changes := [0]
+	weapon.ammo_changed.connect(func() -> void: changes[0] += 1)
+	weapon.try_fire()
+	var after_shot: int = changes[0]
+	assert_true(after_shot > 0, "a shot changes the ammo")
+	changes[0] = 0
+	weapon.start_reload()
+	await run_seconds(data.reload_time + FRAME_MARGIN / float(Engine.physics_ticks_per_second))
+	var after_reload: int = changes[0]
+	assert_true(after_reload > 0, "a reload changes the ammo")
+
+
+func test_damaged_reports_the_target_and_whether_the_shot_killed_it() -> void:
+	var data := _data()
+	var weapon := _spawn_weapon(data)
+	var dummy := await spawn_dummy(Vector3(0.0, 0.0, -TARGET_DISTANCE))
+	var health := Health.find_on(dummy)
+	health.damage(health.max_health - data.damage * 2.0)
+	var kills: Array[bool] = []
+	var targets: Array[Node] = []
+	weapon.damaged.connect(func(target: Node, killed: bool) -> void:
+		targets.append(target)
+		kills.append(killed))
+	weapon.try_fire()
+	weapon.try_fire()
+	assert_eq(kills, [false, true] as Array[bool], "only the second shot kills")
+	assert_true(targets.all(func(target: Node) -> bool: return target == dummy), "the target is the dummy")
+
+
 func test_reload_action_starts_a_reload() -> void:
 	var weapon := _spawn_weapon(_data())
 	weapon.try_fire()

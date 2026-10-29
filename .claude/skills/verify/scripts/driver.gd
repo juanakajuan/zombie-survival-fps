@@ -239,6 +239,9 @@ func _state() -> Dictionary[String, String]:
 		var hud := player.hud.readout()
 		s["hud.health"] = hud.health_text
 		s["hud.ammo"] = hud.ammo_text
+		s["hud.points"] = hud.points_text
+		s["hud.prompt_visible"] = str(hud.prompt_visible)
+		s["hud.prompt"] = " ".join(hud.prompt_text.split(" ", false)) if hud.prompt_visible else ""
 		s["hud.reloading"] = str(hud.reloading)
 		s["hud.round_visible"] = str(hud.round_visible)
 		s["hud.round"] = hud.round_text

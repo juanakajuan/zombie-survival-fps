@@ -7,7 +7,7 @@ func test_shows_full_health_and_magazine_at_start() -> void:
 	var player := await spawn_player()
 	var weapon := player.weapon
 	assert_eq(player.hud.readout().health_text, "100", "health text")
-	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [weapon.data.magazine_size, weapon.data.magazine_size], "ammo text")
+	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [weapon.data.magazine_size, weapon.data.max_reserve], "ammo text")
 	assert_true(not player.hud.readout().reloading, "reload label hidden")
 
 
@@ -26,7 +26,7 @@ func test_ammo_text_follows_shots() -> void:
 	var player := await spawn_player()
 	var weapon := player.weapon
 	assert_true(weapon.try_fire(), "shot fires")
-	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [weapon.data.magazine_size - 1, weapon.data.magazine_size], "ammo after one shot")
+	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [weapon.data.magazine_size - 1, weapon.data.max_reserve], "ammo after one shot")
 
 
 func test_reload_label_shows_during_reload_and_ammo_refills() -> void:
@@ -38,7 +38,7 @@ func test_reload_label_shows_during_reload_and_ammo_refills() -> void:
 	await physics_frames(roundi(weapon.data.reload_time * Engine.physics_ticks_per_second) + FRAME_MARGIN)
 	assert_true(not weapon.is_reloading(), "reload finished")
 	assert_true(not player.hud.readout().reloading, "reload label hidden after reload")
-	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [weapon.data.magazine_size, weapon.data.magazine_size], "ammo refilled")
+	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [weapon.data.magazine_size, weapon.data.max_reserve - 1], "magazine refilled from the reserve")
 
 
 func test_round_panel_is_hidden_without_a_round_manager() -> void:
@@ -121,3 +121,34 @@ func test_crosshair_hides_while_aiming() -> void:
 	Input.action_release("aim")
 	await physics_frames(FRAME_MARGIN)
 	assert_true(player.hud.readout().crosshair_visible, "crosshair back after aiming")
+
+
+func test_points_show_the_balance_and_follow_it() -> void:
+	var player := await spawn_player()
+	assert_eq(player.hud.readout().points_text, "0", "no points at start")
+	player.wallet.add(70)
+	assert_eq(player.hud.readout().points_text, "70", "after earning")
+	player.wallet.spend(20)
+	assert_eq(player.hud.readout().points_text, "50", "after spending")
+
+
+func test_ammo_text_shows_the_reserve_and_follows_a_refill() -> void:
+	var player := await spawn_player()
+	player.weapon.reserve = 7
+	assert_eq(player.hud.readout().ammo_text, "%d / 7" % player.weapon.data.magazine_size, "reserve in the ammo text")
+	player.weapon.refill_reserve()
+	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [player.weapon.data.magazine_size, player.weapon.data.max_reserve], "after a refill")
+
+
+func test_prompt_shows_only_while_looking_at_a_station() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var station := spawn_station(Vector3(0.0, 0.0, -2.0))
+	await physics_frames(2)
+	assert_true(not player.hud.readout().prompt_visible, "no prompt before looking")
+	look_at_point(player, station.global_position + Vector3.UP * 0.6)
+	await physics_frames(2)
+	assert_true(player.hud.readout().prompt_visible, "prompt while looking")
+	assert_eq(player.hud.readout().prompt_text, station.prompt_text(), "prompt text")
+	player.look(Vector2(1000.0, 0.0))
+	await physics_frames(2)
+	assert_true(not player.hud.readout().prompt_visible, "prompt gone after looking away")

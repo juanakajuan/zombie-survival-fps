@@ -6,6 +6,10 @@ signal fired
 signal reload_started
 signal reload_finished
 signal hit(collider: Object, position: Vector3)
+## Emitted when a shot damages a Health that is alive. `killed` is true when this shot took it to 0. A dead target takes no damage.
+signal damaged(target: Node, killed: bool)
+## Emitted after `ammo` or `reserve` changes.
+signal ammo_changed
 
 enum State { READY, RELOADING }
 
@@ -13,7 +17,15 @@ enum State { READY, RELOADING }
 ## Physics layers that a shot can hit. Debris, such as thrown guns, is not on them.
 @export_flags_3d_physics var hit_mask: int = 1
 
-var ammo: int
+var ammo: int:
+	set(value):
+		ammo = value
+		ammo_changed.emit()
+## Rounds outside the magazine. A reload moves them into the magazine.
+var reserve: int:
+	set(value):
+		reserve = value
+		ammo_changed.emit()
 ## When false, the fire and reload actions do nothing. The owner turns it off while the mouse is released.
 var trigger_enabled: bool = true
 ## The instance of data.view_model, or null when the data has none or its root is not a ViewModel.
@@ -28,6 +40,7 @@ var _cooldown: float = 0.0
 
 func _ready() -> void:
 	ammo = data.magazine_size
+	reserve = data.max_reserve
 	if data.view_model != null:
 		var model := data.view_model.instantiate()
 		add_child(model)
@@ -38,7 +51,9 @@ func _physics_process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
 	if _state == State.RELOADING and _cooldown == 0.0:
 		_state = State.READY
-		ammo = data.magazine_size
+		var taken := mini(data.magazine_size - ammo, reserve)
+		reserve -= taken
+		ammo += taken
 		reload_finished.emit()
 
 	if not trigger_enabled:
@@ -69,12 +84,21 @@ func try_fire() -> bool:
 	return true
 
 
+## Does nothing when the magazine is full or the reserve is empty.
 func start_reload() -> void:
-	if _state == State.RELOADING or ammo == data.magazine_size:
+	if _state == State.RELOADING or ammo == data.magazine_size or reserve == 0:
 		return
 	_state = State.RELOADING
 	_cooldown = data.reload_time
 	reload_started.emit()
+
+
+## Fills the reserve. Returns false when it was already full.
+func refill_reserve() -> bool:
+	if reserve >= data.max_reserve:
+		return false
+	reserve = data.max_reserve
+	return true
 
 
 func is_reloading() -> bool:
@@ -96,4 +120,7 @@ func _shoot() -> void:
 	if collider is Node:
 		var health := Health.find_on(collider as Node)
 		if health != null:
+			if health.is_dead():
+				return
 			health.damage(data.damage)
+			damaged.emit(collider, health.is_dead())

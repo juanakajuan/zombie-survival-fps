@@ -13,13 +13,13 @@ state 01-game-over
 shot 01-game-over
 tap move_forward
 tap fire
-expect hud.ammo 12 / 12
+expect hud.ammo 12 / 48
 tap restart
 wait 10
 expect game_over.visible false
 expect player.dead false
 expect hud.health 100
-expect hud.ammo 12 / 12
+expect hud.ammo 12 / 48
 expect hud.round 1
 expect player.position 0.0 0.0 6.0
 expect mouse.mode captured

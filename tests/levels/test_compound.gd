@@ -31,6 +31,16 @@ func test_round_1_starts_and_the_level_runs_for_5_seconds() -> void:
 	await run_seconds(5.0)
 
 
+func test_the_level_has_a_buy_station_that_sells_ammo_near_the_player_start() -> void:
+	var level := await spawn_level(null, COMPOUND_SCENE)
+	var stations := stations_in(level)
+	assert_eq(stations.size(), 1, "one buy station")
+	if stations.size() == 1:
+		assert_true(stations[0].item is AmmoItem, "it sells ammo")
+		var player := level.get_node("Player") as Player
+		assert_true(stations[0].global_position.distance_to(player.global_position) < 10.0, "it is in the yard near the start")
+
+
 func _assert_walks_up_the_ramp_from(foot: Vector3, floor_name: String) -> void:
 	var level := await spawn_level(null, COMPOUND_SCENE)
 	var player := level.get_node("Player") as Player

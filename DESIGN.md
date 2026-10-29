@@ -21,6 +21,9 @@ The minimal game is done: a player can play the full loop from a fresh start, wi
 - The slide is the fast way to move. There is no bunny hop: each jump needs a new press of jump, and air control never takes the speed above the speed at takeoff or the target speed.
 - A node that can take damage has a `Health` child (`health/health.gd`). Code that deals damage finds it with `Health.find_on(node)`.
 - `RoundSettings` (`rounds/round_settings.tres`) is the only source of zombie count, health, and speed for each round.
+- Points come from shots that hit a living zombie (`Wallet.points_per_hit`) and from the killing shot (`Wallet.kill_bonus`). Target dummies and corpses give none. The `Wallet` on the player is the only owner of the balance.
+- The reserve is per weapon (`WeaponData.max_reserve`). A reload moves rounds from the reserve into the magazine, and with an empty reserve there is no reload.
+- A `BuyStation` sells one `BuyItem` resource (`economy/`). A subclass of `BuyItem` says when the item can be bought and what it gives (`AmmoItem` fills the reserve). A new thing to buy, such as a weapon or a door, is a new `BuyItem` subclass and a `.tres`, not a new station.
 
 ## What is done
 
@@ -28,15 +31,16 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 
 | Part | Folder | What the player gets |
 |---|---|---|
-| Player | `player/` | Movement with ground friction, sprint, crouch, a slide (crouch while sprinting: a speed boost, low friction, and a jump that keeps the speed), limited air control, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
-| Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) with a magazine, a reload, and no reserve ammo. The animated view model (`view_model.gd`) and the thrown guns of a reload (debris on physics layer 2). |
+| Player | `player/` | Movement with ground friction, sprint, crouch, a slide (crouch while sprinting: a speed boost, low friction, and a jump that keeps the speed), limited air control, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, using a buy station with **E**, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
+| Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) with a magazine, a reserve of 48 rounds that a reload draws from, and a reload that needs a reserve. The animated view model (`view_model.gd`) and the thrown guns of a reload (debris on physics layer 2). |
 | Health | `health/` | The `Health` node that takes damage, and `HitFlash`, which flashes a material red on a hit. |
 | Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |
 | Zombie | `zombie/` | A cartoon zombie with a shambling walk, an arm-slam attack, and a fall onto its back when it dies, that follows the navmesh to the player and hits at close range. |
 | Test range | `levels/` | The greybox test map for tests and the verify skill, with target dummies, zombie spawn points, and a crawl tunnel west of the spawn. `level_navigation.gd` bakes the navmesh at start from the static colliders on physics layer 1. |
 | Compound | `levels/compound.tscn` | A 72 m walled compound: a warehouse with a mezzanine, a loading dock, an office, a watchtower, and shipping containers in the yard. Zombies come in through three gates in the outer wall. It is the main scene. |
 | Rounds | `rounds/` | `RoundManager` spawns each round's zombies from `RoundSettings`, then starts a break when the last zombie dies. |
-| HUD | `hud/` | A slanted, yellow-accent HUD in the style of The Finals (`hud_theme.tres`): the crosshair with a hit marker, segmented health, the weapon name and ammo, the RELOADING label, the round number, the zombies left, and the BREAK label with a countdown. |
+| HUD | `hud/` | A slanted, yellow-accent HUD in the style of The Finals (`hud_theme.tres`): the crosshair with a hit marker, segmented health, the points, the weapon name and the ammo as magazine and reserve, the RELOADING label, the buy prompt, the round number, the zombies left, and the BREAK label with a countdown. |
+| Economy | `economy/` | Points on a `Wallet` on the player: 10 for each zombie hit and 60 more for a kill. A buy station is a crate that sells one `BuyItem`. The player looks at it within 2.5 m, sees the prompt, and presses **E** to buy. The ammo station costs 250 points and fills the reserve. The test range and the Compound each have one. |
 | Pause menu | `pause_menu/`, `settings/` | **Esc** pauses the game and shows mouse sensitivity, field of view, master volume, and fullscreen. **Esc** or **Resume** goes back to the game. `GameSettings` saves the settings to `user://settings.cfg`. |
 | Game over | `game_over/`, `levels/level.gd` | The GAME OVER screen with the round reached. **Enter** reloads the level. |
 
@@ -44,9 +48,6 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 
 These parts come after the minimal game. The list is not complete, and its order is not a priority:
 
-- Points for kills and hits.
-- Buy stations for weapons and ammo.
-- Reserve ammo.
 - Doors that open new areas of the map.
 - Pickups.
 - Audio.
