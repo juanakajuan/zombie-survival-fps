@@ -41,7 +41,7 @@ class Readout extends RefCounted:
 func _ready() -> void:
 	health.changed.connect(_on_health_changed)
 	weapon.fired.connect(_crosshair.shot)
-	weapon.fired.connect(_update_ammo)
+	weapon.ammo_changed.connect(_update_ammo)
 	weapon.hit.connect(_on_weapon_hit)
 	weapon.reload_started.connect(_update_ammo)
 	weapon.reload_finished.connect(_update_ammo)
@@ -94,7 +94,7 @@ func _on_weapon_hit(collider: Object, _position: Vector3) -> void:
 
 
 func _update_ammo() -> void:
-	_ammo_value.text = "%d / %d" % [weapon.ammo, weapon.data.magazine_size]
+	_ammo_value.text = "%d / %d" % [weapon.ammo, weapon.reserve]
 	_reload_label.visible = weapon.is_reloading()
 
 

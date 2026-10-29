@@ -67,6 +67,7 @@ const GROUP := &"player"
 @onready var pause_menu: PauseMenu = $PauseMenu
 @onready var body: Node3D = $Body
 @onready var animator: PlayerAnimator = $Animator
+@onready var wallet: Wallet = $Wallet
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
@@ -93,6 +94,7 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_health.died.connect(_on_health_died)
+	weapon.damaged.connect(_on_weapon_damaged)
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.settings_changed.connect(_apply_settings)
 	settings = GameSettings.load_saved()
@@ -205,6 +207,11 @@ func _on_health_died() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	weapon.trigger_enabled = false
 	died.emit()
+
+
+func _on_weapon_damaged(target: Node, killed: bool) -> void:
+	if target is Zombie:
+		wallet.reward_hit(killed)
 
 
 func _resume() -> void:
