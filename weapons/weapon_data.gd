@@ -14,3 +14,5 @@ extends Resource
 @export var automatic: bool = false
 ## The model the player sees in first person. The Weapon node adds it as a child.
 @export var view_model: PackedScene
+## The streak that shows each shot fly from the muzzle. It has no effect on the hit. With none, shots show no streak.
+@export var tracer: PackedScene

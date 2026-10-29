@@ -12,6 +12,8 @@ extends Node3D
 ## The hand that holds the gun, or null for none. hand_anchor, a child of the model, moves it with the gun.
 @export var hand: Node3D
 @export var hand_anchor: RemoteTransform3D
+## The tip of the barrel, a child of the model. Tracers start here.
+@export var muzzle: Node3D
 
 @export_group("Raise")
 @export_range(0.0, 2.0, 0.01, "suffix:s") var raise_time: float = 0.45
