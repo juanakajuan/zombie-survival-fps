@@ -4,6 +4,8 @@ extends Node3D
 
 signal fired
 signal reload_started
+## Emitted when the trigger is pulled with no round in the magazine and none in the reserve.
+signal dry_fired
 signal reload_finished
 signal hit(collider: Object, position: Vector3)
 ## Emitted when a shot damages a Health that is alive. `killed` is true when this shot took it to 0. A dead target takes no damage.
@@ -16,6 +18,11 @@ enum State { READY, RELOADING }
 @export var data: WeaponData
 ## Physics layers that a shot can hit. Debris, such as thrown guns, is not on them.
 @export_flags_3d_physics var hit_mask: int = 1
+
+@export_group("Sounds")
+@export var shot_sound: AudioStreamPlayer
+@export var dry_sound: AudioStreamPlayer
+@export var reload_sound: AudioStreamPlayer
 
 var ammo: int:
 	set(value):
@@ -66,20 +73,26 @@ func _physics_process(delta: float) -> void:
 
 
 ## Fires one shot. Returns false when the wielder sprints or punches, or the weapon is cooling down, reloading, or empty.
-## Firing with an empty magazine starts a reload.
+## Firing with an empty magazine starts a reload, or clicks dry when the reserve is empty too.
 func try_fire() -> bool:
 	if wielder != null and (wielder.is_sprinting() or wielder.is_meleeing()):
 		return false
 	if _state != State.READY:
 		return false
 	if ammo == 0:
-		start_reload()
+		if reserve > 0:
+			start_reload()
+		elif _cooldown == 0.0:
+			_cooldown = data.fire_interval
+			dry_fired.emit()
+			dry_sound.play()
 		return false
 	if _cooldown > 0.0:
 		return false
 	ammo -= 1
 	_cooldown = data.fire_interval
 	fired.emit()
+	shot_sound.play()
 	_shoot()
 	return true
 
@@ -93,6 +106,7 @@ func start_reload() -> void:
 	_state = State.RELOADING
 	_cooldown = data.reload_time
 	reload_started.emit()
+	reload_sound.play()
 
 
 ## Fills the reserve. Returns false when it was already full.

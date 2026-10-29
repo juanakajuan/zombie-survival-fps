@@ -1,6 +1,28 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://weapons/weapon.gd" id="1_weapon"]
+[ext_resource type="AudioStream" path="res://audio/gunshot.tres" id="2_shot"]
+[ext_resource type="AudioStream" path="res://audio/dry_click.tres" id="3_dry"]
+[ext_resource type="AudioStream" path="res://audio/reload.tres" id="4_reload"]
 
-[node name="Weapon" type="Node3D"]
+[node name="Weapon" type="Node3D" node_paths=PackedStringArray("shot_sound", "dry_sound", "reload_sound")]
 script = ExtResource("1_weapon")
+shot_sound = NodePath("ShotSound")
+dry_sound = NodePath("DrySound")
+reload_sound = NodePath("ReloadSound")
+
+[node name="ShotSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2_shot")
+volume_db = -4.0
+max_polyphony = 3
+bus = &"SFX"
+
+[node name="DrySound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_dry")
+volume_db = -8.0
+bus = &"SFX"
+
+[node name="ReloadSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_reload")
+volume_db = -6.0
+bus = &"SFX"

@@ -11,6 +11,10 @@ enum State { CHASE, ATTACK, DEAD }
 ## The zombie leaves ATTACK only when the target is this much farther than attack_range, so it does not flicker at the edge.
 @export_range(0.0, 2.0, 0.05, "suffix:m") var attack_exit_margin: float = 0.3
 
+@export_group("Sound")
+@export_range(0.5, 30.0, 0.5, "suffix:s") var groan_interval_min: float = 4.0
+@export_range(0.5, 30.0, 0.5, "suffix:s") var groan_interval_max: float = 9.0
+
 @export_group("Look")
 @export_range(0.0, 50.0, 0.5, "suffix:1/s") var turn_rate: float = 10.0
 
@@ -23,6 +27,7 @@ var state: State = State.CHASE
 ## Drawn over the model. HitFlash makes it opaque red during a hit.
 var _tint := StandardMaterial3D.new()
 var _attack_cooldown: float = 0.0
+var _groan_left: float
 var _configured := false
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
@@ -33,6 +38,9 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var animator: ZombieAnimator = $Animator
 @onready var _model: Node3D = $Model
 @onready var health_bar: HealthBar = $HealthBar
+@onready var groan_sound: AudioStreamPlayer3D = $GroanSound
+@onready var attack_sound: AudioStreamPlayer3D = $AttackSound
+@onready var death_sound: AudioStreamPlayer3D = $DeathSound
 
 
 func _ready() -> void:
@@ -49,6 +57,7 @@ func _ready() -> void:
 	_hit_flash.material = _tint
 	animator.attach(_model)
 	_health.died.connect(_on_died)
+	_groan_left = randf_range(groan_interval_min, groan_interval_max)
 
 
 ## The color drawn over the model: transparent, or the flash color during a hit.
@@ -76,6 +85,10 @@ func _physics_process(delta: float) -> void:
 			queue_free()
 		return
 	velocity.y = 0.0 if is_on_floor() else velocity.y - _gravity * delta
+	_groan_left -= delta
+	if _groan_left <= 0.0:
+		groan_sound.play()
+		_groan_left = randf_range(groan_interval_min, groan_interval_max)
 
 	var live_target := _live_target()
 	var flat_offset := Vector3.ZERO
@@ -106,6 +119,7 @@ func _physics_process(delta: float) -> void:
 			if _attack_cooldown <= 0.0:
 				_attack_cooldown += attack_interval
 				Health.find_on(live_target).damage(attack_damage)
+				attack_sound.play()
 
 	if heading != Vector3.ZERO:
 		rotation.y = lerp_angle(rotation.y, atan2(-heading.x, -heading.z), minf(turn_rate * delta, 1.0))
@@ -131,3 +145,5 @@ func _on_died() -> void:
 	state = State.DEAD
 	velocity = Vector3.ZERO
 	_shape.set_deferred("disabled", true)
+	groan_sound.stop()
+	death_sound.play()

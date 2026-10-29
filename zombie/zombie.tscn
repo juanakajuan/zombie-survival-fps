@@ -6,6 +6,9 @@
 [ext_resource type="PackedScene" path="res://zombie/zombie_model.glb" id="4_model"]
 [ext_resource type="Script" path="res://zombie/zombie_animator.gd" id="5_animator"]
 [ext_resource type="PackedScene" path="res://health/health_bar.tscn" id="6_bar"]
+[ext_resource type="AudioStream" path="res://audio/zombie_groan.tres" id="7_groan"]
+[ext_resource type="AudioStream" path="res://audio/zombie_attack.tres" id="8_attack"]
+[ext_resource type="AudioStream" path="res://audio/zombie_death.tres" id="9_death"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -37,3 +40,21 @@ path_desired_distance = 0.4
 target_desired_distance = 0.5
 radius = 0.4
 height = 1.8
+
+[node name="GroanSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("7_groan")
+unit_size = 6.0
+max_distance = 40.0
+bus = &"SFX"
+
+[node name="AttackSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("8_attack")
+unit_size = 6.0
+max_distance = 30.0
+bus = &"SFX"
+
+[node name="DeathSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("9_death")
+unit_size = 6.0
+max_distance = 40.0
+bus = &"SFX"

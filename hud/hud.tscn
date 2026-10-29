@@ -5,6 +5,11 @@
 [ext_resource type="Script" path="res://hud/crosshair.gd" id="3_crosshair"]
 [ext_resource type="Script" path="res://hud/segment_bar.gd" id="5_segment_bar"]
 
+[ext_resource type="AudioStream" path="res://audio/hit.tres" id="6_hit"]
+[ext_resource type="AudioStream" path="res://audio/kill.tres" id="7_kill"]
+[ext_resource type="AudioStream" path="res://audio/round_start.tres" id="8_round"]
+[ext_resource type="AudioStream" path="res://audio/break_start.tres" id="9_break"]
+
 [sub_resource type="StyleBoxFlat" id="slot_selected"]
 bg_color = Color(1, 1, 1, 0.95)
 skew = Vector2(0.15, 0)
@@ -250,3 +255,23 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "1"
 horizontal_alignment = 1
+
+[node name="HitSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_hit")
+volume_db = -8.0
+bus = &"SFX"
+
+[node name="KillSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_kill")
+volume_db = -6.0
+bus = &"SFX"
+
+[node name="RoundStartSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_round")
+volume_db = -6.0
+bus = &"SFX"
+
+[node name="BreakSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("9_break")
+volume_db = -6.0
+bus = &"SFX"
