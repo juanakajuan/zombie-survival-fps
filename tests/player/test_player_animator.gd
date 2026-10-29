@@ -48,3 +48,16 @@ func test_aiming_brings_the_free_arm_up_to_the_gun() -> void:
 	Input.action_press("aim")
 	await run_seconds(0.5)
 	assert_almost_eq(player.animator.free_arm_pitch(), player.animator.gun_arm_pitch(), 0.02, "free arm holds the gun too")
+
+
+func test_crouching_player_bends_its_knees() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	assert_almost_eq(player.animator.knee_pitch(), 0.0, 0.01, "knees straight while standing")
+	Input.action_press("crouch")
+	await run_seconds(0.5)
+	assert_true(player.animator.knee_pitch() < -deg_to_rad(player.animator.knee_bend) * 1.8,
+		"knees bend, %s rad" % player.animator.knee_pitch())
+	Input.action_release("crouch")
+	await run_seconds(0.5)
+	assert_almost_eq(player.animator.knee_pitch(), 0.0, 0.02, "knees straighten when the player stands")
+

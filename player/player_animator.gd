@@ -1,8 +1,10 @@
 class_name PlayerAnimator
 extends Node
 ## Poses the player's body model in code: a walk that follows the move speed, an idle sway, a pose in the air and
-## on a slide, a right arm that holds the gun where the player looks, and both arms up while aiming.
-## It moves the parts of art_source/player.blend: LegL, LegR, and Torso, with its children Head, ArmL, and ArmR.
+## on a slide, bent knees while crouched, a right arm that holds the gun where the player looks, and both arms up
+## while aiming.
+## It moves the parts of art_source/player.blend: LegL and LegR, each with a child shin (ShinL, ShinR) that has a
+## child foot (FootL, FootR), and Torso with its children Head, ArmL, and ArmR.
 
 @export_group("Walk")
 ## Full leg cycles for each metre walked.
@@ -28,59 +30,87 @@ extends Node
 ## In the air, the free arm lifts out by this angle.
 @export_range(0.0, 120.0, 1.0, "suffix:°") var air_arm: float = 50.0
 
+@export_group("Crouch")
+## While crouched, each thigh swings forward by this angle and each shin bends back by twice it, so the feet stay
+## under the hips and flat. The body drops to keep the feet on the floor.
+@export_range(0.0, 85.0, 1.0, "suffix:°") var knee_bend: float = 80.0
+@export_range(0.0, 45.0, 1.0, "suffix:°") var crouch_lean: float = 35.0
+
 @export_group("Look")
 ## The right arm points forward by this angle when the player looks straight ahead.
 @export_range(0.0, 120.0, 1.0, "suffix:°") var hold_angle: float = 80.0
 ## The part of the look pitch that the head follows. The arms that hold the gun follow all of it.
 @export_range(0.0, 1.0, 0.01) var head_follow: float = 0.6
 
-## How fast the pose blends between walking, standing, in the air, and aiming.
+## How fast the pose blends between walking, standing, in the air, crouched, and aiming.
 @export_range(0.1, 40.0, 0.1) var blend_sharpness: float = 12.0
 
 var _leg_l: Node3D
 var _leg_r: Node3D
+var _shin_l: Node3D
+var _shin_r: Node3D
+var _foot_l: Node3D
+var _foot_r: Node3D
 var _torso: Node3D
 var _head: Node3D
 var _arm_l: Node3D
 var _arm_r: Node3D
 var _torso_rest_y: float
+var _hip_rest_y: float
+var _hip_to_ankle: float
 var _phase: float = 0.0
 var _time: float = 0.0
 var _walk_weight: float = 0.0
 var _air_weight: float = 0.0
 var _aim_weight: float = 0.0
+var _crouch_weight: float = 0.0
 
 
 ## Finds the parts in the model. Call it before the first advance().
 func attach(model: Node3D) -> void:
 	_leg_l = _part(model, "LegL")
 	_leg_r = _part(model, "LegR")
+	_shin_l = _part(model, "ShinL")
+	_shin_r = _part(model, "ShinR")
+	_foot_l = _part(model, "FootL")
+	_foot_r = _part(model, "FootR")
 	_torso = _part(model, "Torso")
 	_head = _part(model, "Head")
 	_arm_l = _part(model, "ArmL")
 	_arm_r = _part(model, "ArmR")
 	_torso_rest_y = _torso.position.y
+	_hip_rest_y = _leg_l.position.y
+	_hip_to_ankle = -_shin_l.position.y - _foot_l.position.y
 
 
 ## Moves the pose on by one step. `look_pitch` is in radians, positive up. `airborne` is true in the air and on a
 ## slide, when the legs hold a stride instead of walking.
-func advance(delta: float, speed: float, airborne: bool, aiming: bool, look_pitch: float) -> void:
+func advance(delta: float, speed: float, airborne: bool, crouching: bool, aiming: bool, look_pitch: float) -> void:
 	_time += delta
 	var blend := 1.0 - exp(-blend_sharpness * delta)
 	_air_weight = lerpf(_air_weight, 1.0 if airborne else 0.0, blend)
 	var grounded := 1.0 - _air_weight
 	_walk_weight = lerpf(_walk_weight, 1.0 if speed > walk_threshold and not airborne else 0.0, blend)
 	_aim_weight = lerpf(_aim_weight, 1.0 if aiming else 0.0, blend)
+	_crouch_weight = lerpf(_crouch_weight, 1.0 if crouching else 0.0, blend)
 	if not airborne:
 		_phase = fmod(_phase + speed * delta * steps_per_metre * TAU, TAU)
 
 	var step := sin(_phase)
 	var idle := sin(_time * idle_rate * TAU) * (1.0 - _walk_weight) * grounded
 	var stride := deg_to_rad(leg_swing) * step * _walk_weight
-	_leg_l.rotation.x = stride + deg_to_rad(front_leg) * _air_weight
-	_leg_r.rotation.x = -stride - deg_to_rad(back_leg) * _air_weight
-	_torso.position.y = _torso_rest_y + bob_height * absf(cos(_phase)) * _walk_weight
-	var lean := run_lean * clampf(speed / run_speed, 0.0, 1.0) * _walk_weight
+	var bend := deg_to_rad(knee_bend) * _crouch_weight
+	_leg_l.rotation.x = stride + deg_to_rad(front_leg) * _air_weight + bend
+	_leg_r.rotation.x = -stride - deg_to_rad(back_leg) * _air_weight + bend
+	_shin_l.rotation.x = -2.0 * bend
+	_shin_r.rotation.x = -2.0 * bend
+	_foot_l.rotation.x = bend
+	_foot_r.rotation.x = bend
+	var drop := _hip_to_ankle * (1.0 - cos(bend))
+	_leg_l.position.y = _hip_rest_y - drop
+	_leg_r.position.y = _hip_rest_y - drop
+	_torso.position.y = _torso_rest_y - drop + bob_height * absf(cos(_phase)) * _walk_weight
+	var lean := run_lean * clampf(speed / run_speed, 0.0, 1.0) * _walk_weight + crouch_lean * _crouch_weight
 	_torso.rotation.x = deg_to_rad(-lean)
 	_torso.rotation.z = deg_to_rad(idle_sway * idle)
 	_head.rotation.x = look_pitch * head_follow + deg_to_rad(lean)
@@ -105,6 +135,11 @@ func gun_arm_pitch() -> float:
 ## The pitch of the left arm in radians. Positive raises it.
 func free_arm_pitch() -> float:
 	return _arm_l.rotation.x
+
+
+## The pitch of the left shin against its thigh in radians. Negative bends the knee.
+func knee_pitch() -> float:
+	return _shin_l.rotation.x
 
 
 ## The pitch of the head in radians. Positive tilts it up.

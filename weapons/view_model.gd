@@ -1,7 +1,7 @@
 class_name ViewModel
 extends Node3D
 ## First-person weapon model. Make it the root of a `view_model` scene, with this layout:
-## ViewModel > Motion > Model. Motion holds the hand position and follows the player's movement
+## ViewModel > Motion > Model, and an optional Motion > Hand. Motion holds the hand position and follows the player's movement
 ## (bob, sprint, crouch, jump, landing, look sway). Model plays the one-shot motions
 ## (raise, recoil, reload, lower on death) relative to Motion. A reload throws the gun away
 ## over the shoulder as debris and draws an identical new one.
@@ -9,6 +9,9 @@ extends Node3D
 @export var motion: Node3D
 @export var model: Node3D
 @export var slide: Node3D
+## The hand that holds the gun, or null for none. hand_anchor, a child of the model, moves it with the gun.
+@export var hand: Node3D
+@export var hand_anchor: RemoteTransform3D
 
 @export_group("Raise")
 @export_range(0.0, 2.0, 0.01, "suffix:s") var raise_time: float = 0.45
@@ -201,6 +204,7 @@ func _on_reload_started(weapon: Weapon) -> void:
 	slide.position = _slide_rest
 	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	_tween.tween_property(model, "transform", _wind_up, time * wind_up_fraction)
+	_tween.tween_callback(_hold_hand_upright.bind(true))
 	_tween.tween_method(_toss_step, 0.0, 1.0, _toss_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	_tween.tween_callback(_throw)
 	_tween.tween_interval(time * empty_hands_fraction)
@@ -229,6 +233,7 @@ func _throw() -> void:
 
 
 func _take_out_new_gun() -> void:
+	_hold_hand_upright(false)
 	model.transform = _lowered_transform()
 	model.show()
 
@@ -242,6 +247,7 @@ func _settle() -> void:
 	model.transform = _model_rest
 	slide.position = _slide_rest
 	model.show()
+	_hold_hand_upright(false)
 
 
 func _on_player_died() -> void:
@@ -253,6 +259,12 @@ func _on_player_died() -> void:
 
 func _lowered_transform() -> Transform3D:
 	return _model_rest.translated_local(Vector3(0.0, -lower_distance, 0.0)).rotated_local(Vector3.RIGHT, deg_to_rad(lower_angle))
+
+
+## While the reload throw spins the gun, the hand follows the gun's path but does not spin with it.
+func _hold_hand_upright(upright: bool) -> void:
+	if hand_anchor != null:
+		hand_anchor.update_rotation = not upright
 
 
 func _restart_tween() -> void:
