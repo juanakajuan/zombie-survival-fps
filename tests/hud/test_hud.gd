@@ -121,3 +121,34 @@ func test_crosshair_hides_while_aiming() -> void:
 	Input.action_release("aim")
 	await physics_frames(FRAME_MARGIN)
 	assert_true(player.hud.readout().crosshair_visible, "crosshair back after aiming")
+
+
+func test_points_show_the_balance_and_follow_it() -> void:
+	var player := await spawn_player()
+	assert_eq(player.hud.readout().points_text, "0", "no points at start")
+	player.wallet.add(70)
+	assert_eq(player.hud.readout().points_text, "70", "after earning")
+	player.wallet.spend(20)
+	assert_eq(player.hud.readout().points_text, "50", "after spending")
+
+
+func test_ammo_text_shows_the_reserve_and_follows_a_refill() -> void:
+	var player := await spawn_player()
+	player.weapon.reserve = 7
+	assert_eq(player.hud.readout().ammo_text, "%d / 7" % player.weapon.data.magazine_size, "reserve in the ammo text")
+	player.weapon.refill_reserve()
+	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [player.weapon.data.magazine_size, player.weapon.data.max_reserve], "after a refill")
+
+
+func test_prompt_shows_only_while_looking_at_a_station() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var station := spawn_station(Vector3(0.0, 0.0, -2.0))
+	await physics_frames(2)
+	assert_true(not player.hud.readout().prompt_visible, "no prompt before looking")
+	look_at_point(player, station.global_position + Vector3.UP * 0.6)
+	await physics_frames(2)
+	assert_true(player.hud.readout().prompt_visible, "prompt while looking")
+	assert_eq(player.hud.readout().prompt_text, station.prompt_text(), "prompt text")
+	player.look(Vector2(1000.0, 0.0))
+	await physics_frames(2)
+	assert_true(not player.hud.readout().prompt_visible, "prompt gone after looking away")

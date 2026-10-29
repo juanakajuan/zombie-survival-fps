@@ -1,10 +1,11 @@
 class_name Hud
 extends CanvasLayer
-## Shows the player's health, the weapon and the rounds in its magazine, when the weapon reloads, the round, the
-## zombies left, and the break between rounds.
+## Shows the player's health and points, the weapon with the rounds in its magazine and its reserve, when the weapon
+## reloads, the buy prompt, the round, the zombies left, and the break between rounds.
 
 @export var health: Health
 @export var weapon: Weapon
+@export var wallet: Wallet
 ## If it is empty, the HUD uses the first RoundManager in the tree. Without one, the round panel stays hidden.
 @export var round_manager: RoundManager
 @export var health_color: Color = Color(1, 1, 1, 0.95)
@@ -15,6 +16,9 @@ extends CanvasLayer
 class Readout extends RefCounted:
 	var health_text: String
 	var ammo_text: String
+	var points_text: String
+	var prompt_visible: bool
+	var prompt_text: String
 	var weapon_name: String
 	var reloading: bool
 	var round_visible: bool
@@ -31,6 +35,8 @@ class Readout extends RefCounted:
 @onready var _health_bar: SegmentBar = %HealthBar
 @onready var _weapon_name: Label = %WeaponName
 @onready var _ammo_value: Label = %AmmoValue
+@onready var _points_value: Label = %PointsValue
+@onready var _prompt: Label = %Prompt
 @onready var _reload_label: Label = %ReloadLabel
 @onready var _round_panel: Control = %RoundPanel
 @onready var _round_value: Label = %RoundValue
@@ -43,6 +49,7 @@ func _ready() -> void:
 	weapon.fired.connect(_crosshair.shot)
 	weapon.ammo_changed.connect(_update_ammo)
 	weapon.hit.connect(_on_weapon_hit)
+	wallet.changed.connect(_update_points.unbind(1))
 	weapon.reload_started.connect(_update_ammo)
 	weapon.reload_finished.connect(_update_ammo)
 	_health_bar.max_value = health.max_health
@@ -50,6 +57,7 @@ func _ready() -> void:
 	_on_health_changed(health.current)
 	_weapon_name.text = weapon.data.display_name
 	_update_ammo()
+	_update_points()
 	if round_manager == null:
 		round_manager = get_tree().get_first_node_in_group(RoundManager.GROUP) as RoundManager
 	if round_manager != null:
@@ -61,12 +69,17 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	_crosshair.visible = weapon.wielder == null or not weapon.wielder.is_aiming()
 	_update_objective()
+	_update_prompt()
 
 
 func readout() -> Readout:
 	var r := Readout.new()
 	r.health_text = _health_value.text
 	r.ammo_text = _ammo_value.text
+	r.points_text = _points_value.text
+	_update_prompt()
+	r.prompt_visible = _prompt.visible
+	r.prompt_text = _prompt.text
 	r.weapon_name = _weapon_name.text
 	r.reloading = _reload_label.is_visible_in_tree()
 	r.round_visible = _round_panel.is_visible_in_tree()
@@ -96,6 +109,17 @@ func _on_weapon_hit(collider: Object, _position: Vector3) -> void:
 func _update_ammo() -> void:
 	_ammo_value.text = "%d / %d" % [weapon.ammo, weapon.reserve]
 	_reload_label.visible = weapon.is_reloading()
+
+
+func _update_points() -> void:
+	_points_value.text = str(wallet.points)
+
+
+func _update_prompt() -> void:
+	var station := weapon.wielder.focused_station() if weapon.wielder != null else null
+	_prompt.visible = station != null
+	if station != null:
+		_prompt.text = station.prompt_text()
 
 
 func _update_round() -> void:

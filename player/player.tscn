@@ -42,8 +42,9 @@ script = ExtResource("2_health")
 [node name="Wallet" type="Node" parent="."]
 script = ExtResource("9_wallet")
 
-[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon") instance=ExtResource("5_hud")]
+[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "wallet") instance=ExtResource("5_hud")]
 health = NodePath("../Health")
 weapon = NodePath("../Head/Camera3D/Weapon")
+wallet = NodePath("../Wallet")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
