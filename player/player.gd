@@ -54,11 +54,15 @@ const GROUP := &"player"
 ## Each second, the zoom closes this much of the gap to its target. Higher is snappier.
 @export_range(0.1, 40.0, 0.1) var aim_sharpness: float = 14.0
 
+@export_group("Body")
+## Render layers of the body model. The player's own camera does not draw these layers.
+@export_flags_3d_render var body_layers: int = 2
+
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var hud: Hud = $Hud
 @onready var pause_menu: PauseMenu = $PauseMenu
-@onready var body: MeshInstance3D = $CollisionShape3D/Body
+@onready var body: Node3D = $Body
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
@@ -71,7 +75,6 @@ var _stance := Stance.STANDING
 var _slide_cooldown_left := 0.0
 var _aim_blend := 0.0
 var _shape: CapsuleShape3D
-var _body_mesh: CapsuleMesh
 var _stand_height: float
 var _stand_head_height: float
 
@@ -92,8 +95,8 @@ func _ready() -> void:
 	# Every Player instance shares the scene's capsule, so crouching must resize a copy.
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
-	_body_mesh = body.mesh.duplicate() as CapsuleMesh
-	body.mesh = _body_mesh
+	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false):
+		mesh.layers = body_layers
 	_stand_height = _shape.height
 	_stand_head_height = head.position.y
 	# Physics moves the body 60 times a second. On a faster screen the camera would hold still for some frames
@@ -289,7 +292,7 @@ func _start_slide() -> void:
 func _set_stance(stance: Stance) -> void:
 	_stance = stance
 	_shape.height = crouch_height if is_crouching() else _stand_height
-	_body_mesh.height = _shape.height
+	body.scale.y = _shape.height / _stand_height
 	_collision.position.y = _shape.height / 2.0
 
 

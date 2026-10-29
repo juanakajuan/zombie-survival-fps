@@ -6,16 +6,9 @@
 [ext_resource type="Resource" path="res://weapons/pistol.tres" id="4_pistol"]
 [ext_resource type="PackedScene" path="res://hud/hud.tscn" id="5_hud"]
 [ext_resource type="PackedScene" path="res://pause_menu/pause_menu.tscn" id="6_pause_menu"]
+[ext_resource type="PackedScene" path="res://player/player_model.glb" id="7_model"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
-radius = 0.35
-height = 1.8
-
-[sub_resource type="StandardMaterial3D" id="body_material"]
-albedo_color = Color(0.25, 0.4, 0.7, 1)
-
-[sub_resource type="CapsuleMesh" id="body_mesh"]
-material = SubResource("body_material")
 radius = 0.35
 height = 1.8
 
@@ -26,9 +19,7 @@ script = ExtResource("1_player")
 position = Vector3(0, 0.9, 0)
 shape = SubResource("capsule")
 
-[node name="Body" type="MeshInstance3D" parent="CollisionShape3D"]
-layers = 2
-mesh = SubResource("body_mesh")
+[node name="Body" parent="." instance=ExtResource("7_model")]
 
 [node name="Head" type="Node3D" parent="."]
 position = Vector3(0, 1.6, 0)
