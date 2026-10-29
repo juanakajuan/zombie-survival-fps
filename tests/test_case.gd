@@ -59,12 +59,11 @@ func spawn_player(at: Vector3 = Vector3.ZERO, settle_frames: int = 1) -> Player:
 	return player
 
 
-## A round 1 zombie of the game's round settings. Without a target, it finds the player through the player group.
+## A round 1 zombie of the game's round settings. Without a target, it stands still.
 func spawn_zombie(at: Vector3, target: Node3D = null) -> Zombie:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
-	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.zombie_health(1))
+	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.zombie_health(1), target)
 	zombie.position = at
-	zombie.target = target
 	add_child(zombie)
 	return zombie
 

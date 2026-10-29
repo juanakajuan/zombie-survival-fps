@@ -43,10 +43,12 @@ shader = ExtResource("1_grid")
 shader_parameter/base_color = Color(0.72, 0.45, 0.22, 1)
 shader_parameter/line_color = Color(0.5, 0.3, 0.14, 1)
 
-[node name="TestRange" type="Node3D" node_paths=PackedStringArray("game_over", "navigation")]
+[node name="TestRange" type="Node3D" node_paths=PackedStringArray("game_over", "navigation", "player", "round_manager")]
 script = ExtResource("7_level")
 game_over = NodePath("GameOver")
 navigation = NodePath("NavigationRegion3D")
+player = NodePath("Player")
+round_manager = NodePath("RoundManager")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("environment")
@@ -145,9 +147,10 @@ position = Vector3(0, 0, -3)
 [node name="TargetDummyFar" parent="." instance=ExtResource("3_dummy")]
 position = Vector3(2, 0, -12)
 
-[node name="RoundManager" type="Node" parent="."]
+[node name="RoundManager" type="Node" parent="." node_paths=PackedStringArray("player")]
 script = ExtResource("5_rounds")
 settings = ExtResource("6_settings")
+player = NodePath("../Player")
 
 [node name="SpawnNorthWest" type="Marker3D" parent="RoundManager"]
 position = Vector3(-6, 0, -17)

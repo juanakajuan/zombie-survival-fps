@@ -4,11 +4,17 @@ extends CanvasLayer
 @export var health: Health
 @export var weapon: Weapon
 @export var wallet: Wallet
-## If it is empty, the HUD uses the first RoundManager in the tree. Without one, the round panel stays hidden.
-@export var round_manager: RoundManager
 @export var health_color: Color = Color(1, 1, 1, 0.95)
 @export var low_health_color: Color = Color(0.95, 0.2, 0.2)
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
+
+## The level sets it. Without one, the round panel stays hidden.
+var round_manager: RoundManager:
+	set(value):
+		round_manager = value
+		round_manager.round_started.connect(_update_round.unbind(1))
+		round_manager.round_ended.connect(_update_round.unbind(1))
+		_update_round()
 
 ## What the HUD shows, as a player sees it. Tests and the verify driver read it.
 class Readout extends RefCounted:
@@ -56,11 +62,6 @@ func _ready() -> void:
 	_weapon_name.text = weapon.data.display_name
 	_update_ammo()
 	_update_points()
-	if round_manager == null:
-		round_manager = get_tree().get_first_node_in_group(RoundManager.GROUP) as RoundManager
-	if round_manager != null:
-		round_manager.round_started.connect(_update_round.unbind(1))
-		round_manager.round_ended.connect(_update_round.unbind(1))
 	_update_round()
 
 

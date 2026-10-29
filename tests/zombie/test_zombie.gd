@@ -15,15 +15,6 @@ func test_zombie_walks_toward_a_still_player() -> void:
 	assert_true(closed >= zombie.move_speed * 1.0, "zombie closed %s m in 2 s, speed is %s m/s" % [closed, zombie.move_speed])
 
 
-func test_zombie_finds_the_player_through_the_player_group() -> void:
-	await spawn_nav_world()
-	var player := await spawn_player(Vector3(0.0, 0.0, 0.0), 3)
-	var zombie := spawn_zombie(Vector3(0.0, 0.0, -10.0), null)
-	var start := _flat_distance(zombie, player)
-	await run_seconds(1.5)
-	assert_true(_flat_distance(zombie, player) < start - zombie.move_speed * 0.5, "zombie without a set target still approaches")
-
-
 func test_zombie_goes_around_a_wall_to_reach_the_player() -> void:
 	await spawn_nav_world(true)
 	var player := await spawn_player(Vector3(0.0, 0.0, 6.0), 3)

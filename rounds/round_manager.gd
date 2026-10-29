@@ -8,11 +8,10 @@ signal round_ended(round_number: int)
 
 enum State { BREAK, ACTIVE }
 
-## The HUD is in the player scene, so it finds the manager of the level by this group.
-const GROUP := &"round_manager"
-
 @export var settings: RoundSettings
 @export var zombie_scene: PackedScene = preload("res://zombie/zombie.tscn")
+## The zombies chase this player.
+@export var player: Player
 
 ## The current round. It is 0 until round 1 starts. During a break, it is the round that just ended.
 var round_number: int = 0
@@ -26,10 +25,6 @@ var _spawn_cooldown: float = 0.0
 var _break_left: float = 0.0
 
 
-func _enter_tree() -> void:
-	add_to_group(GROUP)
-
-
 func _ready() -> void:
 	for child: Node in get_children():
 		if child is Marker3D:
@@ -37,8 +32,7 @@ func _ready() -> void:
 	if _spawn_points.is_empty():
 		push_error("RoundManager: add Marker3D children as spawn points.")
 		return
-	# Deferred so that the player is in its group before the first zombie looks for it.
-	_start_round.call_deferred(1)
+	_start_round(1)
 
 
 ## The zombies of the current round that are alive or not spawned yet.
@@ -77,7 +71,7 @@ func _start_round(number: int) -> void:
 
 func _spawn_zombie() -> void:
 	var zombie := zombie_scene.instantiate() as Zombie
-	zombie.configure(settings.zombie_speed(round_number), settings.zombie_health(round_number))
+	zombie.configure(settings.zombie_speed(round_number), settings.zombie_health(round_number), player)
 	Health.find_on(zombie).died.connect(_on_zombie_died)
 	zombie.transform = _spawn_points[_next_spawn_point].global_transform
 	_next_spawn_point = (_next_spawn_point + 1) % _spawn_points.size()
