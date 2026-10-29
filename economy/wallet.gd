@@ -5,7 +5,6 @@ extends Node
 signal changed(points: int)
 
 @export_range(0, 100000) var starting_points: int = 0
-## Points for each shot that hits a zombie.
 @export_range(0, 1000) var points_per_hit: int = 10
 ## Extra points for the shot that kills a zombie.
 @export_range(0, 1000) var kill_bonus: int = 60

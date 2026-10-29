@@ -49,6 +49,7 @@ func test_round_panel_is_hidden_without_a_round_manager() -> void:
 func test_round_number_shows_when_a_round_starts() -> void:
 	var manager := _spawn_round_manager()
 	var player := await spawn_player()
+	player.hud.round_manager = manager
 	assert_true(player.hud.readout().round_visible, "round panel shown")
 	assert_eq(player.hud.readout().round_text, "1", "round text")
 	assert_eq(manager.state, RoundManager.State.ACTIVE, "round 1 is active")
@@ -58,6 +59,7 @@ func test_round_number_shows_when_a_round_starts() -> void:
 func test_break_label_follows_round_end_and_next_round() -> void:
 	var manager := _spawn_round_manager()
 	var player := await spawn_player()
+	player.hud.round_manager = manager
 	_kill_zombies(manager)
 	await physics_frames(2)
 	assert_eq(manager.state, RoundManager.State.BREAK, "break after the last zombie")
@@ -97,6 +99,7 @@ func test_shows_the_weapon_name() -> void:
 func test_objective_counts_zombies_left_and_the_break() -> void:
 	var manager := _spawn_round_manager()
 	var player := await spawn_player()
+	player.hud.round_manager = manager
 	assert_eq(player.hud.readout().objective_text, "1 LEFT", "zombies left in round 1")
 	_kill_zombies(manager)
 	await physics_frames(2)

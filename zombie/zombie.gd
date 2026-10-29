@@ -14,6 +14,7 @@ enum State { CHASE, ATTACK, DEAD }
 @export_group("Look")
 @export_range(0.0, 50.0, 0.5, "suffix:1/s") var turn_rate: float = 10.0
 
+## Set by configure(). Null means the zombie stands still.
 var target: Node3D
 ## Set by configure(). RoundSettings owns the value for each round.
 var move_speed: float
@@ -37,8 +38,6 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 func _ready() -> void:
 	if not _configured:
 		push_error("Zombie: call configure() before add_child(), so that RoundSettings sets its speed and health.")
-	if target == null:
-		target = get_tree().get_first_node_in_group(Player.GROUP) as Node3D
 	_tint.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_tint.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_tint.albedo_color = Color.TRANSPARENT
@@ -62,9 +61,10 @@ func is_dead() -> bool:
 	return state == State.DEAD
 
 
-## Sets the speed and health of this zombie. Call it before the zombie enters the tree.
-func configure(speed: float, max_health: float) -> void:
+## Sets the speed, health, and target of this zombie. Call it before the zombie enters the tree.
+func configure(speed: float, max_health: float, chase: Node3D) -> void:
 	move_speed = speed
+	target = chase
 	Health.find_on(self).max_health = max_health
 	_configured = true
 
@@ -118,7 +118,6 @@ func _physics_process(delta: float) -> void:
 	animator.advance(delta, Vector2(real_velocity.x, real_velocity.z).length(), attack_progress)
 
 
-## The target, or null when there is none or it is dead.
 func _live_target() -> Node3D:
 	if target == null:
 		return null

@@ -59,12 +59,11 @@ func spawn_player(at: Vector3 = Vector3.ZERO, settle_frames: int = 1) -> Player:
 	return player
 
 
-## A round 1 zombie of the game's round settings. Without a target, it finds the player through the player group.
+## A round 1 zombie of the game's round settings. Without a target, it stands still.
 func spawn_zombie(at: Vector3, target: Node3D = null) -> Zombie:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
-	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.zombie_health(1))
+	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.zombie_health(1), target)
 	zombie.position = at
-	zombie.target = target
 	add_child(zombie)
 	return zombie
 
@@ -92,13 +91,9 @@ func stations_in(level: Level) -> Array[BuyStation]:
 	return found
 
 
-## Turns the player's view to `point` with one mouse motion, as the driver's aim does.
+## Turns the player's view to `point` with one mouse motion.
 func look_at_point(player: Player, point: Vector3) -> void:
-	var to_point := point - player.head.global_position
-	var yaw := atan2(-to_point.x, -to_point.z)
-	var pitch := atan2(to_point.y, Vector2(to_point.x, to_point.z).length())
-	var sensitivity := player.mouse_sensitivity * player.settings.mouse_sensitivity_scale
-	player.look(Vector2(-wrapf(yaw - player.rotation.y, -PI, PI), -(pitch - player.head.rotation.x)) / sensitivity)
+	player.look(player.mouse_delta_to(point))
 
 
 ## Adds a level (the test range by default) and returns when the navigation map answers queries from its baked navmesh.

@@ -164,7 +164,6 @@ func head_pitch() -> float:
 	return _head.rotation.x
 
 
-## The left arm rotation for the punch: it pulls back, jabs straight out, then blends back to `free_arm`.
 func _punch_arm(free_arm: Vector3, progress: float, look_pitch: float) -> Vector3:
 	if progress < 0.0:
 		return free_arm

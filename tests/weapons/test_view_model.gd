@@ -47,6 +47,23 @@ func test_reload_throws_the_gun_behind_the_player_and_draws_a_new_one() -> void:
 	assert_true(_pose(player).origin.distance_to(rest.origin) < 0.005, "the new gun is at rest")
 
 
+func test_reload_phases_longer_than_the_reload_still_end_in_time() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var weapon := player.weapon
+	var view := weapon.view_model
+	var rest := _pose(player)
+	for phase: StringName in [&"wind_up_fraction", &"toss_fraction", &"empty_hands_fraction", &"draw_fraction",
+			&"slide_pull_fraction", &"slide_release_fraction"]:
+		view.set(phase, 0.4)
+	weapon.try_fire()
+	await physics_frames(SETTLE_FRAMES)
+	weapon.start_reload()
+	await physics_frames(floori(weapon.data.reload_time * Engine.physics_ticks_per_second) - 2)
+	assert_true(weapon.is_reloading(), "the reload is not over yet")
+	assert_true(view.model.is_visible_in_tree(), "a new gun is in the hand")
+	assert_true(_pose(player).origin.distance_to(rest.origin) < 0.005, "the new gun is at rest before the reload ends")
+
+
 func test_sprinting_points_the_gun_away_from_the_crosshair() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var rest := _pose(player)

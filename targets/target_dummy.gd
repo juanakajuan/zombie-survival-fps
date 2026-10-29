@@ -1,6 +1,5 @@
 class_name TargetDummy
 extends StaticBody3D
-## Static shooting target. It flashes when hurt, vanishes when killed, and comes back later.
 
 @export var base_color: Color = Color(0.85, 0.8, 0.2)
 @export_range(0.1, 30.0, 0.1, "suffix:s") var respawn_delay: float = 2.0

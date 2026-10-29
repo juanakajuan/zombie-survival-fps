@@ -1,12 +1,14 @@
 class_name Level
 extends Node3D
-## Reloads the level when the game-over screen asks for a restart.
 
 @export var game_over: GameOver
 @export var navigation: LevelNavigation
+@export var player: Player
+@export var round_manager: RoundManager
 
 
 func _ready() -> void:
+	player.hud.round_manager = round_manager
 	game_over.restart_requested.connect(restart)
 
 

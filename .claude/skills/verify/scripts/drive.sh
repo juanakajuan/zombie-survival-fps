@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Plays a steps file against the real game, off-screen in gamescope, and writes evidence to .smoke/verify/<run-id>/.
 # Usage: .claude/skills/verify/scripts/drive.sh <steps file> [run id]
-# Exit 0: every step passed. Exit 1: a step or an expect failed, or the engine logged an error.
+# Exit 0: every step passed. Exit 1: a step or an expect failed, or the engine logged an error. Exit 2: the run id is in use.
 set -euo pipefail
 repo="$(cd "$(dirname "$0")/../../../.." && pwd)"
 steps="$(realpath "$1")"
@@ -16,7 +16,6 @@ cp "$steps" "$out/steps.txt"
 log="$out/godot.log"
 
 cd "$repo"
-# The run is real time, 60 physics frames a second.
 # setsid gives the run its own process group, so cleanup.sh can stop exactly this run.
 setsid timeout 300 gamescope --backend headless -W 1280 -H 720 -- \
 	godot --path . --display-driver x11 \

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Read-only check: is this checkout ready to drive? Prints one line per check and exits 1 if any fails.
-# Usage: .claude/skills/verify/scripts/doctor.sh
 repo="$(cd "$(dirname "$0")/../../../.." && pwd)"
 fail=0
 check() { if eval "$2" >/dev/null 2>&1; then echo "ok   $1"; else echo "FAIL $1"; fail=1; fi; }

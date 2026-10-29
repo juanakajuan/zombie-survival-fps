@@ -3,7 +3,6 @@ extends CanvasLayer
 ## Hidden until the player dies. Then it shows the round that the player reached and emits
 ## restart_requested when the restart action is pressed.
 
-## The level handles this signal and reloads itself. Tests can connect to it without a reload.
 signal restart_requested
 
 @export var player: Player
