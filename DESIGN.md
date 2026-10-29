@@ -15,6 +15,7 @@ The minimal game is done: a player can play the full loop from a fresh start, wi
 - Zombies are box primitives built in code. Do not add imported or generated zombie models, and do not add rigged animation. A Blender-generated model with animation was tried and rejected.
 - The level and the zombies use Godot primitives and code for meshes and materials. The only imported model is the pistol view model, `weapons/pistol.glb`. Its Blender source is `art_source/pistol.blend`.
 - Weapons are hitscan. A shot is one ray from the camera.
+- The player cannot shoot while sprinting.
 - A node that can take damage has a `Health` child (`health/health.gd`). Code that deals damage finds it with `Health.find_on(node)`.
 - `RoundSettings` (`rounds/round_settings.tres`) is the only source of zombie count, health, and speed for each round.
 

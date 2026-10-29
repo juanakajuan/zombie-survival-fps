@@ -151,6 +151,26 @@ func test_pistol_on_player_damages_dummy_and_never_hits_the_player() -> void:
 	assert_eq(weapon.ammo, PISTOL.magazine_size - 1, "one round used")
 
 
+func test_player_cannot_fire_while_sprinting_and_can_after() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var weapon := player.weapon
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await physics_frames(5)
+	assert_true(player.is_sprinting(), "the player sprints")
+	Input.action_press("fire")
+	await physics_frames(3)
+	assert_eq(weapon.ammo, PISTOL.magazine_size, "no shot while sprinting")
+	assert_true(not weapon.try_fire(), "try_fire is refused while sprinting")
+	Input.action_release("fire")
+	Input.action_release("sprint")
+	await physics_frames(2)
+	assert_eq(weapon.ammo, PISTOL.magazine_size, "the held fire did not queue a shot")
+	Input.action_press("fire")
+	await physics_frames(2)
+	assert_eq(weapon.ammo, PISTOL.magazine_size - 1, "fires after the sprint ends")
+
+
 func test_player_sees_the_pistol_model() -> void:
 	var player := await spawn_player(Vector3.ZERO, 5)
 	var camera := player.camera
