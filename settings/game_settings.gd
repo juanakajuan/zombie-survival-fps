@@ -46,7 +46,7 @@ func apply_to_engine() -> void:
 	AudioServer.set_bus_volume_db(0, linear_to_db(master_volume))
 	var is_fullscreen := DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
 	if fullscreen != is_fullscreen:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_MAXIMIZED)
 
 
 static func _read_float(file: ConfigFile, key: String, fallback: float) -> float:
