@@ -12,8 +12,8 @@ The minimal game is done: a player can play the full loop from a fresh start, wi
 
 ## Decided rules
 
-- Zombies are box primitives built in code. Do not add imported or generated zombie models, and do not add rigged animation. A Blender-generated model with animation was tried and rejected.
-- The level and the zombies use Godot primitives and code for meshes and materials. The only imported model is the pistol view model, `weapons/pistol.glb`. Its Blender source is `art_source/pistol.blend`.
+- The zombie is the cartoon Shambler model, `zombie/zombie_model.glb`, in the same style as the pistol: beveled primitives, flat colors, and an ink outline. Its source is `art_source/zombie.blend`. Edit the `.blend` in Blender (through the Blender MCP or by hand), then export the `.glb` from it. Do not add a build script. The model has six parts with no rig: `LegL`, `LegR`, and `Torso`, with `Head`, `ArmL`, and `ArmR` under `Torso`. Each part has its origin on its joint. Keep these names and origins, and `ZombieAnimator` (`zombie/zombie_animator.gd`) animates them in code, as `view_model.gd` animates the pistol. A PS1-style generated model with rigged animation was tried and rejected.
+- The level uses Godot primitives and code for meshes and materials. The only imported models are the pistol view model, `weapons/pistol.glb` (Blender source `art_source/pistol.blend`), and the zombie.
 - Weapons are hitscan. A shot is one ray from the camera.
 - The player cannot shoot while sprinting.
 - The slide is the fast way to move. There is no bunny hop: each jump needs a new press of jump, and air control never takes the speed above the speed at takeoff or the target speed.
@@ -28,9 +28,9 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 |---|---|---|
 | Player | `player/` | Movement with ground friction, sprint, crouch, a slide (crouch while sprinting: a speed boost, low friction, and a jump that keeps the speed), limited air control, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
 | Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) with a magazine, a reload, and no reserve ammo. The animated view model (`view_model.gd`) and the thrown guns of a reload (debris on physics layer 2). |
-| Health | `health/` | The `Health` node that takes damage, and `HitFlash`, which flashes a mesh red on a hit. |
+| Health | `health/` | The `Health` node that takes damage, and `HitFlash`, which flashes a material red on a hit. |
 | Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |
-| Zombie | `zombie/` | A box zombie that follows the navmesh to the player and hits at close range. |
+| Zombie | `zombie/` | A cartoon zombie with a shambling walk, an arm-slam attack, and a fall onto its back when it dies, that follows the navmesh to the player and hits at close range. |
 | Test range | `levels/` | The greybox map and the main scene, with target dummies, zombie spawn points, and a crawl tunnel west of the spawn. `level_navigation.gd` bakes the navmesh at start from the static colliders on physics layer 1. |
 | Rounds | `rounds/` | `RoundManager` spawns each round's zombies from `RoundSettings`, then starts a break when the last zombie dies. |
 | HUD | `hud/` | A slanted, yellow-accent HUD in the style of The Finals (`hud_theme.tres`): the crosshair with a hit marker, segmented health, the weapon name and ammo, the RELOADING label, the round number, the zombies left, and the BREAK label with a countdown. |
