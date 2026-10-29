@@ -14,6 +14,7 @@ reload_sound = NodePath("ReloadSound")
 [node name="ShotSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("2_shot")
 volume_db = -4.0
+max_polyphony = 3
 bus = &"SFX"
 
 [node name="DrySound" type="AudioStreamPlayer" parent="."]
