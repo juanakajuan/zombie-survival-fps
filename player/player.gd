@@ -38,11 +38,13 @@ const GROUP := &"player"
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var hud: Hud = $Hud
+@onready var pause_menu: PauseMenu = $PauseMenu
 @onready var body: MeshInstance3D = $CollisionShape3D/Body
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
 var weapon: Weapon
+var settings: GameSettings
 
 var _crouched := false
 var _shape: CapsuleShape3D
@@ -60,6 +62,10 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_health.died.connect(_on_health_died)
+	pause_menu.resume_requested.connect(_resume)
+	pause_menu.settings_changed.connect(_apply_settings)
+	settings = GameSettings.load_saved()
+	_apply_settings()
 	# Every Player instance shares the scene's capsule, so crouching must resize a copy.
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
@@ -86,14 +92,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			look((event as InputEventMouseMotion).screen_relative)
 	elif event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		weapon.trigger_enabled = false
-	elif event is InputEventMouseButton:
-		var click := event as InputEventMouseButton
-		# Capture on release, so the click that takes the mouse back never reaches the weapon as a shot.
-		if not click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-			weapon.trigger_enabled = true
+		pause_menu.open(settings)
 
 
 func _physics_process(delta: float) -> void:
@@ -127,9 +128,10 @@ func _physics_process(delta: float) -> void:
 func look(relative: Vector2) -> void:
 	if is_dead():
 		return
-	rotation.y -= relative.x * mouse_sensitivity
+	var sensitivity := mouse_sensitivity * settings.mouse_sensitivity_scale
+	rotation.y -= relative.x * sensitivity
 	var max_pitch := deg_to_rad(max_pitch_degrees)
-	head.rotation.x = clampf(head.rotation.x - relative.y * mouse_sensitivity, -max_pitch, max_pitch)
+	head.rotation.x = clampf(head.rotation.x - relative.y * sensitivity, -max_pitch, max_pitch)
 	camera.global_basis = _look_basis()
 
 
@@ -152,6 +154,16 @@ func _on_health_died() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	weapon.trigger_enabled = false
 	died.emit()
+
+
+func _resume() -> void:
+	pause_menu.close()
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _apply_settings() -> void:
+	camera.fov = settings.field_of_view
+	settings.apply_to_engine()
 
 
 func _place_camera(origin: Vector3) -> void:
