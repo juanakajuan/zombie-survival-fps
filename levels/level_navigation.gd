@@ -1,6 +1,6 @@
 class_name LevelNavigation
 extends NavigationRegion3D
-## Bakes the navigation mesh at startup from the static colliders on collision layer 1 under the parent node.
+## Parses the parent node and bakes the navigation mesh at startup, with the settings of the region's `navigation_mesh`.
 ## Emits `bake_finished` when the mesh is baked.
 
 
@@ -24,9 +24,6 @@ func _on_map_changed(map: RID) -> void:
 
 
 func _bake() -> void:
-	navigation_mesh.geometry_source_geometry_mode = NavigationMesh.SOURCE_GEOMETRY_ROOT_NODE_CHILDREN
-	navigation_mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
-	navigation_mesh.geometry_collision_mask = 1
 	var source := NavigationMeshSourceGeometryData3D.new()
 	NavigationServer3D.parse_source_geometry_data(navigation_mesh, source, get_parent())
 	NavigationServer3D.bake_from_source_geometry_data(navigation_mesh, source)

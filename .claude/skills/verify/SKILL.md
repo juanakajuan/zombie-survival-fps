@@ -62,7 +62,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `hud.round` | The round number on the HUD. |
 | `game_over.visible`, `game_over.text` | The game-over screen, and its text, for example `You reached round 1`. |
 | `mouse.mode` | `captured` or `visible`. |
-| `player.position`, `player.yaw_deg`, `player.dead` | Feet position (`x y z`, 1 decimal), turn angle, and death. The player starts at `0.0 0.0 6.0`, yaw `0`, and looks toward -Z. |
+| `player.position`, `player.yaw_deg`, `player.dead`, `player.crouching` | Feet position (`x y z`, 1 decimal), turn angle, death, and crouch. The player starts at `0.0 0.0 6.0`, yaw `0`, and looks toward -Z. |
 | `zombies.alive`, `dummies.up` | Zombies in the level, and target dummies that show. |
 | `frame` | The physics frame counter. |
 
@@ -108,7 +108,6 @@ All are in `.claude/skills/verify/scripts/` and run from any directory.
 
 ## Gotchas
 
-- Do not add `--fixed-fps` to the run. With it, zombies do not follow the navmesh and stay at their spawn points.
 - gamescope cannot turn off V-Sync. The log has `WARNING: The requested V-Sync mode Disabled is not available`. This is not an error.
 - The run is real time, so frame counts in `until` are limits, not exact times. Values after movement can change by a small amount between runs. Use `expect_not` against the start value, or `until`, for movement.
 - Input events are flushed on the next frame. Every input command waits at least one frame after it sends, so an `expect` after it sees the result.

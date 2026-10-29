@@ -16,7 +16,7 @@ cp "$steps" "$out/steps.txt"
 log="$out/godot.log"
 
 cd "$repo"
-# No --fixed-fps: it stops zombie navigation. The run is real time, 60 physics frames a second.
+# The run is real time, 60 physics frames a second.
 # setsid gives the run its own process group, so cleanup.sh can stop exactly this run.
 setsid timeout 300 gamescope --backend headless -W 1280 -H 720 -- \
 	godot --path . --display-driver x11 \

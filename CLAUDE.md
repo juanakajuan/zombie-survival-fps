@@ -3,7 +3,7 @@
 A round-based zombie survival FPS. Godot 4.7, GDScript only, Forward+ renderer, Jolt physics.
 An agent writes most of the code. The human uses the Godot editor at the same time.
 
-[DESIGN.md](DESIGN.md) has the core loop, the decided game rules, what is done, and the steps to a minimal game. Read it before gameplay work. When you finish a step, update DESIGN.md in the same commit.
+[DESIGN.md](DESIGN.md) has the core loop, the decided game rules, and the parts that are done. Read it before gameplay work. Update it in the same commit only when the change adds a part or changes the core loop or a decided rule.
 
 ## Commands
 
@@ -12,6 +12,7 @@ An agent writes most of the code. The human uses the Godot editor at the same ti
 | `tools/check.sh [filter]` | The gate. It imports the project, lints the scripts, checks `project.godot`, loads every script and scene, and runs the tests. Run it after each change. |
 | `tools/smoke.sh [scene] [frames] [out.png]` | Runs the game off-screen with gamescope and saves a screenshot (default `.smoke/smoke.png`). Read the PNG to see the result. |
 | `godot --path . -e` | Opens the editor. This is for the human. |
+| `godot --headless --path . --import` | Imports new or changed assets. Run it in the main checkout after a pull that adds assets (a `.glb`, an image, a font). Without it, `tools/smoke.sh` and the verify skill's `drive.sh` load an old import, or none. |
 
 A change is done only when `tools/check.sh` passes. For a visual change, also run `tools/smoke.sh` and look at the screenshot.
 
@@ -37,7 +38,9 @@ A change is done only when `tools/check.sh` passes. For a visual change, also ru
 | A group name comes from its owner's constant (`Player.GROUP`), not a string literal | `tools/lint.gd` rule `group_literal` |
 | Only `Player` writes `Input.mouse_mode` (or calls `Input.set_mouse_mode`) and `weapon.trigger_enabled` | `tools/lint.gd` rule `mouse_mode_owner` |
 | A gameplay script has no numeric or `Color` `const`; a tunable value is `@export` or in a `.tres` | `tools/lint.gd` rule `magic_const` |
-| A static collider on layer 1 is a navmesh obstacle with no group. A static body that zombies walk through goes on a layer other than 1 | `levels/level_navigation.gd` bakes from layer 1; `tests/levels/test_test_range.gd` checks that each layer-1 static body is off the navmesh |
+| A gameplay script does not walk up the tree (`n = n.get_parent()`) to find its owner. The owner sets a typed reference, as `Player` sets `weapon.wielder` | `tools/lint.gd` rule `ancestor_walk` |
+| A static collider on layer 1 is a navmesh obstacle with no group. A static body that zombies walk through goes on a layer other than 1 | The `NavigationMesh` in `levels/test_range.tscn` parses static colliders on layer 1, and `levels/level_navigation.gd` bakes it at start; `tests/levels/test_test_range.gd` checks that each layer-1 static body is off the navmesh |
+| Do not edit a scene that is open in the editor | `tools/check.sh` prints a warning (not an error) for each `.tscn` changed on the branch that is in `open_scenes` of the main checkout's `.godot/editor/editor_layout.cfg` |
 
 A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes on the offending line, and only with the human's approval: `# lint-allow <rule>: <reason> (until YYYY-MM-DD, approved: <human>)`. An expired or incomplete line fails the lint.
 

@@ -227,6 +227,7 @@ func _state() -> Dictionary[String, String]:
 		s["player.position"] = "%.1f %.1f %.1f" % [player.global_position.x, player.global_position.y, player.global_position.z]
 		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
 		s["player.dead"] = str(player.is_dead())
+		s["player.crouching"] = str(player.is_crouching())
 		var hud := player.hud.readout()
 		s["hud.health"] = hud.health_text
 		s["hud.ammo"] = hud.ammo_text

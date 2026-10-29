@@ -1,0 +1,29 @@
+# Crouch and the crawl tunnel west of the spawn: standing, the roof blocks the player. Crouched, the player goes through and stays crouched under the roof.
+expect player.position 0.0 0.0 6.0
+expect player.crouching false
+look -628 0
+expect player.yaw_deg 90
+hold move_forward
+wait 180
+release move_forward
+wait 30
+state 01-blocked-standing
+shot 01-blocked-standing
+hold crouch
+wait 10
+expect player.crouching true
+shot 02-crouched
+hold move_forward
+wait 60
+release move_forward
+release crouch
+wait 30
+state 03-under-roof
+expect player.crouching true
+shot 03-under-roof
+hold move_forward
+wait 180
+release move_forward
+wait 30
+state 04-out-the-far-side
+expect player.crouching false
