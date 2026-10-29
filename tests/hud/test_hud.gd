@@ -87,3 +87,25 @@ func _kill_zombies(manager: RoundManager) -> void:
 	for child: Node in manager.get_children():
 		if child is Zombie:
 			Health.find_on(child).damage(1.0e6)
+
+
+func test_shows_the_weapon_name() -> void:
+	var player := await spawn_player()
+	assert_eq(player.hud.readout().weapon_name, player.weapon.data.display_name, "weapon name")
+
+
+func test_objective_counts_zombies_left_and_the_break() -> void:
+	var manager := _spawn_round_manager()
+	var player := await spawn_player()
+	assert_eq(player.hud.readout().objective_text, "1 LEFT", "zombies left in round 1")
+	_kill_zombies(manager)
+	await physics_frames(2)
+	assert_eq(player.hud.readout().objective_text, "NEXT ROUND IN 1", "break countdown")
+
+
+func test_hit_marker_shows_when_a_shot_hits_a_target() -> void:
+	var player := await spawn_player()
+	await spawn_dummy(Vector3(0.0, 0.0, -4.0))
+	assert_true(not player.hud.readout().hit_marker, "no hit marker before the shot")
+	assert_true(player.weapon.try_fire(), "shot fires")
+	assert_true(player.hud.readout().hit_marker, "hit marker after a hit")

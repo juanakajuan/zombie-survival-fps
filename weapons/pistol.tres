@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("1_data")
+display_name = "PISTOL"
 damage = 25.0
 fire_interval = 0.15
 magazine_size = 12
