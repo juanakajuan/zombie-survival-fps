@@ -63,6 +63,7 @@ const GROUP := &"player"
 @onready var hud: Hud = $Hud
 @onready var pause_menu: PauseMenu = $PauseMenu
 @onready var body: Node3D = $Body
+@onready var animator: PlayerAnimator = $Animator
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
@@ -97,6 +98,7 @@ func _ready() -> void:
 	_collision.shape = _shape
 	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false):
 		mesh.layers = body_layers
+	animator.attach(body)
 	_stand_height = _shape.height
 	_stand_head_height = head.position.y
 	# Physics moves the body 60 times a second. On a faster screen the camera would hold still for some frames
@@ -150,6 +152,7 @@ func _physics_process(delta: float) -> void:
 	elif _stance != Stance.SLIDING:
 		_accelerate(wish_dir, target_speed, ground_acceleration, delta)
 	move_and_slide()
+	animator.advance(delta, _horizontal_speed(), not is_on_floor() or is_sliding(), is_aiming(), head.rotation.x)
 	# The weapon is a child of the camera and fires in its own _physics_process, after this one.
 	# This puts the shot at the true head position, not the one drawn on screen.
 	_place_camera(head.global_position)

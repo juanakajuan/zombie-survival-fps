@@ -1,0 +1,119 @@
+class_name PlayerAnimator
+extends Node
+## Poses the player's body model in code: a walk that follows the move speed, an idle sway, a pose in the air and
+## on a slide, a right arm that holds the gun where the player looks, and both arms up while aiming.
+## It moves the parts of art_source/player.blend: LegL, LegR, and Torso, with its children Head, ArmL, and ArmR.
+
+@export_group("Walk")
+## Full leg cycles for each metre walked.
+@export_range(0.1, 3.0, 0.01) var steps_per_metre: float = 0.6
+@export_range(0.0, 60.0, 0.5, "suffix:°") var leg_swing: float = 32.0
+@export_range(0.0, 0.2, 0.005, "suffix:m") var bob_height: float = 0.03
+@export_range(0.0, 30.0, 0.5, "suffix:°") var arm_swing: float = 24.0
+## The body leans forward this far at sprint speed.
+@export_range(0.0, 30.0, 0.5, "suffix:°") var run_lean: float = 8.0
+## The speed at which the lean is full.
+@export_range(0.1, 20.0, 0.1, "suffix:m/s") var run_speed: float = 7.0
+## Below this speed the player stands and sways.
+@export_range(0.0, 1.0, 0.01, "suffix:m/s") var walk_threshold: float = 0.1
+
+@export_group("Idle")
+@export_range(0.0, 5.0, 0.05, "suffix:Hz") var idle_rate: float = 0.4
+@export_range(0.0, 10.0, 0.25, "suffix:°") var idle_sway: float = 2.0
+
+@export_group("Air and slide")
+## In the air and on a slide, the front leg goes forward and the back leg goes back by these angles.
+@export_range(0.0, 90.0, 1.0, "suffix:°") var front_leg: float = 40.0
+@export_range(0.0, 90.0, 1.0, "suffix:°") var back_leg: float = 25.0
+## In the air, the free arm lifts out by this angle.
+@export_range(0.0, 120.0, 1.0, "suffix:°") var air_arm: float = 50.0
+
+@export_group("Look")
+## The right arm points forward by this angle when the player looks straight ahead.
+@export_range(0.0, 120.0, 1.0, "suffix:°") var hold_angle: float = 80.0
+## The part of the look pitch that the head follows. The arms that hold the gun follow all of it.
+@export_range(0.0, 1.0, 0.01) var head_follow: float = 0.6
+
+## How fast the pose blends between walking, standing, in the air, and aiming.
+@export_range(0.1, 40.0, 0.1) var blend_sharpness: float = 12.0
+
+var _leg_l: Node3D
+var _leg_r: Node3D
+var _torso: Node3D
+var _head: Node3D
+var _arm_l: Node3D
+var _arm_r: Node3D
+var _torso_rest_y: float
+var _phase: float = 0.0
+var _time: float = 0.0
+var _walk_weight: float = 0.0
+var _air_weight: float = 0.0
+var _aim_weight: float = 0.0
+
+
+## Finds the parts in the model. Call it before the first advance().
+func attach(model: Node3D) -> void:
+	_leg_l = _part(model, "LegL")
+	_leg_r = _part(model, "LegR")
+	_torso = _part(model, "Torso")
+	_head = _part(model, "Head")
+	_arm_l = _part(model, "ArmL")
+	_arm_r = _part(model, "ArmR")
+	_torso_rest_y = _torso.position.y
+
+
+## Moves the pose on by one step. `look_pitch` is in radians, positive up. `airborne` is true in the air and on a
+## slide, when the legs hold a stride instead of walking.
+func advance(delta: float, speed: float, airborne: bool, aiming: bool, look_pitch: float) -> void:
+	_time += delta
+	var blend := 1.0 - exp(-blend_sharpness * delta)
+	_air_weight = lerpf(_air_weight, 1.0 if airborne else 0.0, blend)
+	var grounded := 1.0 - _air_weight
+	_walk_weight = lerpf(_walk_weight, 1.0 if speed > walk_threshold and not airborne else 0.0, blend)
+	_aim_weight = lerpf(_aim_weight, 1.0 if aiming else 0.0, blend)
+	if not airborne:
+		_phase = fmod(_phase + speed * delta * steps_per_metre * TAU, TAU)
+
+	var step := sin(_phase)
+	var idle := sin(_time * idle_rate * TAU) * (1.0 - _walk_weight) * grounded
+	var stride := deg_to_rad(leg_swing) * step * _walk_weight
+	_leg_l.rotation.x = stride + deg_to_rad(front_leg) * _air_weight
+	_leg_r.rotation.x = -stride - deg_to_rad(back_leg) * _air_weight
+	_torso.position.y = _torso_rest_y + bob_height * absf(cos(_phase)) * _walk_weight
+	var lean := run_lean * clampf(speed / run_speed, 0.0, 1.0) * _walk_weight
+	_torso.rotation.x = deg_to_rad(-lean)
+	_torso.rotation.z = deg_to_rad(idle_sway * idle)
+	_head.rotation.x = look_pitch * head_follow + deg_to_rad(lean)
+
+	var hold := deg_to_rad(hold_angle + lean) + look_pitch
+	var swing := deg_to_rad(arm_swing) * cos(_phase) * _walk_weight
+	_arm_r.rotation.x = hold
+	_arm_l.rotation.x = lerpf(-swing - deg_to_rad(air_arm) * _air_weight, hold, _aim_weight)
+	_arm_l.rotation.z = deg_to_rad(-0.5 * air_arm) * _air_weight * (1.0 - _aim_weight)
+
+
+## The pitch of the left leg in radians. Positive swings it forward.
+func leg_pitch() -> float:
+	return _leg_l.rotation.x
+
+
+## The pitch of the right arm, which holds the gun, in radians. Positive raises it.
+func gun_arm_pitch() -> float:
+	return _arm_r.rotation.x
+
+
+## The pitch of the left arm in radians. Positive raises it.
+func free_arm_pitch() -> float:
+	return _arm_l.rotation.x
+
+
+## The pitch of the head in radians. Positive tilts it up.
+func head_pitch() -> float:
+	return _head.rotation.x
+
+
+func _part(model: Node3D, part_name: String) -> Node3D:
+	var part := model.find_child(part_name) as Node3D
+	if part == null:
+		push_error("PlayerAnimator: the model has no part named %s." % part_name)
+	return part
