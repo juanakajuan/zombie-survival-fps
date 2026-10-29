@@ -29,7 +29,7 @@ Each feature file starts with an H1 title and one paragraph about the behavior t
 
 ## Features
 
-- [Movement and look](./movement-and-look.md) covers walking, Quake-style jumps and air strafing, crouch and the crawl tunnel, mouse look, releasing the mouse with Esc, and the click that captures it again.
+- [Movement and look](./movement-and-look.md) covers walking, Quake-style jumps and air strafing, crouch and the crawl tunnel, mouse look, and the Esc pause menu that releases the mouse and captures it again on resume.
 - [Weapon and targets](./weapon-and-targets.md) covers firing, the pistol view model, ammo on the HUD, target dummies, and reload.
 - [Rounds and HUD](./rounds-and-hud.md) covers zombie spawns, clearing a round, the BREAK label, and the next round.
 - [Death, game over, and restart](./death-and-game-over.md) covers zombie attacks, player death, the game-over screen, and restart with Enter.

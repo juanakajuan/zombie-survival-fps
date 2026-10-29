@@ -4,6 +4,7 @@ extends SceneTree
 ## Usage: godot --headless --path . -s res://tests/run_tests.gd [-- --filter=<substring of path:method>]
 
 const TEST_DIR := "res://tests"
+const SETTINGS_FILE := "user://test_settings.cfg"
 
 
 class ErrorLog extends Logger:
@@ -32,6 +33,7 @@ var _error_log := ErrorLog.new()
 
 func _init() -> void:
 	OS.add_logger(_error_log)
+	GameSettings.file_path = SETTINGS_FILE
 	_run.call_deferred()
 
 
@@ -73,10 +75,12 @@ func _run_one(script: GDScript, method_name: String) -> PackedStringArray:
 	if test == null:
 		return PackedStringArray(["script does not extend TestCase"])
 	_error_log.take()
+	DirAccess.remove_absolute(SETTINGS_FILE)
 	root.add_child(test)
 	await test.call(method_name)
 	var problems := test.failures + _error_log.take()
 	test.queue_free()
+	paused = false
 	for action: StringName in InputMap.get_actions():
 		Input.action_release(action)
 	await process_frame
