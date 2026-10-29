@@ -36,7 +36,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 
 ## After the minimal game
 
-These parts wait until the loop works. The list is not complete, and its order is not a priority:
+These parts come after the minimal game. The list is not complete, and its order is not a priority:
 
 - Points for kills and hits.
 - Buy stations for weapons and ammo.

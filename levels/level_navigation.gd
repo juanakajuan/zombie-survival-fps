@@ -1,6 +1,6 @@
 class_name LevelNavigation
 extends NavigationRegion3D
-## Bakes the navigation mesh at startup from the static colliders on collision layer 1 under the parent node.
+## Parses the parent node and bakes the navigation mesh at startup, with the settings of the region's `navigation_mesh`.
 ## Emits `bake_finished` when the mesh is baked.
 
 
