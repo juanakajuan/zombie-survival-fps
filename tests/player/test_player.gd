@@ -242,6 +242,22 @@ func test_mouse_motion_turns_camera_the_expected_way() -> void:
 	assert_true(forward.x > 0.1, "mouse right turns right, got forward.x=%s" % forward.x)
 
 
+func test_camera_stays_on_the_head_while_walking_and_turning() -> void:
+	assert_true(get_tree().physics_interpolation, "physics interpolation is on, so the camera moves smoothly on fast screens")
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var camera := player.camera
+	Input.action_press("move_forward")
+	for _i: int in 20:
+		player.look(Vector2(10.0, 0.0))
+		await physics_frames(1)
+		await get_tree().process_frame
+	assert_true(player.global_position.length() > 1.0, "player walked, got %s" % player.global_position)
+	assert_true(camera.global_position.distance_to(player.head.global_position) < 0.2, "camera is at the head")
+	var forward := -camera.global_basis.z
+	var facing := -player.global_basis.z
+	assert_almost_eq(forward.dot(facing), 1.0, 0.001, "camera faces where the player faces")
+
+
 func test_camera_is_the_active_camera() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var camera := player.camera

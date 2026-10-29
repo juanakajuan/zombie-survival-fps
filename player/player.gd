@@ -67,6 +67,16 @@ func _ready() -> void:
 	body.mesh = _body_mesh
 	_stand_height = _shape.height
 	_stand_head_height = head.position.y
+	# Physics moves the body 60 times a second. On a faster screen the camera would hold still for some frames
+	# and then jump, which looks like blur. So the camera follows the interpolated head, but it takes the look
+	# angles as they are, because interpolating them would make the mouse lag by one physics tick.
+	camera.top_level = true
+	camera.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	_place_camera(head.global_position)
+
+
+func _process(_delta: float) -> void:
+	_place_camera(head.get_global_transform_interpolated().origin)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -107,6 +117,9 @@ func _physics_process(delta: float) -> void:
 	else:
 		_accelerate(wish_dir, minf(target_speed, air_speed_cap), target_speed, air_acceleration, delta)
 	move_and_slide()
+	# The weapon is a child of the camera and fires in its own _physics_process, after this one.
+	# This puts the shot at the true head position, not the one drawn on screen.
+	_place_camera(head.global_position)
 
 
 ## Applies a mouse delta in pixels. Moving the mouse right turns right, and moving it up looks up.
@@ -117,6 +130,7 @@ func look(relative: Vector2) -> void:
 	rotation.y -= relative.x * mouse_sensitivity
 	var max_pitch := deg_to_rad(max_pitch_degrees)
 	head.rotation.x = clampf(head.rotation.x - relative.y * mouse_sensitivity, -max_pitch, max_pitch)
+	camera.global_basis = _look_basis()
 
 
 ## True while on the floor, not crouched, with the sprint action held and the move input pointing forward.
@@ -138,6 +152,14 @@ func _on_health_died() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	weapon.trigger_enabled = false
 	died.emit()
+
+
+func _place_camera(origin: Vector3) -> void:
+	camera.global_transform = Transform3D(_look_basis(), origin)
+
+
+func _look_basis() -> Basis:
+	return Basis.from_euler(Vector3(head.rotation.x, rotation.y, 0.0))
 
 
 func _move_input() -> Vector2:
