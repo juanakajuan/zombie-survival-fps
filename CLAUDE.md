@@ -68,7 +68,7 @@ A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes o
 - Make tunable values `@export` (with `@export_range` where it helps) so that the human can tune them in the Inspector.
 - Put game data, such as weapons and round settings, in `.tres` Resources.
 - Commit the `.uid` files next to scripts and shaders. Godot makes them.
-- Input actions are in the Input Map in `project.godot`. Use physical keycodes. Current actions: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `restart`.
+- Input actions are in the Input Map in `project.godot`. Use physical keycodes. Current actions: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `restart`, `third_person` (debug builds only).
 
 ## Godot AI MCP server
 

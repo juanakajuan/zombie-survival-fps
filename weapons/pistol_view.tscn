@@ -3,15 +3,23 @@
 [ext_resource type="Script" path="res://weapons/view_model.gd" id="1_view"]
 [ext_resource type="PackedScene" path="res://weapons/pistol.glb" id="2_model"]
 [ext_resource type="PackedScene" path="res://weapons/pistol_thrown.tscn" id="3_thrown"]
+[ext_resource type="PackedScene" path="res://player/player_hand.glb" id="4_hand"]
 
-[node name="PistolView" type="Node3D" node_paths=PackedStringArray("motion", "model", "slide")]
+[node name="PistolView" type="Node3D" node_paths=PackedStringArray("motion", "model", "slide", "hand", "hand_anchor")]
 script = ExtResource("1_view")
 motion = NodePath("Motion")
 model = NodePath("Motion/Model")
 slide = NodePath("Motion/Model/Slide")
+hand = NodePath("Motion/Hand")
+hand_anchor = NodePath("Motion/Model/HandAnchor")
 thrown_scene = ExtResource("3_thrown")
 
 [node name="Motion" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, -0.19, -0.3)
 
 [node name="Model" parent="Motion" instance=ExtResource("2_model")]
+
+[node name="Hand" parent="Motion" instance=ExtResource("4_hand")]
+
+[node name="HandAnchor" type="RemoteTransform3D" parent="Motion/Model"]
+remote_path = NodePath("../../Hand")

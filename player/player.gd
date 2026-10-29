@@ -54,11 +54,19 @@ const GROUP := &"player"
 ## Each second, the zoom closes this much of the gap to its target. Higher is snappier.
 @export_range(0.1, 40.0, 0.1) var aim_sharpness: float = 14.0
 
+@export_group("Third person (debug)")
+## In a debug build, the third_person action moves the camera behind the player so the body shows.
+## The camera sits this far behind the head, and stops short of walls.
+@export_range(0.5, 10.0, 0.1, "suffix:m") var third_person_distance: float = 3.0
+## The camera moves this far to the right of the head, over the shoulder.
+@export_range(-2.0, 2.0, 0.05, "suffix:m") var third_person_shoulder: float = 0.6
+
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var hud: Hud = $Hud
 @onready var pause_menu: PauseMenu = $PauseMenu
-@onready var body: MeshInstance3D = $CollisionShape3D/Body
+@onready var body: Node3D = $Body
+@onready var animator: PlayerAnimator = $Animator
 @onready var _health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
@@ -71,9 +79,9 @@ var _stance := Stance.STANDING
 var _slide_cooldown_left := 0.0
 var _aim_blend := 0.0
 var _shape: CapsuleShape3D
-var _body_mesh: CapsuleMesh
 var _stand_height: float
 var _stand_head_height: float
+var _third_person := false
 
 
 func _enter_tree() -> void:
@@ -92,8 +100,8 @@ func _ready() -> void:
 	# Every Player instance shares the scene's capsule, so crouching must resize a copy.
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
-	_body_mesh = body.mesh.duplicate() as CapsuleMesh
-	body.mesh = _body_mesh
+	animator.attach(body)
+	_set_third_person(false)
 	_stand_height = _shape.height
 	_stand_head_height = head.position.y
 	# Physics moves the body 60 times a second. On a faster screen the camera would hold still for some frames
@@ -116,6 +124,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			look((event as InputEventMouseMotion).screen_relative)
+	elif event.is_action_pressed("third_person") and OS.is_debug_build():
+		_set_third_person(not _third_person)
 	elif event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -147,6 +157,7 @@ func _physics_process(delta: float) -> void:
 	elif _stance != Stance.SLIDING:
 		_accelerate(wish_dir, target_speed, ground_acceleration, delta)
 	move_and_slide()
+	animator.advance(delta, _horizontal_speed(), not is_on_floor() or is_sliding(), is_crouching(), is_aiming(), head.rotation.x)
 	# The weapon is a child of the camera and fires in its own _physics_process, after this one.
 	# This puts the shot at the true head position, not the one drawn on screen.
 	_place_camera(head.global_position)
@@ -211,7 +222,32 @@ func _apply_field_of_view() -> void:
 
 
 func _place_camera(origin: Vector3) -> void:
-	camera.global_transform = Transform3D(_look_basis(), origin)
+	var basis := _look_basis()
+	if _third_person:
+		var target := origin + basis * Vector3(third_person_shoulder, 0.0, third_person_distance)
+		var query := PhysicsRayQueryParameters3D.create(origin, target, collision_mask, [get_rid()])
+		var hit := get_world_3d().direct_space_state.intersect_ray(query)
+		if not hit.is_empty():
+			var wall: Vector3 = hit["position"]
+			target = wall + (origin - target).normalized() * 0.2
+		origin = target
+	camera.global_transform = Transform3D(basis, origin)
+
+
+## Whether the camera is behind the player, from the debug third_person action.
+func is_third_person() -> bool:
+	return _third_person
+
+
+func _set_third_person(on: bool) -> void:
+	_third_person = on
+	# In first person the body draws only its shadow, so it does not block the view. A camera cull mask would hide
+	# the shadow too.
+	var casting := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if on else GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false):
+		mesh.cast_shadow = casting
+	if weapon.view_model != null:
+		weapon.view_model.visible = not on
 
 
 func _look_basis() -> Basis:
@@ -289,7 +325,6 @@ func _start_slide() -> void:
 func _set_stance(stance: Stance) -> void:
 	_stance = stance
 	_shape.height = crouch_height if is_crouching() else _stand_height
-	_body_mesh.height = _shape.height
 	_collision.position.y = _shape.height / 2.0
 
 

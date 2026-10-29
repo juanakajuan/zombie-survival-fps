@@ -36,6 +36,18 @@ func run_seconds(seconds: float) -> void:
 	await physics_frames(roundi(seconds * Engine.physics_ticks_per_second))
 
 
+## The lowest (x) and highest (y) value that `value` gives over `seconds` of physics frames.
+func sample_range(value: Callable, seconds: float) -> Vector2:
+	var lowest := INF
+	var highest := -INF
+	for _i: int in roundi(seconds * Engine.physics_ticks_per_second):
+		await physics_frames(1)
+		var sample: float = value.call()
+		lowest = minf(lowest, sample)
+		highest = maxf(highest, sample)
+	return Vector2(lowest, highest)
+
+
 ## Adds a 200 m floor at y = 0 and a player on it, then runs `settle_frames` physics frames.
 func spawn_player(at: Vector3 = Vector3.ZERO, settle_frames: int = 1) -> Player:
 	add_child(_box(Vector3(200.0, 1.0, 200.0), Vector3(0.0, -0.5, 0.0)))

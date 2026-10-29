@@ -1,7 +1,7 @@
 class_name ViewModel
 extends Node3D
 ## First-person weapon model. Make it the root of a `view_model` scene, with this layout:
-## ViewModel > Motion > Model. Motion holds the hand position and follows the player's movement
+## ViewModel > Motion > Model, and an optional Motion > Hand. Motion holds the hand position and follows the player's movement
 ## (bob, sprint, crouch, jump, landing, look sway). Model plays the one-shot motions
 ## (raise, recoil, reload, lower on death) relative to Motion. A reload throws the gun away
 ## over the shoulder as debris and draws an identical new one.
@@ -9,6 +9,9 @@ extends Node3D
 @export var motion: Node3D
 @export var model: Node3D
 @export var slide: Node3D
+## The hand that holds the gun, or null for none. hand_anchor, a child of the model, moves it with the gun.
+@export var hand: Node3D
+@export var hand_anchor: RemoteTransform3D
 
 @export_group("Raise")
 @export_range(0.0, 2.0, 0.01, "suffix:s") var raise_time: float = 0.45
@@ -90,6 +93,8 @@ var _slide_rest: Vector3
 var _tween: Tween
 var _wind_up: Transform3D
 var _toss_time := 0.0
+## One copy of each view model material that does not receive shadows, shared by every view model.
+static var _unshadowed_copies: Dictionary[BaseMaterial3D, BaseMaterial3D] = {}
 var _player: Player
 var _lowered := false
 
@@ -107,6 +112,7 @@ var _last_view := Vector2.ZERO
 
 
 func _ready() -> void:
+	_detach_from_shadows()
 	_motion_rest = motion.transform
 	_model_rest = model.transform
 	_slide_rest = slide.position
@@ -201,6 +207,7 @@ func _on_reload_started(weapon: Weapon) -> void:
 	slide.position = _slide_rest
 	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	_tween.tween_property(model, "transform", _wind_up, time * wind_up_fraction)
+	_tween.tween_callback(_hold_hand_upright.bind(true))
 	_tween.tween_method(_toss_step, 0.0, 1.0, _toss_time).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	_tween.tween_callback(_throw)
 	_tween.tween_interval(time * empty_hands_fraction)
@@ -229,6 +236,7 @@ func _throw() -> void:
 
 
 func _take_out_new_gun() -> void:
+	_hold_hand_upright(false)
 	model.transform = _lowered_transform()
 	model.show()
 
@@ -242,6 +250,7 @@ func _settle() -> void:
 	model.transform = _model_rest
 	slide.position = _slide_rest
 	model.show()
+	_hold_hand_upright(false)
 
 
 func _on_player_died() -> void:
@@ -253,6 +262,31 @@ func _on_player_died() -> void:
 
 func _lowered_transform() -> Transform3D:
 	return _model_rest.translated_local(Vector3(0.0, -lower_distance, 0.0)).rotated_local(Vector3.RIGHT, deg_to_rad(lower_angle))
+
+
+## While the reload throw spins the gun, the hand follows the gun's path but does not spin with it.
+func _hold_hand_upright(upright: bool) -> void:
+	if hand_anchor != null:
+		hand_anchor.update_rotation = not upright
+
+
+## The view model floats in front of the camera, so its shadow would fall where no gun is, and the player's own
+## body shadow would speckle it.
+func _detach_from_shadows() -> void:
+	for mesh: MeshInstance3D in find_children("*", "MeshInstance3D", true, false):
+		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		for surface: int in mesh.mesh.get_surface_count():
+			var material := mesh.get_active_material(surface) as BaseMaterial3D
+			if material != null:
+				mesh.set_surface_override_material(surface, _unshadowed(material))
+
+
+static func _unshadowed(material: BaseMaterial3D) -> BaseMaterial3D:
+	if not _unshadowed_copies.has(material):
+		var copy := material.duplicate() as BaseMaterial3D
+		copy.disable_receive_shadows = true
+		_unshadowed_copies[material] = copy
+	return _unshadowed_copies[material]
 
 
 func _restart_tween() -> void:

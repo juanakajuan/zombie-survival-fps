@@ -124,3 +124,40 @@ func test_a_shot_while_aiming_still_kicks_the_gun() -> void:
 	player.weapon.try_fire()
 	await physics_frames(2)
 	assert_true(_pose(player).origin.z > rest.origin.z + 0.005, "the gun kicks back while aiming")
+
+
+func test_hand_holds_the_gun_through_a_shot() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var view := player.weapon.view_model
+	assert_true(view.hand != null and view.hand.is_visible_in_tree(), "the first-person hand shows")
+	Input.action_press("fire")
+	await physics_frames(2)
+	assert_true(view.hand.global_transform.is_equal_approx(view.model.global_transform), "the hand kicks back with the gun")
+
+
+func test_hand_does_not_spin_with_the_thrown_gun() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var weapon := player.weapon
+	var view := weapon.view_model
+	var rest_up := view.hand.global_basis.y
+	weapon.try_fire()
+	await physics_frames(SETTLE_FRAMES)
+	weapon.start_reload()
+	var lowest_dot := 1.0
+	for i in ceili(weapon.data.reload_time * Engine.physics_ticks_per_second):
+		await physics_frames(1)
+		lowest_dot = minf(lowest_dot, view.hand.global_basis.y.dot(rest_up))
+	assert_true(lowest_dot > 0.3, "the hand stays upright while the gun spins, lowest dot %s" % lowest_dot)
+	await physics_frames(SETTLE_FRAMES)
+	assert_true(view.hand.global_transform.is_equal_approx(view.model.global_transform), "the hand holds the new gun")
+
+
+func test_first_person_gun_and_hand_neither_cast_nor_receive_shadows() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var meshes := player.weapon.view_model.find_children("*", "MeshInstance3D", true, false)
+	assert_true(meshes.size() > 1, "the view model has meshes")
+	for mesh: MeshInstance3D in meshes:
+		assert_eq(mesh.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "%s casts no shadow" % mesh.name)
+		for surface: int in mesh.mesh.get_surface_count():
+			var material := mesh.get_active_material(surface) as BaseMaterial3D
+			assert_true(material.disable_receive_shadows, "%s surface %d receives no shadow" % [mesh.name, surface])

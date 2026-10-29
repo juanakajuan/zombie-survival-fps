@@ -283,16 +283,28 @@ func test_release_crouch_stands_up() -> void:
 	assert_almost_eq(camera.global_position.y, standing_eye, 0.01, "camera is back at standing height")
 
 
-func test_body_is_hidden_from_own_camera_and_shrinks_when_crouched() -> void:
+func test_body_draws_only_its_shadow_in_first_person_and_crouches_with_the_capsule() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	var camera := player.camera
-	var body := player.body
-	assert_true(camera.cull_mask & body.layers == 0, "own camera does not draw the body")
-	assert_almost_eq(body.get_aabb().size.y, 1.8, 0.01, "standing body is 1.8 m tall")
+	var meshes := player.body.find_children("*", "MeshInstance3D", true, false)
+	assert_true(not meshes.is_empty(), "the body has a model")
+	for mesh: MeshInstance3D in meshes:
+		assert_eq(mesh.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY, "%s draws only its shadow" % mesh.name)
+	var standing := _body_bounds(player)
+	assert_almost_eq(standing.position.y, player.global_position.y, 0.05, "standing body stands on the feet")
+	assert_almost_eq(standing.size.y, 1.85, 0.1, "standing body is about 1.85 m tall")
 	Input.action_press("crouch")
-	await run_seconds(0.2)
-	assert_almost_eq(body.get_aabb().size.y, player.crouch_height, 0.01, "crouched body is crouch_height tall")
-	assert_almost_eq(body.global_position.y - player.global_position.y, player.crouch_height / 2.0, 0.01, "crouched body stands on the feet")
+	await run_seconds(0.5)
+	var crouched := _body_bounds(player)
+	assert_almost_eq(crouched.position.y, player.global_position.y, 0.05, "crouched body keeps its feet on the floor")
+	assert_true(crouched.size.y < player.crouch_height + 0.15, "crouched body is about crouch_height tall, %s m" % crouched.size.y)
+
+
+func _body_bounds(player: Player) -> AABB:
+	var bounds := AABB()
+	for mesh: MeshInstance3D in player.body.find_children("*", "MeshInstance3D", true, false):
+		var box := mesh.global_transform * mesh.get_aabb()
+		bounds = box if bounds.size == Vector3.ZERO else bounds.merge(box)
+	return bounds
 
 
 func test_only_a_crouched_player_fits_under_a_low_ceiling() -> void:
