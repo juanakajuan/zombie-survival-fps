@@ -42,7 +42,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | Command | Effect |
 |---|---|
 | `wait <frames>` | Wait for physics frames. |
-| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `interact`, `melee`, `restart`, `third_person`. |
+| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `interact`, `melee`, `restart`, `weapon_1`, `weapon_2`, `weapon_next`, `weapon_previous`, `third_person`. |
 | `tap <action>` | Press, hold 2 frames, release, wait 1 frame. |
 | `key <name>` | Tap a physical key, for example `key Escape` (opens or closes the pause menu) or `key F5` (the debug third-person view). |
 | `look <dx> <dy>` | One mouse-motion event in pixels. `look 200 0` turns right by 29 degrees. |
@@ -58,7 +58,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 
 | Key | What the player sees |
 |---|---|
-| `hud.health`, `hud.ammo` | The HUD text, for example `100` and `11 / 48` (rounds in the magazine, then in the reserve). |
+| `hud.health`, `hud.ammo`, `hud.weapon` | The HUD text, for example `100`, `11 / 48` (rounds in the magazine, then in the reserve), and `PISTOL` (the weapon in hand). |
 | `hud.points`, `hud.prompt_visible`, `hud.prompt` | The points on the HUD, whether the buy prompt shows, and its text with each run of spaces made one space, for example `E BUY AMMO 250` (empty when hidden). |
 | `hud.reloading`, `hud.break`, `hud.round_visible` | Whether the RELOADING label, the BREAK label, and the round panel show. |
 | `hud.round`, `hud.objective` | The round number on the HUD, and the line under it: `4 LEFT` during a round (zombies alive plus zombies still to spawn), `NEXT ROUND IN 10` during the break. |
