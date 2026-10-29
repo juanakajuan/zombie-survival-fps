@@ -95,6 +95,12 @@ func start_reload() -> void:
 	reload_started.emit()
 
 
+## Stops a reload and gives back nothing: the magazine and the reserve stay as they were.
+func cancel_reload() -> void:
+	_state = State.READY
+	_cooldown = 0.0
+
+
 ## Fills the reserve. Returns false when it was already full.
 func refill_reserve() -> bool:
 	if reserve >= data.max_reserve:

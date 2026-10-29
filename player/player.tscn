@@ -18,6 +18,7 @@ height = 1.8
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1_player")
+weapon_scene = ExtResource("3_weapon")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.9, 0)

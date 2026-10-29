@@ -37,6 +37,15 @@ func run_seconds(seconds: float) -> void:
 	await physics_frames(roundi(seconds * Engine.physics_ticks_per_second))
 
 
+## Sends one press of an Input Map action as an input event, as a key or wheel notch does. `Input.action_press()` sends none.
+func press_action(action: StringName) -> void:
+	var event := InputEventAction.new()
+	event.action = action
+	event.pressed = true
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
 ## The lowest (x) and highest (y) value that `value` gives over `seconds` of physics frames.
 func sample_range(value: Callable, seconds: float) -> Vector2:
 	var lowest := INF

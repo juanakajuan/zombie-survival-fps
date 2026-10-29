@@ -2,7 +2,23 @@ class_name Hud
 extends CanvasLayer
 
 @export var health: Health
-@export var weapon: Weapon
+## The weapon whose name and ammo show. Player sets it on each switch.
+@export var weapon: Weapon:
+	set(value):
+		if weapon != null:
+			weapon.fired.disconnect(_on_weapon_fired)
+			weapon.ammo_changed.disconnect(_update_ammo)
+			weapon.hit.disconnect(_on_weapon_hit)
+			weapon.reload_started.disconnect(_update_ammo)
+			weapon.reload_finished.disconnect(_update_ammo)
+		weapon = value
+		weapon.fired.connect(_on_weapon_fired)
+		weapon.ammo_changed.connect(_update_ammo)
+		weapon.hit.connect(_on_weapon_hit)
+		weapon.reload_started.connect(_update_ammo)
+		weapon.reload_finished.connect(_update_ammo)
+		if is_node_ready():
+			_show_weapon()
 @export var wallet: Wallet
 @export var health_color: Color = Color(1, 1, 1, 0.95)
 @export var low_health_color: Color = Color(0.95, 0.2, 0.2)
@@ -50,17 +66,11 @@ class Readout extends RefCounted:
 
 func _ready() -> void:
 	health.changed.connect(_on_health_changed)
-	weapon.fired.connect(_crosshair.shot)
-	weapon.ammo_changed.connect(_update_ammo)
-	weapon.hit.connect(_on_weapon_hit)
 	wallet.changed.connect(_update_points.unbind(1))
-	weapon.reload_started.connect(_update_ammo)
-	weapon.reload_finished.connect(_update_ammo)
 	_health_bar.max_value = health.max_health
 	_health_max.text = "/ %d" % ceili(health.max_health)
 	_on_health_changed(health.current)
-	_weapon_name.text = weapon.data.display_name
-	_update_ammo()
+	_show_weapon()
 	_update_points()
 	_update_round()
 
@@ -99,6 +109,15 @@ func _on_health_changed(current: float) -> void:
 	_health_bar.fill_color = color
 
 
+func _show_weapon() -> void:
+	_weapon_name.text = weapon.data.display_name
+	_update_ammo()
+
+
+func _on_weapon_fired() -> void:
+	_crosshair.shot()
+
+
 func _on_weapon_hit(collider: Object, _position: Vector3) -> void:
 	var node := collider as Node
 	if node != null and Health.find_on(node) != null:
@@ -106,6 +125,8 @@ func _on_weapon_hit(collider: Object, _position: Vector3) -> void:
 
 
 func _update_ammo() -> void:
+	if not is_node_ready():
+		return
 	_ammo_value.text = "%d / %d" % [weapon.ammo, weapon.reserve]
 	_reload_label.visible = weapon.is_reloading()
 
@@ -118,7 +139,7 @@ func _update_prompt() -> void:
 	var station := weapon.wielder.focused_station() if weapon.wielder != null else null
 	_prompt.visible = station != null
 	if station != null:
-		_prompt.text = station.prompt_text()
+		_prompt.text = station.prompt_text(weapon.wielder)
 
 
 func _update_round() -> void:
