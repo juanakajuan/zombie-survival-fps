@@ -1,8 +1,10 @@
-# Weapon: fire at the dummy straight ahead, see it go away and come back, reload with R, and reload on an empty shot.
+# Weapon: fire at the dummy straight ahead, see it go away and come back, reload with R, reload on an empty shot, see a tracer, and aim down the sights.
 expect hud.ammo 12 / 48
 expect dummies.up 3
+wait 30
 shot 01-start
 tap fire
+expect hud.hit_marker true
 wait 12
 state 02-after-one-shot
 expect hud.ammo 11 / 48
@@ -25,6 +27,9 @@ expect hud.ammo 12 / 44
 state 05-reloaded
 look 0 -400
 tap fire
+expect tracers 1
+expect hud.hit_marker false
+shot 05b-tracer-sky
 wait 12
 tap fire
 wait 12
@@ -53,3 +58,12 @@ tap fire
 expect hud.reloading true
 state 06-empty-reload
 shot 06-empty-reload
+until hud.reloading false 120
+hold aim
+wait 30
+expect player.aiming true
+expect hud.crosshair false
+shot 07-aim
+release aim
+wait 10
+expect hud.crosshair true

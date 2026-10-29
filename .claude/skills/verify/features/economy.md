@@ -1,13 +1,13 @@
 # Economy
 
-The player earns points by shooting zombies: 10 for each hit, and 60 more for the shot that kills. The HUD shows the points at the top right, and the ammo as `magazine / reserve` at the bottom right. The pistol has a reserve of 48 rounds, and a reload takes rounds from it. A buy station is a dark crate with a yellow AMMO label. When the player looks at it within 2.5 m, a prompt under the crosshair shows `E  BUY AMMO  250`. E spends 250 points and fills the reserve. Target dummies give no points.
+The player earns points by shooting zombies: 10 for each hit, and 60 more for the shot that kills. The HUD shows the points at the top right, and the ammo as `magazine / reserve` at the bottom right. The pistol has a reserve of 48 rounds, and a reload takes rounds from it. A buy station is a dark crate with a yellow label: AMMO, and 250 under it. When the player looks at it within 2.5 m, a prompt under the crosshair shows `E  BUY AMMO  250`. E spends 250 points and fills the reserve. Target dummies give no points.
 
 ## Sub-features
 
 - `points-hit` adds 10 points for each shot that hits a living zombie, and 60 more for the killing shot. Round 1 has 4 zombies of 4 shots each, so clearing it gives 400 points.
 - `reserve` shows the reserve on the HUD. A reload takes only the rounds that the magazine lacks from it. With an empty reserve, R does nothing.
 - `buy-prompt` shows `E  BUY AMMO  250` while the player looks at the station, and hides it when the player looks away.
-- `buy-ammo` takes 250 points and fills the reserve to 48 on E. It does nothing, and takes nothing, when the points are too few or the reserve is full.
+- `buy-ammo` takes 250 points and fills the reserve to 48 on E. It does nothing, and takes nothing, when the points are too few, the reserve is full, or the player is dead.
 
 ## How to get to it (user POV)
 
@@ -21,7 +21,7 @@ Preconditions:
 - Baseline state: `hud.points` is `0`, `hud.ammo` is `12 / 48`, `hud.prompt_visible` is `false`.
 
 - **Earn points.** Run `until zombies.alive 4 300`, then `fight_until hud.break true 3600`. `expect hud.points 400` passes, and `expect_not hud.ammo 12 / 48` passes because reloads used the reserve. The screenshot shows POINTS 400 at the top right.
-- **Face the station.** Run `look 628 0` (the view turns right, toward +X), `hold move_forward`, `wait 30`, `release move_forward`, `wait 30`, `look 0 240` (the view tilts down to the crate top). `until hud.prompt_visible true 60` passes, and `expect hud.prompt E BUY AMMO 250` passes. The screenshot shows the yellow prompt under the crosshair.
+- **Face the station.** Run `face 0 0`, because the fight leaves the view toward the last zombie. `expect player.yaw_deg 0` passes. Then run `look 628 0` (the view turns right, toward +X), `hold move_forward`, `wait 30`, `release move_forward`, `wait 30`, `look 0 240` (the view tilts down to the crate top). `until hud.prompt_visible true 60` passes, and `expect hud.prompt E BUY AMMO 250` passes. The screenshot shows the yellow prompt under the crosshair.
 - **Buy.** Run `tap reload` and `wait 90` to fill the magazine, then `tap interact`, `wait 5`. `expect hud.points 150` and `expect hud.ammo 12 / 48` pass.
 - **Nothing to buy.** Run `tap interact`, `wait 5`. `expect hud.points 150` still passes: a full reserve buys nothing.
 - **Look away.** Run `look 0 -400`, `wait 5`. `expect hud.prompt_visible false` passes.

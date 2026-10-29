@@ -21,6 +21,16 @@ shot 03-in-jump
 look 200 0
 expect player.yaw_deg -29
 shot 04-after-look
+look 0 -2000
+expect player.pitch_deg 89
+face 0 0
+expect player.yaw_deg 0
+expect player.pitch_deg 0
+key F5
+expect player.third_person true
+shot 04b-third-person
+key F5
+expect player.third_person false
 key Escape
 expect mouse.mode visible
 expect game.paused true

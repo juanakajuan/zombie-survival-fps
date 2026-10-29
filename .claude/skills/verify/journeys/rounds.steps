@@ -1,14 +1,23 @@
-# Rounds and HUD: clear round 1, see the BREAK label, then round 2 starts and spawns 6 zombies.
+# Rounds and HUD: hurt a zombie to show its health bar, clear round 1, see the BREAK label, then round 2 starts and spawns 6 zombies.
 expect hud.round 1
 expect hud.break false
 until zombies.alive 4 300
+expect hud.objective 4 LEFT
+expect zombies.bars 0
+aim
+tap fire
+expect zombies.bars 1
+shot 00-health-bar
 fight_until hud.break true 3600
 expect zombies.alive 0
 expect hud.round 1
+expect hud.objective NEXT ROUND IN 10
 state 01-break
 shot 01-break
 until hud.break false 700
 expect hud.round 2
 until zombies.alive 6 400
+expect hud.objective 6 LEFT
+expect zombies.bars 0
 state 02-round-two
 shot 02-round-two

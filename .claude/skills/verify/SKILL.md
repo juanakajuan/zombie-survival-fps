@@ -5,7 +5,7 @@ description: Drive the Zombie Survival FPS game (Godot 4.7, levels/test_range.ts
 
 # Verify the Zombie Survival FPS
 
-The surface is the 3D game itself: keyboard, mouse, and what the screen shows. A run plays a **steps file** against the real main scene. The driver sends input through the Input Map (the same events as a real keyboard and mouse), reads what the player can see (HUD label text, the game-over screen, the player position), and saves screenshots.
+The surface is the 3D game itself: keyboard, mouse, and what the screen shows. A run plays a **steps file** against the greybox test range (`levels/test_range.tscn`), not the main scene (`levels/compound.tscn`). The driver sends input through the Input Map (the same events as a real keyboard and mouse), reads what the player can see (HUD label text, the game-over screen, the player position), and saves screenshots.
 
 Each run is a separate, short-lived process with no shared data. Many runs can go side by side. A run never touches the editor or the game that the human starts from the editor.
 
@@ -42,11 +42,12 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | Command | Effect |
 |---|---|
 | `wait <frames>` | Wait for physics frames. |
-| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `reload`, `interact`, `melee`, `restart`. |
+| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `interact`, `melee`, `restart`, `third_person`. |
 | `tap <action>` | Press, hold 2 frames, release, wait 1 frame. |
-| `key <name>` | Tap a physical key that is not an action, for example `key Escape` (opens or closes the pause menu). |
+| `key <name>` | Tap a physical key, for example `key Escape` (opens or closes the pause menu) or `key F5` (the debug third-person view). |
 | `look <dx> <dy>` | One mouse-motion event in pixels. `look 200 0` turns right by 29 degrees. |
-| `aim` | One mouse-motion event that turns the view to the nearest zombie's chest. |
+| `aim` | One mouse-motion event that turns the view to the nearest zombie's chest. It is not the `aim` action: use `hold aim` to aim down the sights. |
+| `face <yaw> <pitch>` | One mouse-motion event that turns the view to an absolute yaw and pitch in degrees. `face 0 0` looks level toward -Z, as at the start. Use it after `aim` or `fight_until`, which leave the view toward the last zombie. |
 | `fight_until <key> <value> <frames>` | Repeat `aim` and `tap fire` (about 6 shots a second) until the state key has the value. Fails at the frame limit. |
 | `until <key> <value> <frames>` | Wait until the state key has the value. Fails at the frame limit. |
 | `expect <key> <value>` / `expect_not <key> <value>` | Compare a state value now. A failed expect is recorded and the run continues. Any other failed command stops the run. |
@@ -60,12 +61,15 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `hud.health`, `hud.ammo` | The HUD text, for example `100` and `11 / 48` (rounds in the magazine, then in the reserve). |
 | `hud.points`, `hud.prompt_visible`, `hud.prompt` | The points on the HUD, whether the buy prompt shows, and its text with each run of spaces made one space, for example `E BUY AMMO 250` (empty when hidden). |
 | `hud.reloading`, `hud.break`, `hud.round_visible` | Whether the RELOADING label, the BREAK label, and the round panel show. |
-| `hud.round` | The round number on the HUD. |
+| `hud.round`, `hud.objective` | The round number on the HUD, and the line under it: `4 LEFT` during a round (zombies alive plus zombies still to spawn), `NEXT ROUND IN 10` during the break. |
+| `hud.crosshair`, `hud.hit_marker` | Whether the crosshair shows (hidden while aiming), and whether the hit marker shows (0.2 s after a shot hits a zombie or a dummy). |
 | `game_over.visible`, `game_over.text` | The game-over screen, and its text, for example `You reached round 1`. |
 | `mouse.mode` | `captured` or `visible`. |
-| `player.position`, `player.yaw_deg`, `player.dead`, `player.crouching`, `player.sliding`, `player.speed` | Feet position (`x y z`, 1 decimal), turn angle, death, crouch (true while sliding too), slide, and horizontal speed in m/s (1 decimal). The player starts at `0.0 0.0 6.0`, yaw `0`, and looks toward -Z. |
+| `player.position`, `player.yaw_deg`, `player.pitch_deg`, `player.dead`, `player.crouching`, `player.sliding`, `player.speed` | Feet position (`x y z`, 1 decimal), turn angle, up-down angle (`89` is straight up), death, crouch (true while sliding too), slide, and horizontal speed in m/s (1 decimal). The player starts at `0.0 0.0 6.0`, yaw `0`, pitch `0`, and looks toward -Z. |
+| `player.aiming`, `player.third_person` | Whether the player aims down the sights, and whether the debug third-person camera is on. |
 | `game.paused`, `pause_menu.open` | Whether the game tree is paused, and whether the pause menu shows. Esc toggles both. |
-| `zombies.alive`, `dummies.up` | Zombies in the level, and target dummies that show. |
+| `zombies.alive`, `zombies.bars`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, and target dummies that show. |
+| `tracers` | Shot tracers in flight. A tracer into the sky lives about 50 frames; one to the dummy ahead lives about 4. |
 | `frame` | The physics frame counter. |
 
 To read state while you write a new journey, add `state probe` lines and read the JSON files.
@@ -112,4 +116,4 @@ All are in `.claude/skills/verify/scripts/` and run from any directory.
 
 - gamescope cannot turn off V-Sync. The log has `WARNING: The requested V-Sync mode Disabled is not available`. This is not an error.
 - The run is real time, so frame counts in `until` are limits, not exact times. Values after movement can change by a small amount between runs. Use `expect_not` against the start value, or `until`, for movement.
-- Input events are flushed on the next frame. Every input command waits at least one frame after it sends, so an `expect` after it sees the result.
+- Input events are flushed at the start of the next main-loop iteration, and a slow frame can run two physics frames in one iteration. `look`, `aim`, and `face` wait for that flush. The other input commands wait at least one physics frame, so an `expect` after them sees the result.
