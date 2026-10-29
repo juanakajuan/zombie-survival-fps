@@ -12,7 +12,7 @@ The minimal game is done: a player can play the full loop from a fresh start, wi
 
 ## Decided rules
 
-- The zombie is the cartoon Shambler model, `zombie/zombie_model.glb`, in the same style as the pistol: beveled primitives, flat colors, and an ink outline. `art_source/zombie.py` builds it in Blender and writes `art_source/zombie.blend` and the `.glb`. Change the script, not the `.blend`, and run it again. The model is split into six parts (legs, torso, head, arms) with no rig, and `ZombieAnimator` (`zombie/zombie_animator.gd`) animates them in code, as `view_model.gd` animates the pistol. A PS1-style generated model with rigged animation was tried and rejected.
+- The zombie is the cartoon Shambler model, `zombie/zombie_model.glb`, in the same style as the pistol: beveled primitives, flat colors, and an ink outline. Its source is `art_source/zombie.blend`. Edit the `.blend` in Blender (through the Blender MCP or by hand), then export the `.glb` from it. Do not add a build script. The model has six parts with no rig: `LegL`, `LegR`, and `Torso`, with `Head`, `ArmL`, and `ArmR` under `Torso`. Each part has its origin on its joint. Keep these names and origins, and `ZombieAnimator` (`zombie/zombie_animator.gd`) animates them in code, as `view_model.gd` animates the pistol. A PS1-style generated model with rigged animation was tried and rejected.
 - The level uses Godot primitives and code for meshes and materials. The only imported models are the pistol view model, `weapons/pistol.glb` (Blender source `art_source/pistol.blend`), and the zombie.
 - Weapons are hitscan. A shot is one ray from the camera.
 - The player cannot shoot while sprinting.

@@ -1,6 +1,6 @@
 class_name Zombie
 extends CharacterBody3D
-## Melee zombie with the cartoon Shambler model (art_source/zombie.py). It follows the navigation mesh to its target and hits it when close. The origin is at the feet.
+## Melee zombie with the cartoon Shambler model (art_source/zombie.blend). It follows the navigation mesh to its target and hits it when close. The origin is at the feet.
 
 enum State { CHASE, ATTACK, DEAD }
 

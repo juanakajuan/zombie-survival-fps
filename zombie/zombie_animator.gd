@@ -2,7 +2,7 @@ class_name ZombieAnimator
 extends Node
 ## Poses the zombie model in code: a shambling walk that follows the move speed, an idle sway, an arm slam on each hit,
 ## and a fall onto its back when it dies.
-## It moves the parts that art_source/zombie.py makes: LegL, LegR, Torso, and its children Head, ArmL, and ArmR.
+## It moves the parts of art_source/zombie.blend: LegL, LegR, Torso, and its children Head, ArmL, and ArmR.
 
 @export_group("Walk")
 ## Full leg cycles for each metre walked.
