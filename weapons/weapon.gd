@@ -1,6 +1,6 @@
 class_name Weapon
 extends Node3D
-## Hitscan weapon. It shoots along its own -Z axis and ignores its wielder.
+## Hitscan weapon. It shoots along its own -Z axis and ignores its wielder. Each shot shows a tracer from the muzzle.
 
 signal fired
 signal reload_started
@@ -115,9 +115,11 @@ func _shoot() -> void:
 	query.hit_from_inside = true
 	var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
 	if result.is_empty():
+		_spawn_tracer(query.to)
 		return
 	var collider: Object = result["collider"]
 	var point: Vector3 = result["position"]
+	_spawn_tracer(point)
 	hit.emit(collider, point)
 	if collider is Node:
 		var health := Health.find_on(collider as Node)
@@ -126,3 +128,14 @@ func _shoot() -> void:
 				return
 			health.damage(data.damage)
 			damaged.emit(collider, health.is_dead())
+
+
+func _spawn_tracer(to: Vector3) -> void:
+	if data.tracer == null:
+		return
+	var tracer := data.tracer.instantiate() as Tracer
+	add_child(tracer)
+	var from := global_position
+	if view_model != null and view_model.muzzle != null:
+		from = view_model.muzzle.global_position
+	tracer.launch(from, to)
