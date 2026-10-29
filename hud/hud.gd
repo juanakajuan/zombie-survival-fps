@@ -3,6 +3,7 @@ extends CanvasLayer
 
 @export var health: Health
 @export var weapon: Weapon
+@export var melee: Melee
 @export var wallet: Wallet
 @export var health_color: Color = Color(1, 1, 1, 0.95)
 @export var low_health_color: Color = Color(0.95, 0.2, 0.2)
@@ -14,6 +15,8 @@ var round_manager: RoundManager:
 		round_manager = value
 		round_manager.round_started.connect(_update_round.unbind(1))
 		round_manager.round_ended.connect(_update_round.unbind(1))
+		round_manager.round_started.connect(round_start_sound.play.unbind(1))
+		round_manager.round_ended.connect(break_sound.play.unbind(1))
 		_update_round()
 
 ## What the HUD shows, as a player sees it. Tests and the verify driver read it.
@@ -33,6 +36,10 @@ class Readout extends RefCounted:
 	var crosshair_visible: bool
 
 
+@onready var hit_sound: AudioStreamPlayer = $HitSound
+@onready var kill_sound: AudioStreamPlayer = $KillSound
+@onready var round_start_sound: AudioStreamPlayer = $RoundStartSound
+@onready var break_sound: AudioStreamPlayer = $BreakSound
 @onready var _crosshair: Crosshair = %Crosshair
 @onready var _health_value: Label = %HealthValue
 @onready var _health_max: Label = %HealthMax
@@ -53,6 +60,8 @@ func _ready() -> void:
 	weapon.fired.connect(_crosshair.shot)
 	weapon.ammo_changed.connect(_update_ammo)
 	weapon.hit.connect(_on_weapon_hit)
+	weapon.damaged.connect(_on_damaged)
+	melee.damaged.connect(_on_damaged)
 	wallet.changed.connect(_update_points.unbind(1))
 	weapon.reload_started.connect(_update_ammo)
 	weapon.reload_finished.connect(_update_ammo)
@@ -103,6 +112,10 @@ func _on_weapon_hit(collider: Object, _position: Vector3) -> void:
 	var node := collider as Node
 	if node != null and Health.find_on(node) != null:
 		_crosshair.hit()
+
+
+func _on_damaged(_target: Node, killed: bool) -> void:
+	(kill_sound if killed else hit_sound).play()
 
 
 func _update_ammo() -> void:
