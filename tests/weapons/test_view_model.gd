@@ -151,3 +151,13 @@ func test_hand_does_not_spin_with_the_thrown_gun() -> void:
 	await physics_frames(SETTLE_FRAMES)
 	assert_true(view.hand.global_transform.is_equal_approx(view.model.global_transform), "the hand holds the new gun")
 
+
+func test_first_person_gun_and_hand_neither_cast_nor_receive_shadows() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var meshes := player.weapon.view_model.find_children("*", "MeshInstance3D", true, false)
+	assert_true(meshes.size() > 1, "the view model has meshes")
+	for mesh: MeshInstance3D in meshes:
+		assert_eq(mesh.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "%s casts no shadow" % mesh.name)
+		for surface: int in mesh.mesh.get_surface_count():
+			var material := mesh.get_active_material(surface) as BaseMaterial3D
+			assert_true(material.disable_receive_shadows, "%s surface %d receives no shadow" % [mesh.name, surface])

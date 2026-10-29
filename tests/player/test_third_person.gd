@@ -14,7 +14,7 @@ func test_third_person_puts_the_camera_behind_the_player_and_shows_the_body() ->
 		"camera is behind the head")
 	assert_true(behind.dot(-camera.global_basis.z) < 0.0, "camera looks toward the player")
 	for mesh: MeshInstance3D in player.body.find_children("*", "MeshInstance3D", true, false):
-		assert_true(camera.cull_mask & mesh.layers != 0, "camera draws %s" % mesh.name)
+		assert_eq(mesh.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_ON, "camera draws %s" % mesh.name)
 	assert_true(not player.weapon.view_model.is_visible_in_tree(), "the first-person gun hides")
 	_press_third_person()
 	await physics_frames(2)

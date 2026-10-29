@@ -29,7 +29,6 @@ script = ExtResource("8_animator")
 position = Vector3(0, 1.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head"]
-cull_mask = 1048573
 fov = 80.0
 current = true
 

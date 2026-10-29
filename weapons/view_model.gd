@@ -93,6 +93,8 @@ var _slide_rest: Vector3
 var _tween: Tween
 var _wind_up: Transform3D
 var _toss_time := 0.0
+## One copy of each view model material that does not receive shadows, shared by every view model.
+static var _unshadowed_copies: Dictionary[BaseMaterial3D, BaseMaterial3D] = {}
 var _player: Player
 var _lowered := false
 
@@ -110,6 +112,7 @@ var _last_view := Vector2.ZERO
 
 
 func _ready() -> void:
+	_detach_from_shadows()
 	_motion_rest = motion.transform
 	_model_rest = model.transform
 	_slide_rest = slide.position
@@ -265,6 +268,25 @@ func _lowered_transform() -> Transform3D:
 func _hold_hand_upright(upright: bool) -> void:
 	if hand_anchor != null:
 		hand_anchor.update_rotation = not upright
+
+
+## The view model floats in front of the camera, so its shadow would fall where no gun is, and the player's own
+## body shadow would speckle it.
+func _detach_from_shadows() -> void:
+	for mesh: MeshInstance3D in find_children("*", "MeshInstance3D", true, false):
+		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		for surface: int in mesh.mesh.get_surface_count():
+			var material := mesh.get_active_material(surface) as BaseMaterial3D
+			if material != null:
+				mesh.set_surface_override_material(surface, _unshadowed(material))
+
+
+static func _unshadowed(material: BaseMaterial3D) -> BaseMaterial3D:
+	if not _unshadowed_copies.has(material):
+		var copy := material.duplicate() as BaseMaterial3D
+		copy.disable_receive_shadows = true
+		_unshadowed_copies[material] = copy
+	return _unshadowed_copies[material]
 
 
 func _restart_tween() -> void:

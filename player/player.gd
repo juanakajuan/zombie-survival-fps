@@ -54,10 +54,6 @@ const GROUP := &"player"
 ## Each second, the zoom closes this much of the gap to its target. Higher is snappier.
 @export_range(0.1, 40.0, 0.1) var aim_sharpness: float = 14.0
 
-@export_group("Body")
-## Render layers of the body model. The player's own camera does not draw these layers.
-@export_flags_3d_render var body_layers: int = 2
-
 @export_group("Third person (debug)")
 ## In a debug build, the third_person action moves the camera behind the player so the body shows.
 ## The camera sits this far behind the head, and stops short of walls.
@@ -104,9 +100,8 @@ func _ready() -> void:
 	# Every Player instance shares the scene's capsule, so crouching must resize a copy.
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
-	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false):
-		mesh.layers = body_layers
 	animator.attach(body)
+	_set_third_person(false)
 	_stand_height = _shape.height
 	_stand_head_height = head.position.y
 	# Physics moves the body 60 times a second. On a faster screen the camera would hold still for some frames
@@ -246,7 +241,11 @@ func is_third_person() -> bool:
 
 func _set_third_person(on: bool) -> void:
 	_third_person = on
-	camera.cull_mask = camera.cull_mask | body_layers if on else camera.cull_mask & ~body_layers
+	# In first person the body draws only its shadow, so it does not block the view. A camera cull mask would hide
+	# the shadow too.
+	var casting := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if on else GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false):
+		mesh.cast_shadow = casting
 	if weapon.view_model != null:
 		weapon.view_model.visible = not on
 

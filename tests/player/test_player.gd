@@ -283,13 +283,12 @@ func test_release_crouch_stands_up() -> void:
 	assert_almost_eq(camera.global_position.y, standing_eye, 0.01, "camera is back at standing height")
 
 
-func test_body_is_hidden_from_own_camera_and_crouches_with_the_capsule() -> void:
+func test_body_draws_only_its_shadow_in_first_person_and_crouches_with_the_capsule() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	var camera := player.camera
 	var meshes := player.body.find_children("*", "MeshInstance3D", true, false)
 	assert_true(not meshes.is_empty(), "the body has a model")
 	for mesh: MeshInstance3D in meshes:
-		assert_true(camera.cull_mask & mesh.layers == 0, "own camera does not draw %s" % mesh.name)
+		assert_eq(mesh.cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY, "%s draws only its shadow" % mesh.name)
 	var standing := _body_bounds(player)
 	assert_almost_eq(standing.position.y, player.global_position.y, 0.05, "standing body stands on the feet")
 	assert_almost_eq(standing.size.y, 1.85, 0.1, "standing body is about 1.85 m tall")
