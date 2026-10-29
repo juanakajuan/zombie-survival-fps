@@ -31,5 +31,5 @@ expect game.paused false
 expect pause_menu.open false
 expect mouse.mode captured
 wait 12
-expect hud.ammo 12 / 12
+expect hud.ammo 12 / 48
 state 06-resumed

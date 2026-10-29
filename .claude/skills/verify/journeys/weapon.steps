@@ -1,18 +1,18 @@
 # Weapon: fire at the dummy straight ahead, see it go away and come back, reload with R, and reload on an empty shot.
-expect hud.ammo 12 / 12
+expect hud.ammo 12 / 48
 expect dummies.up 3
 shot 01-start
 tap fire
 wait 12
 state 02-after-one-shot
-expect hud.ammo 11 / 12
+expect hud.ammo 11 / 48
 tap fire
 wait 12
 tap fire
 wait 12
 tap fire
 wait 12
-expect hud.ammo 8 / 12
+expect hud.ammo 8 / 48
 expect dummies.up 2
 shot 03-dummy-down
 until dummies.up 3 180
@@ -21,7 +21,7 @@ wait 6
 expect hud.reloading true
 shot 04-reloading
 until hud.reloading false 120
-expect hud.ammo 12 / 12
+expect hud.ammo 12 / 44
 state 05-reloaded
 look 0 -400
 tap fire
@@ -48,7 +48,7 @@ tap fire
 wait 12
 tap fire
 wait 12
-expect hud.ammo 0 / 12
+expect hud.ammo 0 / 44
 tap fire
 expect hud.reloading true
 state 06-empty-reload

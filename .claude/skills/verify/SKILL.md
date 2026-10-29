@@ -42,7 +42,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | Command | Effect |
 |---|---|
 | `wait <frames>` | Wait for physics frames. |
-| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `reload`, `restart`. |
+| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `reload`, `interact`, `restart`. |
 | `tap <action>` | Press, hold 2 frames, release, wait 1 frame. |
 | `key <name>` | Tap a physical key that is not an action, for example `key Escape` (opens or closes the pause menu). |
 | `look <dx> <dy>` | One mouse-motion event in pixels. `look 200 0` turns right by 29 degrees. |
@@ -57,7 +57,8 @@ State keys (all values are strings, and booleans are `true` or `false`):
 
 | Key | What the player sees |
 |---|---|
-| `hud.health`, `hud.ammo` | The HUD text, for example `100` and `11 / 12`. |
+| `hud.health`, `hud.ammo` | The HUD text, for example `100` and `11 / 48` (rounds in the magazine, then in the reserve). |
+| `hud.points`, `hud.prompt_visible`, `hud.prompt` | The points on the HUD, whether the buy prompt shows, and its text with each run of spaces made one space, for example `E BUY AMMO 250` (empty when hidden). |
 | `hud.reloading`, `hud.break`, `hud.round_visible` | Whether the RELOADING label, the BREAK label, and the round panel show. |
 | `hud.round` | The round number on the HUD. |
 | `game_over.visible`, `game_over.text` | The game-over screen, and its text, for example `You reached round 1`. |
