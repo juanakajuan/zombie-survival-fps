@@ -42,9 +42,21 @@ extends Node
 ## The part of the look pitch that the head follows. The arms that hold the gun follow all of it.
 @export_range(0.0, 1.0, 0.01) var head_follow: float = 0.6
 
+@export_group("Punch")
+## In the wind-up the left arm pulls back to this pitch.
+@export_range(-60.0, 120.0, 1.0, "suffix:°") var punch_cock: float = 30.0
+## The left arm jabs out to this pitch, before the look pitch is added.
+@export_range(0.0, 120.0, 1.0, "suffix:°") var punch_lift: float = 88.0
+## The jab turns this far toward the middle of the body, so the fist lands in front of the head.
+@export_range(0.0, 45.0, 1.0, "suffix:°") var punch_aim: float = 12.0
+## The part of the punch after the wind-up in which the arm stays out. Then the arm blends back.
+@export_range(0.01, 0.99, 0.01) var punch_hold_share: float = 0.3
+
 ## How fast the pose blends between walking, standing, in the air, crouched, and aiming.
 @export_range(0.1, 40.0, 0.1) var blend_sharpness: float = 12.0
 
+## The part of the punch that the wind-up takes. Player sets it from the melee timings.
+var punch_wind_share: float = 0.28
 var _leg_l: Node3D
 var _leg_r: Node3D
 var _shin_l: Node3D
@@ -84,8 +96,9 @@ func attach(model: Node3D) -> void:
 
 
 ## Moves the pose on by one step. `look_pitch` is in radians, positive up. `airborne` is true in the air and on a
-## slide, when the legs hold a stride instead of walking.
-func advance(delta: float, speed: float, airborne: bool, crouching: bool, aiming: bool, look_pitch: float) -> void:
+## slide, when the legs hold a stride instead of walking. `punch_progress` is how far the punch has gone,
+## from 0 to 1, or -1 when the player does not punch.
+func advance(delta: float, speed: float, airborne: bool, crouching: bool, aiming: bool, look_pitch: float, punch_progress: float) -> void:
 	_time += delta
 	var blend := 1.0 - exp(-blend_sharpness * delta)
 	_air_weight = lerpf(_air_weight, 1.0 if airborne else 0.0, blend)
@@ -118,8 +131,12 @@ func advance(delta: float, speed: float, airborne: bool, crouching: bool, aiming
 	var hold := deg_to_rad(hold_angle + lean) + look_pitch
 	var swing := deg_to_rad(arm_swing) * cos(_phase) * _walk_weight
 	_arm_r.rotation.x = hold
-	_arm_l.rotation.x = lerpf(-swing - deg_to_rad(air_arm) * _air_weight, hold, _aim_weight)
-	_arm_l.rotation.z = deg_to_rad(-0.5 * air_arm) * _air_weight * (1.0 - _aim_weight)
+	var free_arm := Vector3(
+		lerpf(-swing - deg_to_rad(air_arm) * _air_weight, hold, _aim_weight),
+		0.0,
+		deg_to_rad(-0.5 * air_arm) * _air_weight * (1.0 - _aim_weight),
+	)
+	_arm_l.rotation = _punch_arm(free_arm, punch_progress, look_pitch)
 
 
 ## The pitch of the left leg in radians. Positive swings it forward.
@@ -145,6 +162,24 @@ func knee_pitch() -> float:
 ## The pitch of the head in radians. Positive tilts it up.
 func head_pitch() -> float:
 	return _head.rotation.x
+
+
+## The left arm rotation for the punch: it pulls back, jabs straight out, then blends back to `free_arm`.
+func _punch_arm(free_arm: Vector3, progress: float, look_pitch: float) -> Vector3:
+	if progress < 0.0:
+		return free_arm
+	var cocked := Vector3(deg_to_rad(punch_cock), 0.0, 0.0)
+	var jab := Vector3(deg_to_rad(punch_lift) + look_pitch, deg_to_rad(-punch_aim), 0.0)
+	var hold_end := punch_wind_share + (1.0 - punch_wind_share) * punch_hold_share
+	if progress < punch_wind_share:
+		return free_arm.lerp(cocked, _ease_out(progress / punch_wind_share))
+	if progress < hold_end:
+		return cocked.lerp(jab, _ease_out((progress - punch_wind_share) / (hold_end - punch_wind_share) * 3.0))
+	return jab.lerp(free_arm, (progress - hold_end) / (1.0 - hold_end))
+
+
+func _ease_out(t: float) -> float:
+	return 1.0 - pow(1.0 - clampf(t, 0.0, 1.0), 3.0)
 
 
 func _part(model: Node3D, part_name: String) -> Node3D:

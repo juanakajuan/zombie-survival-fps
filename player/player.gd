@@ -76,6 +76,8 @@ const GROUP := &"player"
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
 var weapon: Weapon
+var melee: Melee
+var punch_view: PunchView
 var settings: GameSettings
 
 enum Stance { STANDING, CROUCHED, SLIDING }
@@ -94,12 +96,17 @@ func _enter_tree() -> void:
 	# The weapon and its view model read the wielder in their _ready, which runs before this node's _ready.
 	weapon = $Head/Camera3D/Weapon
 	weapon.wielder = self
+	melee = $Melee
+	melee.wielder = self
+	punch_view = $Head/Camera3D/PunchView
+	punch_view.melee = melee
 
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_health.died.connect(_on_health_died)
-	weapon.damaged.connect(_on_weapon_damaged)
+	weapon.damaged.connect(_on_damaged)
+	melee.damaged.connect(_on_damaged)
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.settings_changed.connect(_apply_settings)
 	settings = GameSettings.load_saved()
@@ -108,6 +115,7 @@ func _ready() -> void:
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
 	animator.attach(body)
+	animator.punch_wind_share = melee.wind_up_time / (melee.wind_up_time + melee.recover_time)
 	_set_third_person(false)
 	_stand_height = _shape.height
 	_stand_head_height = head.position.y
@@ -144,6 +152,8 @@ func _physics_process(delta: float) -> void:
 	_update_focus()
 	if _focused != null and weapon.trigger_enabled and Input.is_action_just_pressed("interact"):
 		_focused.buy(self)
+	if weapon.trigger_enabled and not weapon.is_reloading() and Input.is_action_just_pressed("melee"):
+		melee.try_swing()
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_update_stance(on_floor, delta)
 	# A new press is needed for each jump, so holding jump does not hop again on landing.
@@ -167,7 +177,7 @@ func _physics_process(delta: float) -> void:
 	elif _stance != Stance.SLIDING:
 		_accelerate(wish_dir, target_speed, ground_acceleration, delta)
 	move_and_slide()
-	animator.advance(delta, _horizontal_speed(), not is_on_floor() or is_sliding(), is_crouching(), is_aiming(), head.rotation.x)
+	animator.advance(delta, _horizontal_speed(), not is_on_floor() or is_sliding(), is_crouching(), is_aiming(), head.rotation.x, melee.progress())
 	# The weapon is a child of the camera and fires in its own _physics_process, after this one.
 	# This puts the shot at the true head position, not the one drawn on screen.
 	_place_camera(head.global_position)
@@ -212,6 +222,11 @@ func is_sliding() -> bool:
 	return _stance == Stance.SLIDING
 
 
+## True from the start to the end of a punch. The weapon cannot fire or reload during it.
+func is_meleeing() -> bool:
+	return melee.is_swinging()
+
+
 func is_dead() -> bool:
 	return _health.is_dead()
 
@@ -234,7 +249,7 @@ func _on_health_died() -> void:
 	died.emit()
 
 
-func _on_weapon_damaged(target: Node, killed: bool) -> void:
+func _on_damaged(target: Node, killed: bool) -> void:
 	if target is Zombie:
 		wallet.reward_hit(killed)
 
@@ -280,6 +295,7 @@ func _set_third_person(on: bool) -> void:
 		mesh.cast_shadow = casting
 	if weapon.view_model != null:
 		weapon.view_model.visible = not on
+	punch_view.visible = not on
 
 
 func _look_basis() -> Basis:

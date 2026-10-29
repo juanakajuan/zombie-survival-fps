@@ -21,7 +21,7 @@ The minimal game is done: a player can play the full loop from a fresh start, wi
 - The slide is the fast way to move. There is no bunny hop: each jump needs a new press of jump, and air control never takes the speed above the speed at takeoff or the target speed.
 - A node that can take damage has a `Health` child (`health/health.gd`). Code that deals damage finds it with `Health.find_on(node)`.
 - `RoundSettings` (`rounds/round_settings.tres`) is the only source of zombie count, health, and speed for each round.
-- Points come from shots that hit a living zombie (`Wallet.points_per_hit`) and from the killing shot (`Wallet.kill_bonus`). Target dummies and corpses give none. The `Wallet` on the player is the only owner of the balance.
+- Points come from shots and punches that hit a living zombie (`Wallet.points_per_hit`) and from the killing blow (`Wallet.kill_bonus`). Target dummies and corpses give none. The `Wallet` on the player is the only owner of the balance.
 - The reserve is per weapon (`WeaponData.max_reserve`). A reload moves rounds from the reserve into the magazine, and with an empty reserve there is no reload.
 - A `BuyStation` sells one `BuyItem` resource (`economy/`). A subclass of `BuyItem` says when the item can be bought and what it gives (`AmmoItem` fills the reserve). A new thing to buy, such as a weapon or a door, is a new `BuyItem` subclass and a `.tres`, not a new station.
 
@@ -31,7 +31,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 
 | Part | Folder | What the player gets |
 |---|---|---|
-| Player | `player/` | Movement with ground friction, sprint, crouch, a slide (crouch while sprinting: a speed boost, low friction, and a jump that keeps the speed), limited air control, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, using a buy station with **E**, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
+| Player | `player/` | Movement with ground friction, sprint, crouch, a slide (crouch while sprinting: a speed boost, low friction, and a jump that keeps the speed), limited air control, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, using a buy station with **E**, a punch with the left hand (**V**: damage at short reach, and the pistol cannot fire or reload during it), and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
 | Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) with a magazine, a reserve of 48 rounds that a reload draws from, and a reload that needs a reserve. The animated view model (`view_model.gd`), the thrown guns of a reload (debris on physics layer 2), and a tracer (`tracer.gd`) that flies from the muzzle to where each shot ended. It shows the shot and does no damage. |
 | Health | `health/` | The `Health` node that takes damage, `HitFlash`, which flashes a material red on a hit, and `HealthBar`, a cartoon bar over a zombie that shows after its first hit and hides when it dies. |
 | Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |
