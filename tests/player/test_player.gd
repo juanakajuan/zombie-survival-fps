@@ -113,7 +113,7 @@ func test_jump_in_air_adds_no_upward_velocity() -> void:
 	assert_true(highest <= velocity_before + 0.01, "air jump added upward velocity: before %s, after %s" % [velocity_before, highest])
 
 
-func test_holding_jump_hops_again_on_landing() -> void:
+func test_holding_jump_hops_only_once() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("jump")
 	var takeoffs := 0
@@ -123,21 +123,124 @@ func test_holding_jump_hops_again_on_landing() -> void:
 		if was_on_floor and not player.is_on_floor():
 			takeoffs += 1
 		was_on_floor = player.is_on_floor()
-	assert_true(takeoffs >= 2, "holding jump hops more than once, got %s takeoffs" % takeoffs)
+	assert_eq(takeoffs, 1, "holding jump hops once")
+	assert_true(player.is_on_floor(), "player stays on the floor after the landing")
 
 
-func test_air_strafing_gains_speed_above_sprint_speed() -> void:
+func test_air_strafing_does_not_gain_speed() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("move_forward")
+	Input.action_press("sprint")
 	await run_seconds(1.0)
 	Input.action_release("move_forward")
 	Input.action_press("move_right")
-	Input.action_press("jump")
 	var turn_per_frame := deg_to_rad(3.0) / player.mouse_sensitivity
+	var fastest := 0.0
 	for _i: int in roundi(3.0 * Engine.physics_ticks_per_second):
+		if player.is_on_floor():
+			Input.action_release("jump")
+			await physics_frames(1)
+			Input.action_press("jump")
 		player.look(Vector2(turn_per_frame, 0.0))
 		await physics_frames(1)
-	assert_true(_horizontal_speed(player) > player.sprint_speed + 1.0, "air strafing reached %s m/s" % _horizontal_speed(player))
+		fastest = maxf(fastest, _horizontal_speed(player))
+	assert_true(fastest <= player.sprint_speed + 0.05, "strafe hopping reached %s m/s" % fastest)
+
+
+func test_crouch_while_sprinting_slides_faster_then_slows_to_a_crouch() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var standing_eye := player.camera.global_position.y
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await run_seconds(1.0)
+	Input.action_press("crouch")
+	await physics_frames(2)
+	assert_true(player.is_sliding(), "is_sliding is true")
+	assert_true(player.is_crouching(), "a sliding player is low")
+	assert_true(_horizontal_speed(player) > player.sprint_speed + 1.0, "the slide boosts the speed, got %s" % _horizontal_speed(player))
+	await run_seconds(0.3)
+	assert_true(player.camera.global_position.y < standing_eye - 0.5, "camera went down, got %s" % player.camera.global_position.y)
+	await run_seconds(3.0)
+	assert_true(not player.is_sliding(), "the slide ends")
+	assert_true(player.is_crouching(), "the player is crouched after the slide")
+	assert_almost_eq(_horizontal_speed(player), player.crouch_speed, SPEED_TOLERANCE, "speed is crouch_speed")
+
+
+func test_slide_goes_farther_than_sprinting() -> void:
+	var sprinter := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await run_seconds(1.0)
+	var start := sprinter.global_position
+	Input.action_press("crouch")
+	await run_seconds(1.0)
+	var distance := _horizontal_distance(start, sprinter.global_position)
+	assert_true(distance > sprinter.sprint_speed * 1.05, "slid %s m in 1 s" % distance)
+
+
+func test_walking_then_crouching_does_not_slide() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	Input.action_press("move_forward")
+	await run_seconds(1.0)
+	Input.action_press("crouch")
+	await physics_frames(2)
+	assert_true(not player.is_sliding(), "a walking player crouches")
+	assert_true(_horizontal_speed(player) <= player.walk_speed + 0.05, "no boost")
+
+
+func test_releasing_crouch_ends_the_slide_and_stands_up() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await run_seconds(1.0)
+	Input.action_press("crouch")
+	await run_seconds(0.2)
+	Input.action_release("crouch")
+	await physics_frames(2)
+	assert_true(not player.is_sliding(), "the slide ends")
+	assert_true(not player.is_crouching(), "the player stands")
+
+
+func test_jump_out_of_a_slide_keeps_the_slide_speed() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await run_seconds(1.0)
+	Input.action_press("crouch")
+	await physics_frames(2)
+	var slide_speed := _horizontal_speed(player)
+	Input.action_press("jump")
+	await physics_frames(10)
+	assert_true(not player.is_on_floor(), "player is in the air")
+	assert_true(not player.is_sliding(), "the jump ends the slide")
+	assert_true(_horizontal_speed(player) > slide_speed - 0.2, "air speed %s keeps slide speed %s" % [_horizontal_speed(player), slide_speed])
+
+
+func test_slide_boost_waits_for_the_cooldown() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await run_seconds(1.0)
+	Input.action_press("crouch")
+	await physics_frames(2)
+	Input.action_release("crouch")
+	await physics_frames(2)
+	var speed_before := _horizontal_speed(player)
+	Input.action_press("crouch")
+	await physics_frames(2)
+	assert_true(player.is_sliding(), "the second slide starts")
+	assert_true(_horizontal_speed(player) <= speed_before, "no second boost during the cooldown: %s then %s" % [speed_before, _horizontal_speed(player)])
+
+
+func test_dead_player_does_not_slide() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	Input.action_press("move_forward")
+	Input.action_press("sprint")
+	await run_seconds(1.0)
+	_kill(player)
+	Input.action_press("crouch")
+	await physics_frames(2)
+	assert_true(not player.is_sliding(), "a dead player does not slide")
 
 
 func test_no_input_in_the_air_keeps_horizontal_speed() -> void:

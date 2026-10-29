@@ -16,6 +16,7 @@ The minimal game is done: a player can play the full loop from a fresh start, wi
 - The level and the zombies use Godot primitives and code for meshes and materials. The only imported model is the pistol view model, `weapons/pistol.glb`. Its Blender source is `art_source/pistol.blend`.
 - Weapons are hitscan. A shot is one ray from the camera.
 - The player cannot shoot while sprinting.
+- The slide is the fast way to move. There is no bunny hop: each jump needs a new press of jump, and air control never takes the speed above the speed at takeoff or the target speed.
 - A node that can take damage has a `Health` child (`health/health.gd`). Code that deals damage finds it with `Health.find_on(node)`.
 - `RoundSettings` (`rounds/round_settings.tres`) is the only source of zombie count, health, and speed for each round.
 
@@ -25,7 +26,7 @@ Each part is a folder with its scenes, scripts, and data. The folder's tests in 
 
 | Part | Folder | What the player gets |
 |---|---|---|
-| Player | `player/` | Quake-style movement (ground friction, air strafing, jump held to hop again), sprint, crouch, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
+| Player | `player/` | Movement with ground friction, sprint, crouch, a slide (crouch while sprinting: a speed boost, low friction, and a jump that keeps the speed), limited air control, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
 | Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) with a magazine, a reload, and no reserve ammo. The animated view model (`view_model.gd`) and the thrown guns of a reload (debris on physics layer 2). |
 | Health | `health/` | The `Health` node that takes damage, and `HitFlash`, which flashes a mesh red on a hit. |
 | Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |

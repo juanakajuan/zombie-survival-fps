@@ -1,0 +1,21 @@
+# Slide: turn to face +Z, sprint, then hold crouch. The slide starts faster than the sprint and the camera goes low. Releasing crouch stands the player up before the wall at z = 20.
+expect player.position 0.0 0.0 6.0
+look 1257 0
+hold sprint
+hold move_forward
+wait 45
+state 01-sprinting
+hold crouch
+wait 3
+expect player.sliding true
+state 02-slide-start
+wait 20
+expect player.sliding true
+expect player.crouching true
+state 03-mid-slide
+shot 03-mid-slide
+release crouch
+wait 3
+expect player.sliding false
+expect player.crouching false
+state 04-stood-up
