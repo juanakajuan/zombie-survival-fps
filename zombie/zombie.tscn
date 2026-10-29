@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://health/hit_flash.gd" id="3_flash"]
 [ext_resource type="PackedScene" path="res://zombie/zombie_model.glb" id="4_model"]
 [ext_resource type="Script" path="res://zombie/zombie_animator.gd" id="5_animator"]
+[ext_resource type="PackedScene" path="res://health/health_bar.tscn" id="6_bar"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -27,6 +28,9 @@ script = ExtResource("2_health")
 
 [node name="HitFlash" type="Node" parent="."]
 script = ExtResource("3_flash")
+
+[node name="HealthBar" parent="." instance=ExtResource("6_bar")]
+position = Vector3(0, 2.15, 0)
 
 [node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
 path_desired_distance = 0.4

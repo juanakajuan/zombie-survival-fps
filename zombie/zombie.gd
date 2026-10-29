@@ -31,6 +31,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var _hit_flash: HitFlash = $HitFlash
 @onready var animator: ZombieAnimator = $Animator
 @onready var _model: Node3D = $Model
+@onready var health_bar: HealthBar = $HealthBar
 
 
 func _ready() -> void:
