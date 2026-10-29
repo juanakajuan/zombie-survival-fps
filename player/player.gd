@@ -77,7 +77,7 @@ const GROUP := &"player"
 
 var weapon: Weapon
 var melee: Melee
-var slap_view: SlapView
+var punch_view: PunchView
 var settings: GameSettings
 
 enum Stance { STANDING, CROUCHED, SLIDING }
@@ -98,8 +98,8 @@ func _enter_tree() -> void:
 	weapon.wielder = self
 	melee = $Melee
 	melee.wielder = self
-	slap_view = $Head/Camera3D/SlapView
-	slap_view.melee = melee
+	punch_view = $Head/Camera3D/PunchView
+	punch_view.melee = melee
 
 
 func _ready() -> void:
@@ -115,7 +115,7 @@ func _ready() -> void:
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
 	animator.attach(body)
-	animator.slap_wind_share = melee.wind_up_time / (melee.wind_up_time + melee.recover_time)
+	animator.punch_wind_share = melee.wind_up_time / (melee.wind_up_time + melee.recover_time)
 	_set_third_person(false)
 	_stand_height = _shape.height
 	_stand_head_height = head.position.y
@@ -222,7 +222,7 @@ func is_sliding() -> bool:
 	return _stance == Stance.SLIDING
 
 
-## True from the start to the end of a backhand slap. The weapon cannot fire or reload during it.
+## True from the start to the end of a punch. The weapon cannot fire or reload during it.
 func is_meleeing() -> bool:
 	return melee.is_swinging()
 
@@ -295,7 +295,7 @@ func _set_third_person(on: bool) -> void:
 		mesh.cast_shadow = casting
 	if weapon.view_model != null:
 		weapon.view_model.visible = not on
-	slap_view.visible = not on
+	punch_view.visible = not on
 
 
 func _look_basis() -> Basis:

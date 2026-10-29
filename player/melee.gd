@@ -1,6 +1,6 @@
 class_name Melee
 extends Node
-## The wielder's backhand slap. A swing winds up, strikes once at the end of the wind-up, then recovers.
+## The wielder's punch. A swing winds up, strikes once at the end of the wind-up, then recovers.
 ## The strike hits every living Health inside a sphere in front of the head, once each.
 
 signal swung
@@ -19,7 +19,7 @@ enum State { READY, WIND_UP, RECOVER }
 ## Physics layers that the strike can hit.
 @export_flags_3d_physics var hit_mask: int = 1
 
-## The player who slaps. The strike never hits the wielder. Player sets it.
+## The player who punches. The strike never hits the wielder. Player sets it.
 var wielder: Player
 
 var _state: State = State.READY

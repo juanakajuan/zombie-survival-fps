@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://gboefbxk6oku"
-path="res://.godot/imported/player_slap_hand.glb-442eb3e19eb3e6b67104cc169b6288a4.scn"
+uid="uid://bq66x5nywat7c"
+path="res://.godot/imported/player_fist.glb-fd4fbd3e832ccab69f8a01213a343852.scn"
 
 [deps]
 
-source_file="res://player/player_slap_hand.glb"
-dest_files=["res://.godot/imported/player_slap_hand.glb-442eb3e19eb3e6b67104cc169b6288a4.scn"]
+source_file="res://player/player_fist.glb"
+dest_files=["res://.godot/imported/player_fist.glb-fd4fbd3e832ccab69f8a01213a343852.scn"]
 
 [params]
 

@@ -84,10 +84,10 @@ extends Node3D
 ## Each second, the aim pose closes this much of the gap to its target. Higher is snappier.
 @export_range(0.1, 40.0, 0.1) var aim_sharpness: float = 14.0
 
-@export_group("Slap")
-## While the wielder slaps, the gun moves by this much and rolls right, out of the hand's path.
-@export var slap_dip_offset: Vector3 = Vector3(0.03, -0.08, 0.02)
-@export_range(0.0, 45.0, 0.5, "suffix:°") var slap_dip_roll: float = 15.0
+@export_group("Punch")
+## While the wielder punches, the gun moves by this much and rolls right, out of the hand's path.
+@export var punch_dip_offset: Vector3 = Vector3(0.03, -0.08, 0.02)
+@export_range(0.0, 45.0, 0.5, "suffix:°") var punch_dip_roll: float = 15.0
 
 @export_group("Look sway")
 ## How far the gun turns behind the view, per radian the view turns in one frame.
@@ -144,7 +144,7 @@ func _process(delta: float) -> void:
 	var sprinting := false
 	var crouching := false
 	var aiming := false
-	var slap_dip := 0.0
+	var punch_dip := 0.0
 	if _player != null and not _player.is_dead():
 		speed = Vector2(_player.velocity.x, _player.velocity.z).length()
 		on_floor = _player.is_on_floor()
@@ -153,9 +153,9 @@ func _process(delta: float) -> void:
 		crouching = _player.is_crouching()
 		aiming = _player.is_aiming()
 	if _player != null:
-		var slap := _player.melee.progress()
-		if slap >= 0.0:
-			slap_dip = sin(PI * clampf(slap, 0.0, 1.0))
+		var punch := _player.melee.progress()
+		if punch >= 0.0:
+			punch_dip = sin(PI * clampf(punch, 0.0, 1.0))
 
 	if on_floor:
 		_bob_phase = fmod(_bob_phase + speed * delta * bob_cycles_per_metre * TAU, TAU)
@@ -182,11 +182,11 @@ func _process(delta: float) -> void:
 	var bob := Vector3(sin(_bob_phase), -absf(cos(_bob_phase)), 0.0) * bob_amount * bob_scale
 	var idle := Vector3(sin(_time * 1.1), sin(_time * 2.2) * 0.5, 0.0) * idle_sway_amount
 	var offset := (bob + idle + crouch_offset * _crouch + Vector3(0.0, _air_lag - _land_dip, 0.0)) * steady \
-		+ sprint_offset * _sprint + aim_offset * _aim + slap_dip_offset * slap_dip
+		+ sprint_offset * _sprint + aim_offset * _aim + punch_dip_offset * punch_dip
 	motion.transform = _motion_rest.translated(offset) \
 		.rotated_local(Vector3.UP, deg_to_rad(sprint_yaw) * _sprint + _look_sway.x * steady) \
 		.rotated_local(Vector3.RIGHT, -deg_to_rad(sprint_pitch) * _sprint + _look_sway.y * steady) \
-		.rotated_local(Vector3.FORWARD, -deg_to_rad(crouch_roll) * _crouch * steady + deg_to_rad(slap_dip_roll) * slap_dip)
+		.rotated_local(Vector3.FORWARD, -deg_to_rad(crouch_roll) * _crouch * steady + deg_to_rad(punch_dip_roll) * punch_dip)
 
 
 func _raise() -> void:

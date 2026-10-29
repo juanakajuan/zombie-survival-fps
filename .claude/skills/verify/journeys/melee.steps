@@ -1,4 +1,4 @@
-# Melee: let a zombie come close, slap it with V, and check that the points grow.
+# Melee: let a zombie come close, punch it with V, and check that the points grow.
 expect hud.points 0
 until zombies.alive 4 300
 wait 420

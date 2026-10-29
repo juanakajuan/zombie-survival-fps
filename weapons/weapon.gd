@@ -65,7 +65,7 @@ func _physics_process(delta: float) -> void:
 		start_reload()
 
 
-## Fires one shot. Returns false when the wielder sprints or slaps, or the weapon is cooling down, reloading, or empty.
+## Fires one shot. Returns false when the wielder sprints or punches, or the weapon is cooling down, reloading, or empty.
 ## Firing with an empty magazine starts a reload.
 func try_fire() -> bool:
 	if wielder != null and (wielder.is_sprinting() or wielder.is_meleeing()):
@@ -84,7 +84,7 @@ func try_fire() -> bool:
 	return true
 
 
-## Does nothing when the magazine is full or the reserve is empty, or while the wielder slaps.
+## Does nothing when the magazine is full or the reserve is empty, or while the wielder punches.
 func start_reload() -> void:
 	if wielder != null and wielder.is_meleeing():
 		return

@@ -42,23 +42,21 @@ extends Node
 ## The part of the look pitch that the head follows. The arms that hold the gun follow all of it.
 @export_range(0.0, 1.0, 0.01) var head_follow: float = 0.6
 
-@export_group("Slap")
-## The left arm lifts to this pitch for the backhand slap, before the look pitch is added.
-@export_range(0.0, 120.0, 1.0, "suffix:°") var slap_lift: float = 75.0
-## In the wind-up the arm turns this far to the right, across the body.
-@export_range(0.0, 90.0, 1.0, "suffix:°") var slap_cross: float = 45.0
-## The strike ends with the arm turned this far to the left.
-@export_range(0.0, 90.0, 1.0, "suffix:°") var slap_sweep: float = 50.0
-## The arm leans across the body by this angle at the top of the wind-up.
-@export_range(0.0, 60.0, 1.0, "suffix:°") var slap_roll: float = 20.0
-## The part of the slap after the wind-up in which the arm sweeps. Then the arm blends back.
-@export_range(0.01, 0.99, 0.01) var slap_sweep_share: float = 0.3
+@export_group("Punch")
+## In the wind-up the left arm pulls back to this pitch.
+@export_range(-60.0, 120.0, 1.0, "suffix:°") var punch_cock: float = 30.0
+## The left arm jabs out to this pitch, before the look pitch is added.
+@export_range(0.0, 120.0, 1.0, "suffix:°") var punch_lift: float = 88.0
+## The jab turns this far toward the middle of the body, so the fist lands in front of the head.
+@export_range(0.0, 45.0, 1.0, "suffix:°") var punch_aim: float = 12.0
+## The part of the punch after the wind-up in which the arm stays out. Then the arm blends back.
+@export_range(0.01, 0.99, 0.01) var punch_hold_share: float = 0.3
 
 ## How fast the pose blends between walking, standing, in the air, crouched, and aiming.
 @export_range(0.1, 40.0, 0.1) var blend_sharpness: float = 12.0
 
-## The part of the slap that the wind-up takes. Player sets it from the melee timings.
-var slap_wind_share: float = 0.28
+## The part of the punch that the wind-up takes. Player sets it from the melee timings.
+var punch_wind_share: float = 0.28
 var _leg_l: Node3D
 var _leg_r: Node3D
 var _shin_l: Node3D
@@ -98,9 +96,9 @@ func attach(model: Node3D) -> void:
 
 
 ## Moves the pose on by one step. `look_pitch` is in radians, positive up. `airborne` is true in the air and on a
-## slide, when the legs hold a stride instead of walking. `slap_progress` is how far the backhand slap has gone,
-## from 0 to 1, or -1 when the player does not slap.
-func advance(delta: float, speed: float, airborne: bool, crouching: bool, aiming: bool, look_pitch: float, slap_progress: float) -> void:
+## slide, when the legs hold a stride instead of walking. `punch_progress` is how far the punch has gone,
+## from 0 to 1, or -1 when the player does not punch.
+func advance(delta: float, speed: float, airborne: bool, crouching: bool, aiming: bool, look_pitch: float, punch_progress: float) -> void:
 	_time += delta
 	var blend := 1.0 - exp(-blend_sharpness * delta)
 	_air_weight = lerpf(_air_weight, 1.0 if airborne else 0.0, blend)
@@ -138,7 +136,7 @@ func advance(delta: float, speed: float, airborne: bool, crouching: bool, aiming
 		0.0,
 		deg_to_rad(-0.5 * air_arm) * _air_weight * (1.0 - _aim_weight),
 	)
-	_arm_l.rotation = _slap_arm(free_arm, slap_progress, look_pitch)
+	_arm_l.rotation = _punch_arm(free_arm, punch_progress, look_pitch)
 
 
 ## The pitch of the left leg in radians. Positive swings it forward.
@@ -166,23 +164,18 @@ func head_pitch() -> float:
 	return _head.rotation.x
 
 
-## The left arm rotation for the slap: it lifts and crosses the body, sweeps out to the left, then blends back
-## to `free_arm`.
-func _slap_arm(free_arm: Vector3, progress: float, look_pitch: float) -> Vector3:
+## The left arm rotation for the punch: it pulls back, jabs straight out, then blends back to `free_arm`.
+func _punch_arm(free_arm: Vector3, progress: float, look_pitch: float) -> Vector3:
 	if progress < 0.0:
 		return free_arm
-	var sweep_end := slap_wind_share + (1.0 - slap_wind_share) * slap_sweep_share
-	var weight := 1.0
-	var yaw := deg_to_rad(slap_sweep)
-	if progress < slap_wind_share:
-		weight = _ease_out(progress / slap_wind_share)
-		yaw = deg_to_rad(-slap_cross)
-	elif progress < sweep_end:
-		yaw = lerpf(deg_to_rad(-slap_cross), yaw, _ease_out((progress - slap_wind_share) / (sweep_end - slap_wind_share)))
-	else:
-		weight = 1.0 - (progress - sweep_end) / (1.0 - sweep_end)
-	var slap := Vector3(deg_to_rad(slap_lift) + look_pitch, yaw, deg_to_rad(slap_roll))
-	return free_arm.lerp(slap, weight)
+	var cocked := Vector3(deg_to_rad(punch_cock), 0.0, 0.0)
+	var jab := Vector3(deg_to_rad(punch_lift) + look_pitch, deg_to_rad(-punch_aim), 0.0)
+	var hold_end := punch_wind_share + (1.0 - punch_wind_share) * punch_hold_share
+	if progress < punch_wind_share:
+		return free_arm.lerp(cocked, _ease_out(progress / punch_wind_share))
+	if progress < hold_end:
+		return cocked.lerp(jab, _ease_out((progress - punch_wind_share) / (hold_end - punch_wind_share) * 3.0))
+	return jab.lerp(free_arm, (progress - hold_end) / (1.0 - hold_end))
 
 
 func _ease_out(t: float) -> float:
