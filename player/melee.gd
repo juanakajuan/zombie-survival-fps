@@ -14,8 +14,8 @@ enum State { READY, WIND_UP, RECOVER }
 @export_range(0.5, 5.0, 0.05, "suffix:m") var reach: float = 1.8
 ## Radius of the strike sphere. A wider sphere forgives a poor aim.
 @export_range(0.1, 2.0, 0.05, "suffix:m") var radius: float = 0.45
-@export_range(0.01, 1.0, 0.01, "suffix:s") var wind_up_time: float = 0.14
-@export_range(0.01, 2.0, 0.01, "suffix:s") var recover_time: float = 0.36
+@export_range(0.01, 1.0, 0.01, "suffix:s") var wind_up_time: float = 0.1
+@export_range(0.01, 2.0, 0.01, "suffix:s") var recover_time: float = 0.22
 ## Physics layers that the strike can hit.
 @export_flags_3d_physics var hit_mask: int = 1
 
@@ -65,6 +65,14 @@ func progress() -> float:
 		State.RECOVER:
 			return (total - _time_left) / total
 	return -1.0
+
+
+## progress() between physics ticks, for a pose drawn every frame. Call it from _process.
+func visual_progress() -> float:
+	if _state == State.READY:
+		return -1.0
+	var step := Engine.get_physics_interpolation_fraction() / Engine.physics_ticks_per_second
+	return minf(progress() + step / (wind_up_time + recover_time), 1.0)
 
 
 func _strike() -> void:

@@ -153,7 +153,7 @@ func _process(delta: float) -> void:
 		crouching = _player.is_crouching()
 		aiming = _player.is_aiming()
 	if _player != null:
-		var punch := _player.melee.progress()
+		var punch := _player.melee.visual_progress()
 		if punch >= 0.0:
 			punch_dip = sin(PI * clampf(punch, 0.0, 1.0))
 

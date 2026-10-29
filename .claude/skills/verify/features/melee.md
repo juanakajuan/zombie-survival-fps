@@ -27,5 +27,5 @@ Preconditions:
 ## Gotchas
 
 - The reach is short. A zombie that is more than about 2 m away is not hit, so `aim` first, then tap when the zombie is close.
-- A tap is 2 frames, and a swing lasts about 0.5 s. Wait 40 frames between taps.
+- A tap is 2 frames, and a swing lasts about 0.3 s. Wait 40 frames between taps.
 - A shot taken within the swing does nothing. Do not mix `tap fire` into the swing.
