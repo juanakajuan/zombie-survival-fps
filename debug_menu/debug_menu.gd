@@ -6,8 +6,6 @@ extends CanvasLayer
 signal close_requested
 
 @export var point_grants: Array[int] = [500, 5000]
-## One "give weapon" command for each entry.
-@export var weapons: Array[WeaponData] = []
 @export var button_size: Vector2 = Vector2(220.0, 40.0)
 
 ## Player sets it. Every command acts on it.
@@ -27,8 +25,6 @@ func _ready() -> void:
 	close_button.pressed.connect(close_requested.emit)
 	for grant: int in point_grants:
 		_add_command("+%d POINTS" % grant, _give_points.bind(grant))
-	for data: WeaponData in weapons:
-		_add_command("GIVE " + data.display_name, _give_weapon.bind(data))
 	_add_command("REFILL AMMO", _refill_ammo)
 	_add_command("FULL HEALTH", _full_health)
 	_god_button = _add_command("GOD MODE", _toggle_god_mode)
@@ -89,16 +85,6 @@ func _add_command(label: String, run: Callable) -> Button:
 
 func _give_points(amount: int) -> void:
 	player.wallet.add(amount)
-
-
-## A weapon the player holds already comes into the hand with full ammo instead of a second copy.
-func _give_weapon(data: WeaponData) -> void:
-	var held := player.weapon_holding(data)
-	if held == null:
-		player.give_weapon(data)
-		return
-	player.switch_to(player.weapons.find(held))
-	_fill(held)
 
 
 func _refill_ammo() -> void:

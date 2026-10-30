@@ -1,7 +1,6 @@
 extends TestCase
 
 const SETTLE_FRAMES := 3
-const DEBUG_MENU_SCENE: PackedScene = preload("res://debug_menu/debug_menu.tscn")
 
 
 func test_debug_action_opens_the_menu_and_pauses() -> void:
@@ -62,51 +61,6 @@ func test_points_commands_add_the_grant() -> void:
 		menu.run_command("+%d POINTS" % grant)
 		assert_eq(player.wallet.points, before + grant, "points after +%d" % grant)
 	assert_eq(player.hud.readout().points_text, str(player.wallet.points), "the HUD shows the points")
-
-
-func test_give_weapon_equips_it_and_fills_the_ammo() -> void:
-	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	var data := WeaponData.new()
-	data.display_name = "TEST GUN"
-	data.magazine_size = 7
-	data.max_reserve = 21
-	var menu := _menu_giving(player, data)
-	menu.run_command("GIVE TEST GUN")
-	assert_eq(player.weapon.data, data, "the weapon data")
-	assert_eq(player.hud.readout().weapon_name, "TEST GUN", "the HUD weapon name")
-	assert_eq(player.hud.readout().ammo_text, "7 / 21", "the HUD ammo")
-
-
-func test_menu_lists_a_give_command_for_each_weapon_of_the_scene() -> void:
-	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	for data: WeaponData in player.debug_menu.weapons:
-		assert_true("GIVE " + data.display_name in player.debug_menu.command_labels(), "command for %s" % data.display_name)
-
-
-func test_give_held_weapon_takes_it_in_hand_with_full_ammo_and_no_copy() -> void:
-	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	var pistol := player.weapon
-	var data := WeaponData.new()
-	data.display_name = "TEST GUN"
-	var menu := _menu_giving(player, data)
-	menu.run_command("GIVE TEST GUN")
-	pistol.ammo = 0
-	pistol.reserve = 0
-	player.debug_menu.run_command("GIVE " + pistol.data.display_name)
-	assert_eq(player.weapon, pistol, "the pistol is in hand")
-	assert_eq(player.weapons.size(), 2, "weapons held after giving the pistol again")
-	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [pistol.data.magazine_size, pistol.data.max_reserve], "HUD ammo")
-
-
-func test_give_weapon_in_third_person_keeps_the_new_model_hidden() -> void:
-	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	_tap(&"third_person")
-	await physics_frames(2)
-	var menu := player.debug_menu
-	menu.run_command("GIVE " + menu.weapons[menu.weapons.size() - 1].display_name)
-	await physics_frames(2)
-	assert_true(player.is_third_person(), "third person is still on")
-	assert_true(not player.weapon.view_model.is_visible_in_tree(), "the new first-person gun is hidden")
 
 
 func test_refill_ammo_fills_the_magazine_and_the_reserve() -> void:
@@ -177,15 +131,6 @@ func _one_zombie_settings() -> RoundSettings:
 	settings.speed_per_round = 0.0
 	settings.break_time = 30.0
 	return settings
-
-
-## A menu like the player's, whose weapon commands give `data`.
-func _menu_giving(player: Player, data: WeaponData) -> DebugMenu:
-	var menu := DEBUG_MENU_SCENE.instantiate() as DebugMenu
-	menu.weapons = [data] as Array[WeaponData]
-	menu.player = player
-	add_child(menu)
-	return menu
 
 
 func _tap(action: StringName) -> void:

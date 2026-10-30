@@ -1,9 +1,6 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://debug_menu/debug_menu.gd" id="1_debug_menu"]
-[ext_resource type="Resource" path="res://weapons/pistol.tres" id="3_pistol"]
-[ext_resource type="Resource" path="res://weapons/smg.tres" id="5_smg"]
-[ext_resource type="Script" path="res://weapons/weapon_data.gd" id="4_weapon_data"]
 [ext_resource type="Theme" path="res://hud/hud_theme.tres" id="2_theme"]
 
 [sub_resource type="StyleBoxFlat" id="panel"]
@@ -19,7 +16,6 @@ content_margin_bottom = 24.0
 process_mode = 3
 layer = 21
 script = ExtResource("1_debug_menu")
-weapons = Array[ExtResource("4_weapon_data")]([ExtResource("3_pistol"), ExtResource("5_smg")])
 
 [node name="Dim" type="ColorRect" parent="."]
 anchors_preset = 15
