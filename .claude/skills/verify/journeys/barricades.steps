@@ -1,0 +1,45 @@
+# Barricades: walk to the yard window, let a zombie pull a board, hold interact to repair it, and see the boards and points go up.
+expect barricades.boards 5
+expect hud.points 0
+until zombies.alive 4 300
+key F1
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Enter
+key Tab
+key Enter
+key F1
+expect zombies.alive 0
+expect hud.break true
+face 130 0
+hold move_forward
+wait 235
+release move_forward
+face 90 0
+wait 20
+expect hud.prompt_visible false
+state 01-full
+shot 01-full
+key F1
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Enter
+key F1
+until barricades.boards 4 900
+until hud.prompt HOLD E REPAIR 4/5 30
+state 02-damaged
+shot 02-damaged
+hold interact
+until barricades.boards 5 180
+release interact
+expect hud.points 10
+state 03-repaired
+shot 03-repaired
