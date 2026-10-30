@@ -17,6 +17,7 @@ muzzle = NodePath("Motion/Model/Muzzle")
 magazine = NodePath("Motion/Model/Magazine")
 left_hand = NodePath("Motion/Model/LeftHand")
 dropped_magazine_scene = ExtResource("3_thrown")
+aim_offset = Vector3(-0.16, 0.048, 0)
 
 [node name="Motion" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, -0.19, -0.3)

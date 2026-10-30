@@ -12,14 +12,14 @@ extends ViewModel
 ## The speed of the empty magazine out of the well, in m/s. The player's own velocity is added.
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var magazine_drop_speed: float = 1.0
 ## Where the new magazine starts, relative to its rest place in the model, before the left hand pushes it in.
-@export var magazine_insert_offset: Vector3 = Vector3(0.0, -0.25, 0.05)
+@export var magazine_insert_offset: Vector3 = Vector3(0.0, -0.32, 0.05)
 
 @export_group("Magazine reload")
 ## The gun tilts by these angles in degrees (pitch, yaw, roll) so the well faces the left hand.
 @export var tilt_angles: Vector3 = Vector3(12.0, 0.0, -40.0)
 @export var tilt_offset: Vector3 = Vector3(-0.05, 0.05, 0.02)
 ## The left hand holds the magazine at this place, relative to the magazine.
-@export var left_hand_offset: Vector3 = Vector3(0.0, -0.11, 0.0)
+@export var left_hand_offset: Vector3 = Vector3(0.0, -0.18, 0.0)
 ## The left hand's angles in degrees (pitch, yaw, roll) relative to the view, not the tilted gun, so the forearm
 ## stays on its way to the shoulder.
 @export var left_hand_angles: Vector3 = Vector3(50.0, 0.0, 0.0)

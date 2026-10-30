@@ -14,7 +14,7 @@ The player fires the pistol with the left mouse button and reloads with R. The p
 - `view-model` shows the pistol in the player's hand at the bottom right of the view. It raises into view over 0.45 s at the start. It bobs while walking and drops out of view on death.
 - `aim` holds the pistol up to the screen centre with its sights on the crosshair point, zooms the view, and hides the crosshair while the right mouse button is held.
 - `reload-empty` starts a reload when the player fires with an empty magazine.
-- `smg` fires every 0.08 s while fire is held, with a magazine of 30, a reserve of 150, and a reload of 1.6 s. Its model has a long teal receiver, a barrel shroud, and a magazine ahead of the trigger. Its reload tilts the gun, drops the empty magazine as debris, and the left fist comes up from below and slaps a new one into the well. Then the hand pulls the charging handle.
+- `smg` fires every 0.08 s while fire is held, with a magazine of 30, a reserve of 150, and a reload of 1.6 s. Its model has a purple receiver with a red-dot sight on top, a barrel shroud, and a long magazine ahead of the grip. Its reload tilts the gun, drops the empty magazine as debris, and the left fist comes up from below and slaps a new one into the well. Then the hand pulls the charging handle.
 - `switch` draws the other weapon on **1**, **2**, a wheel notch down (next), or a wheel notch up (previous). The HUD name and ammo follow, and the weapon that went away keeps its ammo. It does nothing with one weapon, and a reload in progress stops with no refill.
 
 ## How to get to it (user POV)

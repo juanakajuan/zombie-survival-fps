@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://weapons/thrown_gun.gd" id="1_thrown"]
 
 [sub_resource type="BoxShape3D" id="shape"]
-size = Vector3(0.04, 0.11, 0.05)
+size = Vector3(0.04, 0.18, 0.05)
 
 [sub_resource type="PhysicsMaterial" id="bounce"]
 bounce = 0.35
@@ -15,5 +15,5 @@ physics_material_override = SubResource("bounce")
 script = ExtResource("1_thrown")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.055, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.09, 0)
 shape = SubResource("shape")
