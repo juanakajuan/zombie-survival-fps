@@ -6,6 +6,16 @@ extends Resource
 @export_range(0, 100000) var cost: int = 0
 
 
+## What the station charges this player now. A subclass can change it with what the player holds.
+func price(_player: Player) -> int:
+	return cost
+
+
+## What the station shows for this player now.
+func label(_player: Player) -> String:
+	return display_name
+
+
 ## Whether buying now would do anything. A station never charges for an item that returns false.
 func can_apply(_player: Player) -> bool:
 	return false

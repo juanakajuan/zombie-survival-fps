@@ -18,7 +18,7 @@ log="$out/godot.log"
 cd "$repo"
 # setsid gives the run its own process group, so cleanup.sh can stop exactly this run.
 setsid timeout 300 gamescope --backend headless -W 1280 -H 720 -- \
-	godot --path . --display-driver x11 \
+	godot --path . --display-driver x11 --audio-driver Dummy \
 	-s res://.claude/skills/verify/scripts/driver.gd -- --steps="$steps" --out="$out" >"$log" 2>&1 &
 pid=$!
 echo "$pid" >"$out/pid"

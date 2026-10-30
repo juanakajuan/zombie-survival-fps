@@ -1,0 +1,68 @@
+# Weapons: earn 1060 points in rounds 1 and 2, buy the SMG at the weapon station, switch with 1, 2 and the wheel, fire the SMG by holding fire, buy its ammo.
+expect hud.weapon PISTOL
+expect hud.ammo 12 / 48
+until zombies.alive 4 300
+fight_until hud.break true 3600
+until hud.break false 700
+expect hud.round 2
+until zombies.alive 6 400
+fight_until hud.break true 5400
+expect zombies.alive 0
+expect hud.points 1060
+state 01-earned
+shot 01-pistol
+face -53 0
+hold move_forward
+wait 30
+release move_forward
+wait 30
+look 0 220
+until hud.prompt_visible true 60
+expect hud.prompt E BUY SMG 1000
+state 02-prompt
+shot 02-prompt
+tap interact
+wait 5
+expect hud.points 60
+expect hud.weapon SMG
+expect hud.ammo 30 / 150
+wait 40
+state 03-bought
+shot 03-smg
+expect hud.prompt E BUY SMG AMMO 300
+tap interact
+wait 5
+expect hud.points 60
+tap weapon_1
+wait 5
+expect hud.weapon PISTOL
+expect_not hud.ammo 30 / 150
+wait 40
+state 04-key-1
+shot 04-pistol
+tap weapon_2
+wait 5
+expect hud.weapon SMG
+expect hud.ammo 30 / 150
+tap weapon_next
+wait 5
+expect hud.weapon PISTOL
+tap weapon_previous
+wait 5
+expect hud.weapon SMG
+wait 40
+look 0 -400
+hold fire
+wait 30
+shot 05-firing
+release fire
+expect_not hud.ammo 30 / 150
+expect_not hud.ammo 29 / 150
+state 05-fired
+tap weapon_1
+wait 5
+expect hud.weapon PISTOL
+tap fire
+wait 12
+expect hud.weapon PISTOL
+state 06-pistol-fired

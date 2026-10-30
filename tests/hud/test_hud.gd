@@ -151,7 +151,7 @@ func test_prompt_shows_only_while_looking_at_a_station() -> void:
 	look_at_point(player, station.global_position + Vector3.UP * 0.6)
 	await physics_frames(2)
 	assert_true(player.hud.readout().prompt_visible, "prompt while looking")
-	assert_eq(player.hud.readout().prompt_text, station.prompt_text(), "prompt text")
+	assert_eq(player.hud.readout().prompt_text, station.prompt_text(player), "prompt text")
 	player.look(Vector2(1000.0, 0.0))
 	await physics_frames(2)
 	assert_true(not player.hud.readout().prompt_visible, "prompt gone after looking away")
