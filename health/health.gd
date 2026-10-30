@@ -10,6 +10,8 @@ signal changed(current: float)
 @export_range(1.0, 10000.0, 1.0) var max_health: float = 100.0
 
 var current: float
+## Debug only. While true, damage() does nothing.
+var invulnerable: bool = false
 
 
 func _ready() -> void:
@@ -25,7 +27,7 @@ static func find_on(node: Node) -> Health:
 
 
 func damage(amount: float) -> void:
-	if is_dead() or amount <= 0.0:
+	if invulnerable or is_dead() or amount <= 0.0:
 		return
 	current = maxf(current - amount, 0.0)
 	damaged.emit(amount)

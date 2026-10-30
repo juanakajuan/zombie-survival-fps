@@ -42,9 +42,9 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | Command | Effect |
 |---|---|
 | `wait <frames>` | Wait for physics frames. |
-| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `interact`, `melee`, `restart`, `weapon_1`, `weapon_2`, `weapon_next`, `weapon_previous`, `third_person`. |
+| `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `interact`, `melee`, `restart`, `weapon_1`, `weapon_2`, `weapon_next`, `weapon_previous`, `third_person`, `debug_menu`. |
 | `tap <action>` | Press, hold 2 frames, release, wait 1 frame. |
-| `key <name>` | Tap a physical key, for example `key Escape` (opens or closes the pause menu) or `key F5` (the debug third-person view). |
+| `key <name>` | Tap a physical key, for example `key Escape` (opens or closes the pause menu), `key F5` (the debug third-person view), or `key F1` (the debug menu). |
 | `look <dx> <dy>` | One mouse-motion event in pixels. `look 200 0` turns right by 29 degrees. |
 | `aim` | One mouse-motion event that turns the view to the nearest zombie's chest. It is not the `aim` action: use `hold aim` to aim down the sights. |
 | `face <yaw> <pitch>` | One mouse-motion event that turns the view to an absolute yaw and pitch in degrees. `face 0 0` looks level toward -Z, as at the start. Use it after `aim` or `fight_until`, which leave the view toward the last zombie. |
