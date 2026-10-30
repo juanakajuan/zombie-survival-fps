@@ -1,6 +1,6 @@
 # Barricades
 
-A barricade is a window with five brown boards, in the south-west yard of the test range. Zombies spawn in the yard and come through the window. A zombie stops outside the window and pulls off one board every 1.5 s. When no board is left, it walks through. The player looks at a damaged window within 2.5 m, and the prompt shows `HOLD E  REPAIR  4/5`. Holding E puts back one board each second, and each board gives 10 points, up to 50 points in a round. A zombie at the window hits a player within 2.2 m of it, through the boards, and pulls no board while it hits. A full window shows no prompt. The player cannot walk through the window, even with no boards. Zombies and shots pass it.
+A barricade is a window with five brown boards, in the south-west yard of the test range. Zombies spawn in the yard and come through the window. A zombie stops outside the window and pulls off one board every 1.5 s. When no board is left, it walks through. The player stands within 1.5 m of the window and looks at it, and the prompt shows `HOLD E  REPAIR  4/5`. Holding E puts back one board each second, and each board gives 10 points, up to 50 points in a round. A zombie at the window hits a player within that same 1.5 m, through the boards, and pulls no board while it hits. A full window shows no prompt. The player cannot walk through the window, even with no boards. Zombies and shots pass it.
 
 ## Sub-features
 
@@ -23,9 +23,9 @@ Preconditions:
 - Baseline state: `barricades.boards` is `5`, `hud.points` is `0`.
 
 - **Clear the zombies safely.** Run `until zombies.alive 4 300`. Open the debug menu: `key F1`, `key Tab` five times, `key Enter` (GOD MODE), `key Tab`, `key Enter` (KILL ALL ZOMBIES), `key F1`. `expect hud.break true` passes.
-- **Walk to the window.** Run `face 130 0`, `hold move_forward`, `wait 235`, `release move_forward`, `face 90 0`, `wait 20`. The player ends at about `-13.7 0 17.5`. `expect hud.prompt_visible false` passes: the window is full.
+- **Walk to the window.** Run `face 130 0`, `hold move_forward`, `wait 235`, `release move_forward`, `face 90 0`, `wait 20`. The player ends at about `-13.7 0 17.5`. `expect hud.prompt_visible false` passes: the window is full. Run `hold move_back`, `wait 15`, `release move_back`, `wait 10`. The player is at about `-12.4 0 17.5`, out of the 1.5 m repair range, so the zombie pulls boards and does not hit.
 - **Start round 2.** Run `key F1`, `key Tab` seven times, `key Enter` (SKIP BREAK), `key F1`. The first zombie spawns in the yard.
-- **A board goes.** Run `until barricades.boards 4 900`, then `until hud.prompt HOLD E REPAIR 4/5 30`. The screenshot shows four boards and the zombie behind them.
+- **A board goes.** Run `until barricades.boards 4 900`, `hold move_forward`, `until hud.prompt HOLD E REPAIR 4/5 60`, `release move_forward`. The prompt shows only within 1.5 m of the window. The screenshot shows four boards and the zombie behind them.
 - **Repair.** Run `hold interact`, `until barricades.boards 5 180`, `release interact`. `expect hud.points 10` passes.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/barricades.steps`.
 
@@ -33,5 +33,6 @@ Preconditions:
 
 - The board count is real time. After a repair, the zombie keeps pulling, so `barricades.boards` can fall again about 1.5 s after the last pull.
 - With all zombies of round 2 out, others walk to the player at the window. The journey turns on GOD MODE so that they do not kill the player.
-- The distance from the walk end to the window must be under 2.5 m. A walk that is too long ends in the yard wall corner.
+- A player within 1.5 m of the window takes the zombie's hits, and the zombie pulls no board while it hits. So the journey waits out of range for the first board. GOD MODE hides the damage: `tests/barricades/test_barricade.gd` proves it.
+- A walk that is too long ends in the yard wall corner.
 - The prompt text reads `HOLD E REPAIR 4/5` after the driver makes each run of spaces one space.

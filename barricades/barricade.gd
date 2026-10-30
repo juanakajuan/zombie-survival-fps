@@ -16,6 +16,9 @@ const GROUP := &"barricade"
 @export_range(0.1, 10.0, 0.1, "suffix:s") var repair_time: float = 1.0
 ## The depth of the zone outside the opening in which a zombie stops to pull boards.
 @export_range(0.1, 3.0, 0.05, "suffix:m") var zone_depth: float = 0.6
+## How close to the opening the player must stand to repair it. A zombie at the barricade hits a player this close, so
+## a repair always costs health.
+@export_range(0.5, 5.0, 0.05, "suffix:m") var repair_range: float = 1.5
 @export var board_material: Material
 
 var boards: int
@@ -67,15 +70,21 @@ func inside_point() -> Vector3:
 	return global_position - global_basis.z
 
 
-func prompt_text(_player: Player) -> String:
-	if is_full():
+## Whether the point is within repair_range (plus `margin`) of the bottom center of the opening, on the floor plane.
+func in_reach(point: Vector3, margin: float = 0.0) -> bool:
+	var offset := point - global_position
+	return Vector2(offset.x, offset.z).length() <= repair_range + margin
+
+
+func prompt_text(player: Player) -> String:
+	if is_full() or not in_reach(player.global_position):
 		return ""
 	return "HOLD E  REPAIR  %d/%d" % [boards, max_boards]
 
 
-## Adds up the time of the hold. Each repair_time puts back one board and pays for it.
+## Adds up the time of the hold within repair_range. Each repair_time puts back one board and pays for it.
 func hold(player: Player, delta: float) -> void:
-	if is_full():
+	if is_full() or not in_reach(player.global_position):
 		_repair_progress = 0.0
 		return
 	_repair_progress += delta

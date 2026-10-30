@@ -47,7 +47,7 @@ func test_two_zombies_at_a_window_pull_boards_faster_than_one() -> void:
 
 func test_holding_interact_on_a_damaged_barricade_adds_a_board_and_points() -> void:
 	var player := await spawn_player(Vector3.ZERO, 5)
-	var barricade := _spawn_barricade(Vector3(0.0, 0.0, -2.0), 5)
+	var barricade := _spawn_barricade(Vector3(0.0, 0.0, -1.2), 5)
 	barricade.repair_time = 0.5
 	barricade.remove_board()
 	barricade.remove_board()
@@ -66,9 +66,26 @@ func test_holding_interact_on_a_damaged_barricade_adds_a_board_and_points() -> v
 	Input.action_release("interact")
 
 
+func test_a_player_beyond_repair_range_sees_no_prompt_and_repairs_nothing() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var barricade := _spawn_barricade(Vector3(0.0, 0.0, -2.2), 5)
+	barricade.repair_time = 0.2
+	barricade.remove_board()
+	await physics_frames(2)
+	look_at_point(player, barricade.global_position + Vector3.UP)
+	await physics_frames(3)
+	assert_true(player.focused() == barricade, "the barricade is focused from %.1f m" % absf(barricade.global_position.z))
+	assert_true(not player.hud.readout().prompt_visible, "the HUD shows no prompt out of repair range")
+	Input.action_press("interact")
+	await run_seconds(barricade.repair_time * 3.0)
+	Input.action_release("interact")
+	assert_eq(barricade.boards, 4, "no board is repaired out of repair range")
+	assert_eq(player.wallet.points, 0, "no points out of repair range")
+
+
 func test_repairs_give_points_up_to_the_round_limit_and_a_new_round_restores_it() -> void:
 	var player := await spawn_player()
-	var barricade := _spawn_barricade(Vector3(0.0, 0.0, -2.0), 10)
+	var barricade := _spawn_barricade(Vector3(0.0, 0.0, -1.2), 10)
 	var wallet := player.wallet
 	var repairs := wallet.board_points_per_round / wallet.points_per_board + 2
 	for _i: int in repairs:
@@ -97,7 +114,7 @@ func test_a_new_round_in_the_level_restores_the_repair_points() -> void:
 
 func test_a_full_barricade_shows_no_prompt_and_a_damaged_one_shows_the_repair_prompt() -> void:
 	var player := await spawn_player(Vector3.ZERO, 5)
-	var barricade := _spawn_barricade(Vector3(0.0, 0.0, -2.0), 5)
+	var barricade := _spawn_barricade(Vector3(0.0, 0.0, -1.2), 5)
 	await physics_frames(2)
 	look_at_point(player, barricade.global_position + Vector3.UP)
 	await physics_frames(3)
