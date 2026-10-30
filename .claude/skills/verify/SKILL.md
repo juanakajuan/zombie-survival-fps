@@ -47,6 +47,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | `key <name>` | Tap a physical key, for example `key Escape` (opens or closes the pause menu), `key F5` (the debug third-person view), or `key F1` (the debug menu). |
 | `look <dx> <dy>` | One mouse-motion event in pixels. `look 200 0` turns right by 29 degrees. |
 | `aim` | One mouse-motion event that turns the view to the nearest zombie's chest. It is not the `aim` action: use `hold aim` to aim down the sights. |
+| `aim_head` | Like `aim`, but turns the view to the nearest zombie's head. |
 | `face <yaw> <pitch>` | One mouse-motion event that turns the view to an absolute yaw and pitch in degrees. `face 0 0` looks level toward -Z, as at the start. Use it after `aim` or `fight_until`, which leave the view toward the last zombie. |
 | `fight_until <key> <value> <frames>` | Repeat `aim` and `tap fire` (about 6 shots a second) until the state key has the value. Fails at the frame limit. |
 | `until <key> <value> <frames>` | Wait until the state key has the value. Fails at the frame limit. |
@@ -62,7 +63,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `hud.points`, `hud.prompt_visible`, `hud.prompt` | The points on the HUD, whether the buy prompt shows, and its text with each run of spaces made one space, for example `E BUY AMMO 250` (empty when hidden). |
 | `hud.reloading`, `hud.break`, `hud.round_visible` | Whether the RELOADING label, the BREAK label, and the round panel show. |
 | `hud.round`, `hud.objective` | The round number on the HUD, and the line under it: `4 LEFT` during a round (zombies alive plus zombies still to spawn), `NEXT ROUND IN 10` during the break. |
-| `hud.crosshair`, `hud.hit_marker` | Whether the crosshair shows (hidden while aiming), and whether the hit marker shows (0.2 s after a shot hits a zombie or a dummy). |
+| `hud.crosshair`, `hud.hit_marker`, `hud.headshot_marker` | Whether the crosshair shows (hidden while aiming), whether the hit marker shows (0.2 s after a shot hits a zombie or a dummy), and whether it shows in the headshot color (0.2 s after a shot hits a zombie's head). |
 | `game_over.visible`, `game_over.text` | The game-over screen, and its text, for example `You reached round 1`. |
 | `mouse.mode` | `captured` or `visible`. |
 | `player.position`, `player.yaw_deg`, `player.pitch_deg`, `player.dead`, `player.crouching`, `player.sliding`, `player.speed` | Feet position (`x y z`, 1 decimal), turn angle, up-down angle (`89` is straight up), death, crouch (true while sliding too), slide, and horizontal speed in m/s (1 decimal). The player starts at `0.0 0.0 6.0`, yaw `0`, pitch `0`, and looks toward -Z. |

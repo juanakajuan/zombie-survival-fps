@@ -1,12 +1,13 @@
 # Economy
 
-The player earns points by shooting zombies: 10 for each hit, and 60 more for the shot that kills. The HUD shows the points at the top right, and the ammo as `magazine / reserve` at the bottom right. The pistol has a reserve of 48 rounds, and a reload takes rounds from it. A buy station is a dark crate with a yellow label: AMMO, and 250 under it. When the player looks at it within 2.5 m, a prompt under the crosshair shows `E  BUY AMMO  250`. E spends 250 points and fills the reserve. Target dummies give no points.
+The player earns points by shooting zombies: 10 for each hit, and 60 more for the shot that kills, and 40 more when that killing shot hits the head. The HUD shows the points at the top right, and the ammo as `magazine / reserve` at the bottom right. The pistol has a reserve of 48 rounds, and a reload takes rounds from it. A buy station is a dark crate with a yellow label: AMMO, and 250 under it. When the player looks at it within 2.5 m, a prompt under the crosshair shows `E  BUY AMMO  250`. E spends 250 points and fills the reserve. Target dummies give no points.
 
 A second crate, teal, is the weapon station. It sells the SMG for 1000 points (`E  BUY SMG  1000`), puts it in hand, and then sells its ammo for 300 (`E  BUY SMG AMMO  300`). The player holds at most two weapons, so a new weapon with two held replaces the one in hand.
 
 ## Sub-features
 
 - `points-hit` adds 10 points for each shot that hits a living zombie, and 60 more for the killing shot. Round 1 has 4 zombies of 4 shots each, so clearing it gives 400 points.
+- `points-headshot` adds the 40 headshot bonus on top of the 10 and the 60 when the killing shot hits a zombie's head. A headshot that does not kill pays the 10 only, and a punch never pays it. To prove it, run `until zombies.alive 4 300`, then shoot one zombie in the head with `aim_head`, `tap fire`, `wait 12` until it dies: `hud.points` is 10 + 10 + 60 + 40 = 120 when the first shot is a body shot and two head shots follow, so count the shots and read `hud.points` after each.
 - `reserve` shows the reserve on the HUD. A reload takes only the rounds that the magazine lacks from it. With an empty reserve, R does nothing.
 - `buy-prompt` shows `E  BUY AMMO  250` while the player looks at the station, and hides it when the player looks away.
 - `buy-weapon` takes 1000 points at the weapon station and equips the SMG: `hud.weapon` is `SMG`, `hud.ammo` is `30 / 150`. Round 1 and round 2 give 1060 points in all, with no misses.

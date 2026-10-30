@@ -103,6 +103,8 @@ func _step(line: String) -> bool:
 			return _expect(parts[1], " ".join(parts.slice(2)), false)
 		"aim":
 			return await _aim_nearest_zombie()
+		"aim_head":
+			return await _aim_nearest_zombie(true)
 		"face":
 			return await _face(deg_to_rad(parts[1].to_float()), deg_to_rad(parts[2].to_float()))
 		"fight_until":
@@ -180,7 +182,7 @@ func _until(key: String, want: String, max_frames: int) -> bool:
 
 
 ## Turns the view to the nearest zombie's chest with one mouse-motion event, as a player would flick the mouse.
-func _aim_nearest_zombie() -> bool:
+func _aim_nearest_zombie(head: bool = false) -> bool:
 	var player := get_first_node_in_group(Player.GROUP) as Player
 	if player == null:
 		printerr("driver: aim found no player")
@@ -191,7 +193,8 @@ func _aim_nearest_zombie() -> bool:
 			nearest = node as Zombie
 	if nearest == null:
 		return true
-	await _turn(player.mouse_delta_to(nearest.global_position + Vector3.UP * 1.2))
+	var point := nearest.weak_spot.global_position if head else nearest.global_position + Vector3.UP * 1.2
+	await _turn(player.mouse_delta_to(point))
 	return true
 
 
@@ -269,6 +272,7 @@ func _state() -> Dictionary[String, String]:
 		s["hud.objective"] = hud.objective_text
 		s["hud.crosshair"] = str(hud.crosshair_visible)
 		s["hud.hit_marker"] = str(hud.hit_marker)
+		s["hud.headshot_marker"] = str(hud.headshot_marker)
 	var zombies := 0
 	var bars := 0
 	var dummies_up := 0
