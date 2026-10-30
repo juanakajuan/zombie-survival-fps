@@ -23,6 +23,18 @@ func test_round_1_starts_and_the_level_runs_for_5_seconds() -> void:
 	await run_seconds(5.0)
 
 
+func test_the_yard_spawn_point_has_a_path_to_the_player_start_through_its_window() -> void:
+	var level := await spawn_level()
+	var start := level.player.global_position
+	var with_barricade: Array[SpawnPoint] = spawn_points_in(level).filter(func(point: SpawnPoint) -> bool: return point.barricade != null)
+	assert_eq(with_barricade.size(), 1, "spawn points that name a barricade")
+	for spawn: SpawnPoint in with_barricade:
+		var path := NavigationServer3D.map_get_path(level.navigation.get_navigation_map(), spawn.global_position, start, true)
+		assert_true(not path.is_empty() and path[path.size() - 1].distance_to(start) < 1.0, "%s has no path to the player start" % spawn.name)
+		assert_true(not spawn.barricade.is_inside(spawn.global_position), "%s is outside its barricade" % spawn.name)
+		assert_true(path_goes_inside(path, spawn.barricade), "the path of %s goes through its barricade" % spawn.name)
+
+
 func _distance_to_navmesh(map: RID, at: Vector3) -> float:
 	var closest := NavigationServer3D.map_get_closest_point(map, at)
 	return Vector2(closest.x - at.x, closest.z - at.z).length()
