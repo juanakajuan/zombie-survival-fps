@@ -111,7 +111,7 @@ func _spawn_manager(settings: RoundSettings) -> RoundManager:
 	var manager := RoundManager.new()
 	manager.settings = settings
 	for at: Vector3 in SPAWN_POINTS:
-		var marker := Marker3D.new()
+		var marker := SpawnPoint.new()
 		marker.position = at
 		manager.add_child(marker)
 	manager.round_started.connect(func(n: int) -> void: _started.append(n))

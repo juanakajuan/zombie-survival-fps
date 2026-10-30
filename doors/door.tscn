@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://doors/door.gd" id="1_door"]
+[ext_resource type="PackedScene" path="res://economy/buy_station.tscn" id="2_station"]
+[ext_resource type="Resource" path="res://doors/door.tres" id="3_item"]
+
+[sub_resource type="StandardMaterial3D" id="panel_material"]
+albedo_color = Color(0.45, 0.2, 0.15, 1)
+
+[node name="Door" type="Node3D" groups=["door"]]
+script = ExtResource("1_door")
+
+[node name="Station" parent="." instance=ExtResource("2_station")]
+item = ExtResource("3_item")
+
+[node name="MeshInstance3D" parent="Station" index="0"]
+surface_material_override/0 = SubResource("panel_material")

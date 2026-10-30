@@ -162,7 +162,7 @@ func test_round_start_and_break_play_their_sounds() -> void:
 	settings.break_time = 0.5
 	var manager := RoundManager.new()
 	manager.settings = settings
-	var marker := Marker3D.new()
+	var marker := SpawnPoint.new()
 	marker.position = Vector3(0.0, 0.0, -6.0)
 	manager.add_child(marker)
 	add_child(manager)

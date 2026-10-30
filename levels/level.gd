@@ -10,6 +10,8 @@ extends Node3D
 func _ready() -> void:
 	player.hud.round_manager = round_manager
 	player.debug_menu.round_manager = round_manager
+	for node: Node in get_tree().get_nodes_in_group(Door.GROUP):
+		(node as Door).opened.connect(navigation.bake)
 	game_over.restart_requested.connect(restart)
 
 
