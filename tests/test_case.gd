@@ -170,6 +170,9 @@ func spawn_level(round_settings: RoundSettings = null, scene: PackedScene = LEVE
 	var map := level.navigation.get_navigation_map()
 	for _i: int in 60:
 		await physics_frames(1)
+		# A query before the map's first sync logs an error.
+		if NavigationServer3D.map_get_iteration_id(map) == 0:
+			continue
 		if NavigationServer3D.map_get_closest_point_owner(map, Vector3.ZERO) == level.navigation.get_rid():
 			return level
 	failures.append("the navigation map never answered queries from the level navmesh")

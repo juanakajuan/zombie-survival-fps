@@ -43,6 +43,15 @@ func test_each_gate_spawn_point_has_a_path_to_the_player_start_through_its_barri
 		assert_true(path_goes_inside(path, spawn.barricade), "the path of %s goes through its barricade" % spawn.name)
 
 
+func test_the_compound_navmesh_answers_queries_when_it_loads_right_after_another_level() -> void:
+	var first := await spawn_level()
+	first.queue_free()
+	await physics_frames(1)
+	var level := await spawn_level(null, COMPOUND_SCENE)
+	var map := level.navigation.get_navigation_map()
+	assert_eq(NavigationServer3D.map_get_closest_point_owner(map, Vector3.ZERO), level.navigation.get_rid(), "the region that owns the navmesh at the origin")
+
+
 func test_the_player_start_and_the_stations_are_outside_both_buildings() -> void:
 	var level := await spawn_level(null, COMPOUND_SCENE)
 	var player := level.get_node("Player") as Player
