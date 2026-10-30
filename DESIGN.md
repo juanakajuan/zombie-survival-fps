@@ -1,14 +1,12 @@
 # Zombie Survival FPS design
 
-This file has the core loop, the decided game rules, the parts that are done, and the work after the minimal game. [CLAUDE.md](CLAUDE.md) has the commands and the code rules.
+This file has the core loop and the decided game rules: the decisions that the code does not show. [CLAUDE.md](CLAUDE.md) has the commands and the code rules.
 
-Edit this file only when the core loop, a decided rule, or the list of parts changes. Tunable values, such as speeds, damage, and round sizes, are not in this file. They are `@export` values and `.tres` Resources, and the Inspector shows them. The verify skill's feature files in [.claude/skills/verify/features/](.claude/skills/verify/features/) show what a player can do with each part, and how to prove it.
+Edit this file only when the core loop or a decided rule changes. Do not list the parts of the game or the tunable values here. Each feature folder and its tests in `tests/<folder>/` give the exact behavior. The `@export` values and `.tres` Resources hold the tunable values, and the Inspector shows them. The verify skill's feature files in [.claude/skills/verify/features/](.claude/skills/verify/features/) show what a player can do with each part, and how to prove it. GitHub issues hold the work that is not done.
 
 ## The core loop
 
 You stand in an arena. Zombies come at you in rounds, and you shoot them before they reach you. When all zombies of a round are dead, a short break starts. Then a harder round starts. When your health gets to 0, the game ends and shows the round that you reached. You restart and try to reach a later round.
-
-The minimal game is done: a player can play the full loop from a fresh start, without the editor. The verify skill plays it with `.claude/skills/verify/journeys/full_loop.steps`. That journey aims with the driver's `aim` command, so it does not test how hard aiming is. GitHub issues #1 to #5 and the git history have the steps that built it.
 
 ## Decided rules
 
@@ -26,31 +24,3 @@ The minimal game is done: a player can play the full loop from a fresh start, wi
 - A weapon station is a `BuyStation` with a `WeaponItem`. It sells the weapon, and once the player holds it, that weapon's ammo.
 - The reserve is per weapon (`WeaponData.max_reserve`). A reload moves rounds from the reserve into the magazine, and with an empty reserve there is no reload.
 - A `BuyStation` sells one `BuyItem` resource (`economy/`). A subclass of `BuyItem` says when the item can be bought and what it gives (`AmmoItem` fills the reserve). A new thing to buy, such as a weapon or a door, is a new `BuyItem` subclass and a `.tres`, not a new station.
-
-## What is done
-
-Each part is a folder with its scenes, scripts, and data. The folder's tests in `tests/<folder>/` give the exact behavior.
-
-| Part | Folder | What the player gets |
-|---|---|---|
-| Player | `player/` | Two weapon slots (**1**, **2**, mouse wheel to switch), movement with ground friction, sprint, crouch, a slide (crouch while sprinting: a speed boost, low friction, and a jump that keeps the speed), limited air control, aim down the sights (hold the right mouse button: zoom, slow walk, no sprint), mouse look, using a buy station with **E**, a punch with the left hand (**V**: damage at short reach, and the pistol cannot fire or reload during it), and death. **Esc** opens the pause menu. Only `Player` writes the mouse mode. |
-| Weapon | `weapons/` | The hitscan pistol (`pistol.tres`) and the automatic SMG (`smg.tres`, view model from `art_source/smg.blend`), each with a magazine, a reserve (48 rounds for the pistol, 150 for the SMG) that a reload draws from, and a reload that needs a reserve. The animated view model (`view_model.gd`), the thrown guns of a reload (debris on physics layer 2), and a tracer (`tracer.gd`) that flies from the muzzle to where each shot ended. It shows the shot and does no damage. |
-| Health | `health/` | The `Health` node that takes damage, `HitFlash`, which flashes a material red on a hit, and `HealthBar`, a cartoon bar over a zombie that shows after its first hit and hides when it dies. |
-| Target dummy | `targets/` | A dummy that flashes when hit, goes away at 0 health, and comes back. |
-| Zombie | `zombie/` | A cartoon zombie with a shambling walk, an arm-slam attack, and a fall onto its back when it dies, that follows the navmesh to the player and hits at close range. |
-| Test range | `levels/` | The greybox test map for tests and the verify skill, with target dummies, zombie spawn points, and a crawl tunnel west of the spawn. `level_navigation.gd` bakes the navmesh at start from the static colliders on physics layer 1. |
-| Compound | `levels/compound.tscn` | A 72 m walled compound: a warehouse with a mezzanine, a loading dock, an office, a watchtower, and shipping containers in the yard. Zombies come in through three gates in the outer wall. It is the main scene. |
-| Rounds | `rounds/` | `RoundManager` spawns each round's zombies from `RoundSettings`, then starts a break when the last zombie dies. |
-| HUD | `hud/` | A slanted, yellow-accent HUD in the style of The Finals (`hud_theme.tres`): the crosshair with a hit marker, segmented health, the points, the weapon name and the ammo as magazine and reserve, the RELOADING label, the buy prompt, the round number, the zombies left, and the BREAK label with a countdown. |
-| Economy | `economy/` | Points on a `Wallet` on the player: 10 for each zombie hit and 60 more for a kill. A buy station is a crate that sells one `BuyItem`. The player looks at it within 2.5 m, sees the prompt, and presses **E** to buy. The ammo station costs 250 points and fills the reserve. The weapon station (a teal crate) sells the SMG for 1000 points, then its ammo for 300. The test range and the Compound each have both. |
-| Pause menu | `pause_menu/`, `settings/` | **Esc** pauses the game and shows mouse sensitivity, field of view, master volume, and fullscreen. **Esc** or **Resume** goes back to the game. `GameSettings` saves the settings to `user://settings.cfg`. |
-| Audio | `audio/` | Sound for the pistol (shot, dry click, reload), a hit-marker tick and a kill sound, zombie groans, attack, and death that come from the zombie in 3D, a hurt grunt, and stings at round start and break start. Each event is an `AudioStreamRandomizer` (`audio/*.tres`) with a little random pitch. All play on the `SFX` bus (`default_bus_layout.tres`), so the master volume in the pause menu controls them. `tools/gen_sfx.py` generates the sounds. |
-| Game over | `game_over/`, `levels/level.gd` | The GAME OVER screen with the round reached. **Enter** reloads the level. |
-
-## After the minimal game
-
-These parts come after the minimal game. The list is not complete, and its order is not a priority:
-
-- Doors that open new areas of the map.
-- Pickups.
-- More weapons, such as a shotgun.
