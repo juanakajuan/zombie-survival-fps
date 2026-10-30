@@ -49,43 +49,43 @@ func test_the_smg_reload_takes_the_time_and_the_rounds_of_its_data() -> void:
 	assert_eq(smg.reserve, SMG.max_reserve - missing, "the reserve paid for the reload")
 
 
-func test_the_smg_reload_spins_the_gun_and_swaps_the_magazine() -> void:
+func test_the_smg_reload_drops_the_magazine_and_the_left_hand_slaps_in_a_new_one() -> void:
 	var player := await spawn_player()
 	var smg := player.give_weapon(SMG)
-	var view := smg.view_model as SpinViewModel
+	var view := smg.view_model as MagazineViewModel
 	await run_seconds(1.0)
 	var rest := view.model.global_transform
-	var hand_rest := view.hand.global_position
 	smg.try_fire()
 	await run_seconds(0.3)
 	smg.start_reload()
-	var lowest_up := 1.0
-	var hand_moved := 0.0
 	var magazine_was_out := false
+	var left_hand_came := false
 	for _i: int in ceili(SMG.reload_time * Engine.physics_ticks_per_second) + 10:
 		await physics_frames(1)
-		lowest_up = minf(lowest_up, view.model.global_basis.y.dot(rest.basis.y))
-		hand_moved = maxf(hand_moved, view.hand.global_position.distance_to(hand_rest))
 		if not view.magazine.is_visible_in_tree():
 			magazine_was_out = true
-	assert_true(lowest_up < -0.9, "the gun turns upside down in the spin, lowest up dot %s" % lowest_up)
-	assert_true(hand_moved < 0.15, "the hand stays near the grip while the gun spins, moved %s m" % hand_moved)
+		if view.left_hand.is_visible_in_tree():
+			left_hand_came = true
 	assert_true(magazine_was_out, "the empty magazine leaves the gun")
-	var thrown: Array[ThrownGun] = []
+	assert_true(left_hand_came, "the left hand brings the new magazine")
+	var dropped: Array[ThrownGun] = []
 	for child: Node in player.get_parent().get_children():
 		if child is ThrownGun:
-			thrown.append(child as ThrownGun)
-	assert_eq(thrown.size(), 1, "one empty magazine flew out")
+			dropped.append(child as ThrownGun)
+	assert_eq(dropped.size(), 1, "one empty magazine dropped")
+	assert_true(dropped[0].global_position.y < rest.origin.y - 0.3, "the empty magazine fell below the gun")
 	assert_true(not smg.is_reloading(), "the reload is over")
 	assert_true(view.magazine.is_visible_in_tree(), "a new magazine is in the gun")
+	assert_true(not view.left_hand.is_visible_in_tree(), "the left hand is gone")
 	await run_seconds(0.5)
 	assert_true(view.model.global_transform.origin.distance_to(rest.origin) < 0.005, "the gun is back at rest")
+	assert_true(view.hand.global_transform.is_equal_approx(view.model.global_transform), "the right hand holds the gun")
 
 
-func test_switching_away_mid_spin_brings_the_smg_back_whole() -> void:
+func test_switching_away_mid_reload_brings_the_smg_back_whole() -> void:
 	var player := await spawn_player()
 	var smg := player.give_weapon(SMG)
-	var view := smg.view_model as SpinViewModel
+	var view := smg.view_model as MagazineViewModel
 	smg.try_fire()
 	await run_seconds(0.5)
 	smg.start_reload()
@@ -94,4 +94,5 @@ func test_switching_away_mid_spin_brings_the_smg_back_whole() -> void:
 	player.switch_to(1)
 	await run_seconds(1.0)
 	assert_true(view.magazine.is_visible_in_tree(), "the magazine is in the gun")
-	assert_true(view.hand.global_transform.is_equal_approx(view.model.global_transform), "the hand holds the gun")
+	assert_true(not view.left_hand.is_visible_in_tree(), "the left hand is gone")
+	assert_true(view.hand.global_transform.is_equal_approx(view.model.global_transform), "the right hand holds the gun")
