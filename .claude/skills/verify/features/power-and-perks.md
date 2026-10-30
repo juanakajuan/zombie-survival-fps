@@ -32,6 +32,6 @@ Preconditions:
 ## Gotchas
 
 - The journey needs a break for each walk. Round 2 starts while the player is in the room, and its zombies block the walk back unless it is cleared.
-- The run ends with `ERROR: 2 resources still in use at exit` from the break sound after the mid-round kill-all. `drive.sh` then reports `the engine logged errors` although every step passes (`driver: done, 0 failures`). It also happens on `main` with no perk code.
+- The run ends with `ERROR: 2 resources still in use at exit` from the break sound after the mid-round kill-all. `drive.sh` then reports `the engine logged errors` although every step passes (`driver: done, 0 failures`). It also happens on `main` with no perk code (#62).
 - A machine still shows its buy prompt for a held perk, as the ammo station does with a full reserve. E does nothing and takes no points.
 - The Compound has no power switch or perk machines yet.
