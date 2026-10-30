@@ -2,6 +2,9 @@ class_name Zombie
 extends CharacterBody3D
 ## Melee zombie with the cartoon Shambler model (art_source/zombie.blend). It follows the navigation mesh to its target and hits it when close. The origin is at the feet.
 
+## The group that zombie.tscn puts each zombie in.
+const GROUP := &"zombie"
+
 enum State { CHASE, ATTACK, DEAD }
 
 @export_group("Attack")

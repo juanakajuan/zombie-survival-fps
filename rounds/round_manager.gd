@@ -45,6 +45,12 @@ func break_time_left() -> float:
 	return maxf(_break_left, 0.0) if state == State.BREAK else 0.0
 
 
+## Starts the next round now when a break is running. Does nothing during a round.
+func skip_break() -> void:
+	if state == State.BREAK and round_number >= 1:
+		_start_round(round_number + 1)
+
+
 func _physics_process(delta: float) -> void:
 	match state:
 		State.ACTIVE:
