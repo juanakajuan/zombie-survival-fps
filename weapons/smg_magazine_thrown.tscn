@@ -1,22 +1,19 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://weapons/thrown_gun.gd" id="1_thrown"]
-[ext_resource type="PackedScene" path="res://weapons/smg.glb" id="2_model"]
 
 [sub_resource type="BoxShape3D" id="shape"]
-size = Vector3(0.05, 0.2, 0.42)
+size = Vector3(0.04, 0.11, 0.05)
 
 [sub_resource type="PhysicsMaterial" id="bounce"]
 bounce = 0.35
 
-[node name="SmgThrown" type="RigidBody3D" groups=["thrown_gun"]]
+[node name="SmgMagazineThrown" type="RigidBody3D"]
 collision_layer = 2
-mass = 1.2
+mass = 0.3
 physics_material_override = SubResource("bounce")
 script = ExtResource("1_thrown")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.168)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.055, 0)
 shape = SubResource("shape")
-
-[node name="Model" parent="." instance=ExtResource("2_model")]
