@@ -45,6 +45,20 @@ func break_time_left() -> float:
 	return maxf(_break_left, 0.0) if state == State.BREAK else 0.0
 
 
+## Ends the current round now: the zombies not spawned yet never come, and the living ones die. They give no points.
+func kill_all() -> void:
+	if state != State.ACTIVE:
+		return
+	_zombies_to_spawn = 0
+	for child: Node in get_children():
+		if child is Zombie:
+			var health := Health.find_on(child)
+			health.damage(health.current)
+	# With no living zombie, no death ends the round.
+	if state == State.ACTIVE:
+		_start_break()
+
+
 ## Starts the next round now when a break is running. Does nothing during a round.
 func skip_break() -> void:
 	if state == State.BREAK and round_number >= 1:
@@ -91,6 +105,10 @@ func _on_zombie_died() -> void:
 	_zombies_alive -= 1
 	if _zombies_alive > 0 or _zombies_to_spawn > 0:
 		return
+	_start_break()
+
+
+func _start_break() -> void:
 	state = State.BREAK
 	_break_left = settings.break_time
 	round_ended.emit(round_number)

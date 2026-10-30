@@ -123,10 +123,10 @@ func test_god_mode_blocks_damage_until_it_is_toggled_off() -> void:
 
 
 func test_kill_all_zombies_ends_the_round_and_gives_no_points() -> void:
-	var level := await spawn_level(_one_zombie_settings())
+	var level := await spawn_level()
 	await physics_frames(2)
 	var manager := level.round_manager
-	assert_eq(manager.zombies_left(), 1, "zombies in round 1")
+	assert_eq(manager.zombies_left(), ROUND_SETTINGS.zombie_count(1), "zombies in round 1, most not spawned yet")
 	var points := level.player.wallet.points
 	level.player.debug_menu.run_command("KILL ALL ZOMBIES")
 	assert_eq(manager.zombies_left(), 0, "zombies left")

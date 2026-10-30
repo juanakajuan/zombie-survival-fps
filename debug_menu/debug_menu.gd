@@ -12,7 +12,7 @@ signal close_requested
 
 ## Player sets it. Every command acts on it.
 var player: Player
-## The level sets it. Without one, the skip-break command does nothing.
+## The level sets it. Without one, the round commands do nothing.
 var round_manager: RoundManager
 
 @onready var close_button: Button = %CloseButton
@@ -110,12 +110,9 @@ func _toggle_god_mode() -> void:
 	_update_god_text()
 
 
-## Zombies lose their health through Health, so RoundManager counts the deaths. They give no points.
 func _kill_zombies() -> void:
-	for node: Node in get_tree().get_nodes_in_group(Zombie.GROUP):
-		var health := Health.find_on(node)
-		if health != null:
-			health.damage(health.current)
+	if round_manager != null:
+		round_manager.kill_all()
 
 
 func _skip_break() -> void:
