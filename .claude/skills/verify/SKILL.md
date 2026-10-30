@@ -69,6 +69,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `player.aiming`, `player.third_person` | Whether the player aims down the sights, and whether the debug third-person camera is on. |
 | `game.paused`, `pause_menu.open` | Whether the game tree is paused, and whether the pause menu shows. Esc toggles both. |
 | `zombies.alive`, `zombies.bars`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, and target dummies that show. |
+| `doors.open`, `pickups` | Doors that are open, and pickups on the ground in the level (a placed one counts too). |
 | `tracers` | Shot tracers in flight. A tracer into the sky lives about 50 frames; one to the dummy ahead lives about 4. |
 | `frame` | The physics frame counter. |
 

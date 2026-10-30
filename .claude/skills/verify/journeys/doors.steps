@@ -1,0 +1,62 @@
+# Doors and pickups: fire rounds, walk over the max ammo pickup, get points from the debug menu, buy the room door, walk through it.
+expect doors.open 0
+expect pickups 1
+expect hud.points 0
+expect hud.ammo 12 / 48
+tap fire
+wait 10
+tap fire
+wait 10
+tap fire
+wait 10
+tap reload
+wait 150
+expect hud.ammo 12 / 45
+key F1
+key Tab
+key Enter
+key Enter
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Enter
+key F1
+expect hud.points 1000
+expect zombies.alive 0
+expect hud.break true
+face 143 0
+state 01-before-pickup
+shot 01-before-pickup
+hold move_forward
+wait 70
+release move_forward
+until hud.ammo 12 / 48 60
+wait 3
+expect pickups 0
+state 02-after-pickup
+shot 02-after-pickup
+face -90 0
+hold move_forward
+wait 255
+release move_forward
+wait 20
+face 180 0
+until hud.prompt_visible true 60
+expect hud.prompt E BUY DOOR 750
+expect doors.open 0
+state 03-prompt
+shot 03-prompt
+tap interact
+wait 10
+expect hud.points 250
+expect doors.open 1
+expect hud.prompt_visible false
+state 04-bought
+shot 04-bought
+hold move_forward
+wait 150
+release move_forward
+state 05-inside
+shot 05-inside
