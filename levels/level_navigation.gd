@@ -4,17 +4,12 @@ extends NavigationRegion3D
 ## Emits `bake_finished` when the mesh is baked.
 
 
-# A mesh that is set before the map's first sync with this region does not get to the navigation server, even when
-# an earlier level already synced the map. So wait for that sync, from before it can happen.
 func _ready() -> void:
-	NavigationServer3D.map_changed.connect(_on_map_changed)
-
-
-func _on_map_changed(map: RID) -> void:
-	if map == get_navigation_map():
-		NavigationServer3D.map_changed.disconnect(_on_map_changed)
-		# CSG shapes build their meshes at the end of the frame.
-		get_tree().process_frame.connect(bake, CONNECT_ONE_SHOT)
+	# With async iterations, the server loses a mesh that changes while the region builds its previous mesh on a worker
+	# thread: the map clears the region's sync request, and nothing requests a sync when the build is done.
+	NavigationServer3D.region_set_use_async_iterations(get_rid(), false)
+	# CSG shapes build their meshes at the end of the frame.
+	get_tree().process_frame.connect(bake, CONNECT_ONE_SHOT)
 
 
 ## Parses the geometry again and bakes. Call it after a collider appears or goes away.
