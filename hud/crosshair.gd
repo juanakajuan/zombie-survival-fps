@@ -6,6 +6,9 @@ extends Control
 @export var color: Color = Color(1, 1, 1, 0.9)
 @export var hit_color: Color = Color(1, 0.9, 0.0, 1)
 @export var headshot_color: Color = Color(1, 0.15, 0.1, 1)
+## Drawn under the hit marker, so that it shows on a zombie that flashes red.
+@export var marker_outline_color: Color = Color(0, 0, 0, 0.85)
+@export_range(0.0, 4.0, 0.5, "suffix:px") var outline_width: float = 1.5
 @export_range(0.0, 40.0, 0.5, "suffix:px") var gap: float = 8.0
 @export_range(0.0, 40.0, 0.5, "suffix:px") var tick_length: float = 7.0
 @export_range(0.5, 6.0, 0.5, "suffix:px") var thickness: float = 2.0
@@ -53,8 +56,12 @@ func _draw() -> void:
 	for dir: Vector2 in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
 		draw_line(c + dir * g, c + dir * (g + tick_length), color, thickness)
 	if _hit_left > 0.0:
+		var fade := _hit_left / hit_marker_time
 		var marker := headshot_color if _headshot else hit_color
-		marker.a *= _hit_left / hit_marker_time
+		marker.a *= fade
+		var outline := marker_outline_color
+		outline.a *= fade
 		for dir: Vector2 in [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]:
 			var n := dir.normalized()
+			draw_line(c + n * (gap - outline_width), c + n * (gap + tick_length + outline_width), outline, thickness + 2.0 * outline_width)
 			draw_line(c + n * gap, c + n * (gap + tick_length), marker, thickness)
