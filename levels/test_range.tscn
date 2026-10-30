@@ -11,6 +11,10 @@
 [ext_resource type="PackedScene" path="res://economy/buy_station.tscn" id="9_station"]
 [ext_resource type="Resource" path="res://economy/smg_item.tres" id="10_smg_item"]
 [ext_resource type="Material" path="res://economy/weapon_crate_material.tres" id="11_weapon_crate"]
+[ext_resource type="Script" path="res://rounds/spawn_point.gd" id="12_spawn_point"]
+[ext_resource type="PackedScene" path="res://doors/door.tscn" id="13_door"]
+[ext_resource type="PackedScene" path="res://pickups/pickup.tscn" id="14_pickup"]
+[ext_resource type="Resource" path="res://pickups/max_ammo.tres" id="15_max_ammo"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -137,6 +141,24 @@ use_collision = true
 size = Vector3(4, 1.2, 0.5)
 material = SubResource("wall_material")
 
+[node name="RoomWallNorth" type="CSGBox3D" parent="Geometry"]
+position = Vector3(13.375, 1.75, 12)
+use_collision = true
+size = Vector3(3.25, 3.5, 0.5)
+material = SubResource("wall_material")
+
+[node name="RoomWallNorth2" type="CSGBox3D" parent="Geometry"]
+position = Vector3(19, 1.75, 12)
+use_collision = true
+size = Vector3(2, 3.5, 0.5)
+material = SubResource("wall_material")
+
+[node name="RoomWallWest" type="CSGBox3D" parent="Geometry"]
+position = Vector3(12, 1.75, 15.875)
+use_collision = true
+size = Vector3(0.5, 3.5, 8.25)
+material = SubResource("wall_material")
+
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector3(0, 0, 6)
 
@@ -155,16 +177,25 @@ settings = ExtResource("6_settings")
 player = NodePath("../Player")
 
 [node name="SpawnNorthWest" type="Marker3D" parent="RoundManager"]
+script = ExtResource("12_spawn_point")
 position = Vector3(-6, 0, -17)
 
 [node name="SpawnNorthEast" type="Marker3D" parent="RoundManager"]
+script = ExtResource("12_spawn_point")
 position = Vector3(6, 0, -17)
 
 [node name="SpawnWest" type="Marker3D" parent="RoundManager"]
+script = ExtResource("12_spawn_point")
 position = Vector3(-17, 0, 0)
 
 [node name="SpawnEast" type="Marker3D" parent="RoundManager"]
+script = ExtResource("12_spawn_point")
 position = Vector3(17, 0, 0)
+
+[node name="SpawnRoom" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("doors")]
+script = ExtResource("12_spawn_point")
+position = Vector3(16, 0, 17)
+doors = [NodePath("../../RoomDoor")]
 
 [node name="GameOver" parent="." node_paths=PackedStringArray("player", "round_manager") instance=ExtResource("8_game_over")]
 player = NodePath("../Player")
@@ -179,3 +210,11 @@ item = ExtResource("10_smg_item")
 
 [node name="MeshInstance3D" parent="WeaponStation" index="0"]
 surface_material_override/0 = ExtResource("11_weapon_crate")
+
+[node name="RoomDoor" parent="." instance=ExtResource("13_door")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 16.5, 0, 12)
+size = Vector3(3, 3.5, 0.5)
+
+[node name="MaxAmmoPickup" parent="." instance=ExtResource("14_pickup")]
+position = Vector3(-3, 0, 10)
+item = ExtResource("15_max_ammo")
