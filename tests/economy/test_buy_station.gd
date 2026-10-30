@@ -8,13 +8,13 @@ func test_looking_at_the_station_focuses_it_and_looking_away_does_not() -> void:
 	var player := await spawn_player(Vector3.ZERO, 5)
 	var station := spawn_station(STATION_AT)
 	await physics_frames(2)
-	assert_true(player.focused_station() == null, "nothing is focused when looking along the floor")
+	assert_true(player.focused() == null, "nothing is focused when looking along the floor")
 	look_at_point(player, station.global_position + Vector3.UP * 0.6)
 	await physics_frames(2)
-	assert_true(player.focused_station() == station, "the station is focused")
+	assert_true(player.focused() == station, "the station is focused")
 	player.look(Vector2(1000.0, 0.0))
 	await physics_frames(2)
-	assert_true(player.focused_station() == null, "looking away drops the focus")
+	assert_true(player.focused() == null, "looking away drops the focus")
 
 
 func test_a_station_beyond_interact_range_is_not_focused() -> void:
@@ -23,7 +23,7 @@ func test_a_station_beyond_interact_range_is_not_focused() -> void:
 	await physics_frames(2)
 	look_at_point(player, station.global_position + Vector3.UP * 0.6)
 	await physics_frames(2)
-	assert_true(player.focused_station() == null, "too far away")
+	assert_true(player.focused() == null, "too far away")
 
 
 func test_a_wall_between_the_player_and_the_station_blocks_the_focus() -> void:
@@ -34,7 +34,7 @@ func test_a_wall_between_the_player_and_the_station_blocks_the_focus() -> void:
 	await physics_frames(2)
 	look_at_point(player, station.global_position + Vector3.UP * 0.6)
 	await physics_frames(2)
-	assert_true(player.focused_station() == null, "the wall hides the station")
+	assert_true(player.focused() == null, "the wall hides the station")
 
 
 func test_the_prompt_shows_the_item_and_its_cost() -> void:

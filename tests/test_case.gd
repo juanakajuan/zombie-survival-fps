@@ -145,6 +145,14 @@ func sells_weapon(level: Level, weapon_name: String) -> bool:
 	return false
 
 
+## Whether a path has a point on the inside of the barricade.
+func path_goes_inside(path: PackedVector3Array, barricade: Barricade) -> bool:
+	for point: Vector3 in path:
+		if barricade.is_inside(point):
+			return true
+	return false
+
+
 ## Turns the player's view to `point` with one mouse motion.
 func look_at_point(player: Player, point: Vector3) -> void:
 	player.look(player.mouse_delta_to(point))

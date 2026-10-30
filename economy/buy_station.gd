@@ -1,5 +1,5 @@
 class_name BuyStation
-extends StaticBody3D
+extends Interactable
 ## A crate that sells one BuyItem. The player looks at it and presses the interact action to buy.
 
 signal purchased
@@ -25,3 +25,7 @@ func buy(player: Player) -> bool:
 
 func prompt_text(player: Player) -> String:
 	return "E  BUY %s  %d" % [item.label(player), item.price(player)]
+
+
+func press(player: Player) -> void:
+	buy(player)

@@ -93,9 +93,10 @@ func _start_round(number: int) -> void:
 
 func _spawn_zombie() -> void:
 	var zombie := zombie_scene.instantiate() as Zombie
-	zombie.configure(settings.zombie_speed(round_number), settings.zombie_health(round_number), player)
+	var point := _next_active_spawn_point()
+	zombie.configure(settings.zombie_speed(round_number), settings.zombie_health(round_number), player, point.barricade)
 	Health.find_on(zombie).died.connect(_on_zombie_died)
-	zombie.transform = _next_active_spawn_point().global_transform
+	zombie.transform = point.global_transform
 	_zombies_to_spawn -= 1
 	_zombies_alive += 1
 	_spawn_cooldown = settings.spawn_interval

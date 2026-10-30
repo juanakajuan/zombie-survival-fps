@@ -19,6 +19,7 @@ radius = 0.35
 height = 1.8
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
+collision_mask = 5
 script = ExtResource("1_player")
 weapon_scene = ExtResource("3_weapon")
 

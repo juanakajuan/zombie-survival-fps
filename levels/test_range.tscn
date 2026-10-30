@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://doors/door.tscn" id="13_door"]
 [ext_resource type="PackedScene" path="res://pickups/pickup.tscn" id="14_pickup"]
 [ext_resource type="Resource" path="res://pickups/max_ammo.tres" id="15_max_ammo"]
+[ext_resource type="PackedScene" path="res://barricades/barricade.tscn" id="16_barricade"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -159,6 +160,30 @@ use_collision = true
 size = Vector3(0.5, 3.5, 8.25)
 material = SubResource("wall_material")
 
+[node name="YardWallNorth" type="CSGBox3D" parent="Geometry"]
+position = Vector3(-17.5, 1.75, 14)
+use_collision = true
+size = Vector3(5, 3.5, 0.5)
+material = SubResource("wall_material")
+
+[node name="YardWallEast" type="CSGBox3D" parent="Geometry"]
+position = Vector3(-15, 1.75, 14.875)
+use_collision = true
+size = Vector3(0.5, 3.5, 2.25)
+material = SubResource("wall_material")
+
+[node name="YardWallEast2" type="CSGBox3D" parent="Geometry"]
+position = Vector3(-15, 1.75, 19)
+use_collision = true
+size = Vector3(0.5, 3.5, 2)
+material = SubResource("wall_material")
+
+[node name="YardWindowLintel" type="CSGBox3D" parent="Geometry"]
+position = Vector3(-15, 3.0, 17)
+use_collision = true
+size = Vector3(0.5, 1, 2)
+material = SubResource("wall_material")
+
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector3(0, 0, 6)
 
@@ -197,6 +222,11 @@ script = ExtResource("12_spawn_point")
 position = Vector3(16, 0, 17)
 doors = [NodePath("../../RoomDoor")]
 
+[node name="SpawnYard" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("barricade")]
+script = ExtResource("12_spawn_point")
+position = Vector3(-18, 0, 17)
+barricade = NodePath("../../YardBarricade")
+
 [node name="GameOver" parent="." node_paths=PackedStringArray("player", "round_manager") instance=ExtResource("8_game_over")]
 player = NodePath("../Player")
 round_manager = NodePath("../RoundManager")
@@ -218,3 +248,7 @@ size = Vector3(3, 3.5, 0.5)
 [node name="MaxAmmoPickup" parent="." instance=ExtResource("14_pickup")]
 position = Vector3(-3, 0, 10)
 item = ExtResource("15_max_ammo")
+
+[node name="YardBarricade" parent="." instance=ExtResource("16_barricade")]
+position = Vector3(-15, 0, 17)
+rotation = Vector3(0, -1.5707964, 0)

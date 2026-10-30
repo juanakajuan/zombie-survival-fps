@@ -154,10 +154,10 @@ func _update_points() -> void:
 
 
 func _update_prompt() -> void:
-	var station := weapon.wielder.focused_station() if weapon.wielder != null else null
-	_prompt.visible = station != null
-	if station != null:
-		_prompt.text = station.prompt_text(weapon.wielder)
+	var focused := weapon.wielder.focused() if weapon.wielder != null else null
+	var text := focused.prompt_text(weapon.wielder) if focused != null else ""
+	_prompt.visible = not text.is_empty()
+	_prompt.text = text
 
 
 func _update_round() -> void:

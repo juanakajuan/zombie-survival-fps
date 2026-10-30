@@ -30,6 +30,19 @@ func test_every_spawn_point_has_a_path_to_the_player_start_once_the_doors_are_op
 		assert_true(_path_reaches(level, spawn.global_position, start), "%s has no path to the player start with the doors open" % spawn.name)
 
 
+func test_each_gate_spawn_point_has_a_path_to_the_player_start_through_its_barricade() -> void:
+	var level := await spawn_level(null, COMPOUND_SCENE)
+	var start := (level.get_node("Player") as Player).global_position
+	var with_barricade: Array[SpawnPoint] = spawn_points_in(level).filter(func(point: SpawnPoint) -> bool: return point.barricade != null)
+	assert_eq(with_barricade.size(), 3, "spawn points that name a barricade")
+	for spawn: SpawnPoint in with_barricade:
+		assert_true(_path_reaches(level, spawn.global_position, start), "%s has no path to the player start" % spawn.name)
+		assert_true(not spawn.barricade.is_inside(spawn.global_position), "%s is outside its barricade" % spawn.name)
+		assert_true(spawn.barricade.is_inside(start), "the player start is inside the barricade of %s" % spawn.name)
+		var path := NavigationServer3D.map_get_path(level.navigation.get_navigation_map(), spawn.global_position, start, true)
+		assert_true(path_goes_inside(path, spawn.barricade), "the path of %s goes through its barricade" % spawn.name)
+
+
 func test_the_compound_navmesh_answers_queries_when_it_loads_right_after_another_level() -> void:
 	var first := await spawn_level()
 	first.queue_free()

@@ -12,6 +12,7 @@ func _ready() -> void:
 	player.debug_menu.round_manager = round_manager
 	for node: Node in get_tree().get_nodes_in_group(Door.GROUP):
 		(node as Door).opened.connect(navigation.bake)
+	round_manager.round_started.connect(func(_round_number: int) -> void: player.wallet.start_round())
 	game_over.restart_requested.connect(restart)
 
 

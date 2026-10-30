@@ -41,7 +41,7 @@ func test_the_player_cannot_buy_an_open_door_again() -> void:
 	player.global_position = OUTSIDE_THE_DOORWAY
 	player.look(player.mouse_delta_to_angles(PI, 0.0))
 	await physics_frames(3)
-	assert_true(player.focused_station() == null, "the player does not focus the open door")
+	assert_true(player.focused() == null, "the player does not focus the open door")
 
 
 func test_the_player_looks_at_the_closed_door_and_sees_its_price() -> void:
@@ -50,7 +50,7 @@ func test_the_player_looks_at_the_closed_door_and_sees_its_price() -> void:
 	player.global_position = Vector3(16.5, 0.0, 10.5)
 	player.look(player.mouse_delta_to_angles(PI, 0.0))
 	await physics_frames(3)
-	assert_eq(player.focused_station().prompt_text(player), "E  BUY DOOR  750", "prompt")
+	assert_eq(player.focused().prompt_text(player), "E  BUY DOOR  750", "prompt")
 
 
 func test_the_closed_door_blocks_a_zombie_and_the_open_door_lets_it_through() -> void:

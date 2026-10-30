@@ -101,7 +101,7 @@ var _shape: CapsuleShape3D
 var _stand_height: float
 var _stand_head_height: float
 var _third_person := false
-var _focused: BuyStation
+var _focused: Interactable
 
 
 func _enter_tree() -> void:
@@ -177,8 +177,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
 	_update_focus()
-	if _focused != null and weapon.trigger_enabled and Input.is_action_just_pressed("interact"):
-		_focused.buy(self)
+	if _focused != null and weapon.trigger_enabled:
+		if Input.is_action_just_pressed("interact"):
+			_focused.press(self)
+		if Input.is_action_pressed("interact"):
+			_focused.hold(self, delta)
 	if weapon.trigger_enabled and not weapon.is_reloading() and Input.is_action_just_pressed("melee"):
 		melee.try_swing()
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
@@ -268,8 +271,8 @@ func switch_to(index: int) -> void:
 	_equip(weapons[index])
 
 
-## The buy station within interact_range that the player looks at, or null. A dead player has none.
-func focused_station() -> BuyStation:
+## The interactable within interact_range that the player looks at, or null. A dead player has none.
+func focused() -> Interactable:
 	return _focused
 
 
@@ -313,7 +316,7 @@ func _update_focus() -> void:
 	var result := get_world_3d().direct_space_state.intersect_ray(query)
 	if not result.is_empty():
 		var collider: Object = result["collider"]
-		_focused = collider as BuyStation
+		_focused = collider as Interactable
 
 
 func _on_health_died() -> void:

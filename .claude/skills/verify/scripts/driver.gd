@@ -278,6 +278,7 @@ func _state() -> Dictionary[String, String]:
 	var dummies_up := 0
 	var doors_open := 0
 	var pickups := 0
+	var boards := 0
 	for node: Node in level.find_children("*", "", true, false):
 		if node is Zombie and not (node as Zombie).is_dead():
 			zombies += 1
@@ -289,12 +290,15 @@ func _state() -> Dictionary[String, String]:
 			doors_open += 1
 		elif node is Pickup:
 			pickups += 1
+		elif node is Barricade:
+			boards += (node as Barricade).boards
 	s["zombies.alive"] = str(zombies)
 	s["zombies.bars"] = str(bars)
 	s["tracers"] = str(get_nodes_in_group(Tracer.GROUP).size())
 	s["dummies.up"] = str(dummies_up)
 	s["doors.open"] = str(doors_open)
 	s["pickups"] = str(pickups)
+	s["barricades.boards"] = str(boards)
 	var game_over := level.get_node_or_null("GameOver") as GameOver
 	if game_over != null:
 		s["game_over.visible"] = str(game_over.visible)
