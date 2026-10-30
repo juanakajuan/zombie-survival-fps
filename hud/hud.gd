@@ -65,6 +65,7 @@ func _ready() -> void:
 	wallet.changed.connect(_update_points.unbind(1))
 	weapon.reload_started.connect(_update_ammo)
 	weapon.reload_finished.connect(_update_ammo)
+	weapon.equipped.connect(_on_weapon_equipped)
 	_health_bar.max_value = health.max_health
 	_health_max.text = "/ %d" % ceili(health.max_health)
 	_on_health_changed(health.current)
@@ -98,6 +99,11 @@ func readout() -> Readout:
 	r.hit_marker = _crosshair.hit_marker_visible()
 	r.crosshair_visible = _crosshair.is_visible_in_tree()
 	return r
+
+
+func _on_weapon_equipped() -> void:
+	_weapon_name.text = weapon.data.display_name
+	_update_ammo()
 
 
 func _on_health_changed(current: float) -> void:
