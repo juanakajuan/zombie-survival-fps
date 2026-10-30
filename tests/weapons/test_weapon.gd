@@ -184,7 +184,7 @@ func test_damaged_reports_the_target_and_whether_the_shot_killed_it() -> void:
 	health.damage(health.max_health - data.damage * 2.0)
 	var kills: Array[bool] = []
 	var targets: Array[Node] = []
-	weapon.damaged.connect(func(target: Node, killed: bool) -> void:
+	weapon.damaged.connect(func(target: Node, killed: bool, _headshot: bool) -> void:
 		targets.append(target)
 		kills.append(killed))
 	weapon.try_fire()

@@ -30,6 +30,16 @@ func test_a_tap_damages_a_zombie_in_front_once() -> void:
 	assert_almost_eq(health.current, before - player.melee.damage, 0.001, "one swing takes melee.damage")
 
 
+func test_a_punch_never_reports_a_headshot() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	_still_zombie(Vector3(0.0, 0.0, -1.2), player)
+	var reports: Array[bool] = []
+	player.melee.damaged.connect(func(_target: Node, _killed: bool, headshot: bool) -> void: reports.append(headshot))
+	await _tap_melee()
+	await run_seconds(_swing_seconds(player) + 0.1)
+	assert_eq(reports, [false] as Array[bool], "one punch hit and it was not a headshot")
+
+
 func test_a_zombie_behind_or_far_in_front_takes_no_damage() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var behind := _still_zombie(Vector3(0.0, 0.0, 1.2), player)

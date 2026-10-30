@@ -85,6 +85,64 @@ func test_fewer_pistol_shots_leave_the_zombie_alive() -> void:
 	assert_almost_eq(health.current, health.max_health - shots * PISTOL.damage, 0.001, "zombie lost damage per shot")
 
 
+func test_headshot_deals_multiplied_damage_and_a_body_shot_deals_base_damage() -> void:
+	var zombie := _tall_zombie()
+	var weapon := _spawn_weapon(Vector3(0.0, 1.0, 5.0))
+	var health := Health.find_on(zombie)
+	var reports: Array[bool] = []
+	weapon.damaged.connect(func(_target: Node, _killed: bool, headshot: bool) -> void: reports.append(headshot))
+	await physics_frames(FRAME_MARGIN)
+	_aim_at(weapon, zombie.global_position + Vector3(0.0, 0.7, 0.0))
+	assert_true(weapon.try_fire(), "body shot fires")
+	assert_almost_eq(health.current, health.max_health - PISTOL.damage, 0.001, "a body shot takes base damage")
+	await run_seconds(PISTOL.fire_interval + FRAME_MARGIN / 60.0)
+	_aim_at(weapon, zombie.weak_spot.global_position)
+	var before := health.current
+	assert_true(weapon.try_fire(), "head shot fires")
+	assert_almost_eq(health.current, before - PISTOL.damage * zombie.weak_spot.damage_multiplier, 0.001, "a headshot takes multiplied damage")
+	assert_eq(reports, [false, true] as Array[bool], "only the second shot is a headshot")
+
+
+func test_the_head_shape_follows_the_animated_head() -> void:
+	await spawn_nav_world()
+	var player := await spawn_player(Vector3(0.0, 0.0, 0.0), 3)
+	var zombie := spawn_zombie(Vector3(0.0, 0.0, -20.0), player)
+	var height := await sample_range(func() -> float: return zombie.weak_spot.global_position.y - zombie.global_position.y, 1.0)
+	assert_true(height.y - height.x > 0.01, "the head shape moves with the walk bob, range %s" % (height.y - height.x))
+
+
+func test_a_walking_zombie_still_takes_a_headshot() -> void:
+	await spawn_nav_world()
+	var player := await spawn_player(Vector3(0.0, 0.0, 10.0), 3)
+	var zombie := spawn_zombie(Vector3(0.0, 0.0, -10.0), player)
+	var health := Health.find_on(zombie)
+	health.max_health = 10000.0
+	health.reset()
+	await run_seconds(1.0)
+	var reports: Array[bool] = []
+	var weapon := _spawn_weapon(Vector3(0.0, 1.6, 8.0))
+	weapon.damaged.connect(func(_target: Node, _killed: bool, headshot: bool) -> void: reports.append(headshot))
+	_aim_at(weapon, zombie.weak_spot.global_position)
+	assert_true(zombie.velocity.length() > 0.1, "the zombie moves")
+	assert_true(weapon.try_fire(), "shot fires")
+	assert_eq(reports, [true] as Array[bool], "the shot at the head of a walking zombie is a headshot")
+
+
+func test_a_dead_zombie_takes_no_shot_at_its_head() -> void:
+	var zombie := _tall_zombie()
+	var weapon := _spawn_weapon(Vector3(0.0, 1.0, 5.0))
+	var health := Health.find_on(zombie)
+	await physics_frames(FRAME_MARGIN)
+	var aim_point := zombie.weak_spot.global_position
+	health.damage(health.max_health)
+	await physics_frames(FRAME_MARGIN)
+	var hits := [0]
+	weapon.hit.connect(func(_collider: Object, _point: Vector3) -> void: hits[0] += 1)
+	_aim_at(weapon, aim_point)
+	weapon.try_fire()
+	assert_eq(hits[0], 0, "the shot goes through the corpse")
+
+
 func test_zombie_ignores_a_dead_player() -> void:
 	await spawn_nav_world()
 	var player := await spawn_player(Vector3(0.0, 0.0, 0.0), 3)
@@ -102,6 +160,18 @@ func _spawn_weapon(at: Vector3) -> Weapon:
 	weapon.position = at
 	add_child(weapon)
 	return weapon
+
+
+func _tall_zombie() -> Zombie:
+	var zombie := spawn_zombie(Vector3.ZERO)
+	var health := Health.find_on(zombie)
+	health.max_health = 10000.0
+	health.reset()
+	return zombie
+
+
+func _aim_at(weapon: Weapon, point: Vector3) -> void:
+	weapon.look_at(point)
 
 
 func _flat_distance(a: Node3D, b: Node3D) -> float:

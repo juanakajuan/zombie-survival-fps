@@ -8,6 +8,8 @@ signal changed(points: int)
 @export_range(0, 1000) var points_per_hit: int = 10
 ## Extra points for the shot that kills a zombie.
 @export_range(0, 1000) var kill_bonus: int = 60
+## Extra points when the killing blow is a headshot.
+@export_range(0, 1000) var headshot_bonus: int = 40
 
 var points: int
 
@@ -30,5 +32,8 @@ func spend(cost: int) -> bool:
 	return true
 
 
-func reward_hit(killed: bool) -> void:
-	add(points_per_hit + (kill_bonus if killed else 0))
+func reward_hit(killed: bool, headshot: bool) -> void:
+	var bonus := 0
+	if killed:
+		bonus = kill_bonus + (headshot_bonus if headshot else 0)
+	add(points_per_hit + bonus)

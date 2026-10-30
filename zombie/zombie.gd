@@ -39,6 +39,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var _health: Health = $Health
 @onready var _agent: NavigationAgent3D = $NavigationAgent3D
 @onready var _shape: CollisionShape3D = $CollisionShape3D
+@onready var weak_spot: WeakSpot = $WeakSpot
 @onready var _hit_flash: HitFlash = $HitFlash
 @onready var animator: ZombieAnimator = $Animator
 @onready var _model: Node3D = $Model
@@ -150,6 +151,7 @@ func _on_died() -> void:
 	state = State.DEAD
 	velocity = Vector3.ZERO
 	_shape.set_deferred("disabled", true)
+	weak_spot.set_deferred("disabled", true)
 	groan_sound.stop()
 	death_sound.play()
 	_drop_pickup()

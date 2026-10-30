@@ -114,6 +114,21 @@ func test_hit_marker_shows_when_a_shot_hits_a_target() -> void:
 	assert_true(player.hud.readout().hit_marker, "hit marker after a hit")
 
 
+func test_headshot_marker_shows_after_a_headshot_and_not_after_a_body_shot() -> void:
+	var player := await spawn_player()
+	var zombie := spawn_zombie(Vector3(0.0, 0.0, -4.0))
+	await physics_frames(FRAME_MARGIN)
+	look_at_point(player, zombie.global_position + Vector3.UP)
+	assert_true(player.weapon.try_fire(), "body shot fires")
+	assert_true(player.hud.readout().hit_marker, "hit marker after a body shot")
+	assert_true(not player.hud.readout().headshot_marker, "no headshot marker after a body shot")
+	await run_seconds(player.weapon.data.fire_interval + FRAME_MARGIN / 60.0)
+	look_at_point(player, zombie.weak_spot.global_position)
+	assert_true(player.weapon.try_fire(), "head shot fires")
+	assert_true(player.hud.readout().hit_marker, "hit marker after a headshot")
+	assert_true(player.hud.readout().headshot_marker, "headshot marker after a headshot")
+
+
 func test_crosshair_hides_while_aiming() -> void:
 	var player := await spawn_player()
 	await physics_frames(FRAME_MARGIN)
