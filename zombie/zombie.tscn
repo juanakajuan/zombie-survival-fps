@@ -9,6 +9,8 @@
 [ext_resource type="AudioStream" path="res://audio/zombie_groan.tres" id="7_groan"]
 [ext_resource type="AudioStream" path="res://audio/zombie_attack.tres" id="8_attack"]
 [ext_resource type="AudioStream" path="res://audio/zombie_death.tres" id="9_death"]
+[ext_resource type="Resource" path="res://pickups/zombie_drops.tres" id="10_drops"]
+[ext_resource type="PackedScene" path="res://pickups/pickup.tscn" id="11_pickup"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -16,6 +18,8 @@ height = 1.8
 
 [node name="Zombie" type="CharacterBody3D"]
 script = ExtResource("1_zombie")
+drops = ExtResource("10_drops")
+pickup_scene = ExtResource("11_pickup")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.9, 0)

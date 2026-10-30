@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="MaxAmmoItem" format=3]
+
+[ext_resource type="Script" path="res://pickups/max_ammo_item.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+display_name = "MAX AMMO"

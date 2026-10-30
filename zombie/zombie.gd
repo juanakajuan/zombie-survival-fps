@@ -18,6 +18,11 @@ enum State { CHASE, ATTACK, DEAD }
 @export_group("Look")
 @export_range(0.0, 50.0, 0.5, "suffix:1/s") var turn_rate: float = 10.0
 
+@export_group("Drops")
+## What the zombie may drop when it dies. Null means it drops nothing.
+@export var drops: DropTable
+@export var pickup_scene: PackedScene
+
 ## Set by configure(). Null means the zombie stands still.
 var target: Node3D
 ## Set by configure(). RoundSettings owns the value for each round.
@@ -147,3 +152,17 @@ func _on_died() -> void:
 	_shape.set_deferred("disabled", true)
 	groan_sound.stop()
 	death_sound.play()
+	_drop_pickup()
+
+
+func _drop_pickup() -> void:
+	if drops == null:
+		return
+	var item := drops.roll()
+	if item == null:
+		return
+	var pickup := pickup_scene.instantiate() as Pickup
+	pickup.item = item
+	pickup.lifetime = drops.lifetime
+	pickup.position = position
+	get_parent().add_child.call_deferred(pickup)
