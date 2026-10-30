@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="DoorItem" format=3]
+
+[ext_resource type="Script" path="res://doors/door_item.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+display_name = "DOOR"
+cost = 750

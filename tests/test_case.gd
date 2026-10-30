@@ -6,6 +6,7 @@ extends Node
 const PLAYER_SCENE: PackedScene = preload("res://player/player.tscn")
 const ZOMBIE_SCENE: PackedScene = preload("res://zombie/zombie.tscn")
 const STATION_SCENE: PackedScene = preload("res://economy/buy_station.tscn")
+const PICKUP_SCENE: PackedScene = preload("res://pickups/pickup.tscn")
 const DUMMY_SCENE: PackedScene = preload("res://targets/target_dummy.tscn")
 const LEVEL_SCENE: PackedScene = preload("res://levels/test_range.tscn")
 const ROUND_SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
@@ -73,8 +74,27 @@ func spawn_zombie(at: Vector3, target: Node3D = null) -> Zombie:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
 	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.zombie_health(1), target)
 	zombie.position = at
+	zombie.drops = null
 	add_child(zombie)
 	return zombie
+
+
+func spawn_pickup(item: BuyItem, at: Vector3, lifetime: float = 0.0) -> Pickup:
+	var pickup := PICKUP_SCENE.instantiate() as Pickup
+	pickup.item = item
+	pickup.lifetime = lifetime
+	pickup.position = at
+	add_child(pickup)
+	return pickup
+
+
+## The pickups that are children of `parent`.
+func pickups_in(parent: Node) -> Array[Pickup]:
+	var found: Array[Pickup] = []
+	for child: Node in parent.get_children():
+		if child is Pickup:
+			found.append(child as Pickup)
+	return found
 
 
 func spawn_dummy(at: Vector3) -> TargetDummy:
@@ -97,6 +117,14 @@ func stations_in(level: Level) -> Array[BuyStation]:
 	for node: Node in level.find_children("*", "StaticBody3D", true, false):
 		if node is BuyStation:
 			found.append(node as BuyStation)
+	return found
+
+
+func spawn_points_in(level: Level) -> Array[SpawnPoint]:
+	var found: Array[SpawnPoint] = []
+	for node: Node in level.get_node("RoundManager").get_children():
+		if node is SpawnPoint:
+			found.append(node as SpawnPoint)
 	return found
 
 

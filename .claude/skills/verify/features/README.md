@@ -33,6 +33,7 @@ Each feature file starts with an H1 title and one paragraph about the behavior t
 - [Weapon and targets](./weapon-and-targets.md) covers firing, the tracer and the hit marker, the pistol in the player's hand, aim down the sights, ammo on the HUD, target dummies, and reload.
 - [Melee](./melee.md) covers the punch on V: the left hand animation, the damage at short reach, and the points from a punch.
 - [Economy](./economy.md) covers points from zombie hits and kills, the reserve ammo, and the buy station that sells ammo with E.
+- [Doors and pickups](./doors-and-pickups.md) covers the door that points buy, the spawn point that waits for it, and the pickups that give max ammo or health on a walk over them.
 - [Rounds and HUD](./rounds-and-hud.md) covers zombie spawns, the zombie health bar, the zombies-left line, clearing a round, the BREAK label, and the next round with stronger zombies.
 - [Death, game over, and restart](./death-and-game-over.md) covers zombie attacks, player death, the game-over screen, and restart with Enter.
 

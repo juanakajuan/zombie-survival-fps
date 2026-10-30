@@ -1,7 +1,7 @@
 class_name RoundManager
 extends Node
-## Runs the rounds. Round 1 starts when the level loads. Each round spawns its zombies at the Marker3D children, one
-## after the other. When the last zombie of the round dies, the break starts, and the next round starts after it.
+## Runs the rounds. Round 1 starts when the level loads. Each round spawns its zombies at the SpawnPoint children that are
+## active, one after the other. When the last zombie of the round dies, the break starts, and the next round starts after it.
 
 signal round_started(round_number: int)
 signal round_ended(round_number: int)
@@ -17,7 +17,7 @@ enum State { BREAK, ACTIVE }
 var round_number: int = 0
 var state: State = State.BREAK
 
-var _spawn_points: Array[Marker3D] = []
+var _spawn_points: Array[SpawnPoint] = []
 var _next_spawn_point: int = 0
 var _zombies_to_spawn: int = 0
 var _zombies_alive: int = 0
@@ -27,10 +27,10 @@ var _break_left: float = 0.0
 
 func _ready() -> void:
 	for child: Node in get_children():
-		if child is Marker3D:
-			_spawn_points.append(child as Marker3D)
+		if child is SpawnPoint:
+			_spawn_points.append(child as SpawnPoint)
 	if _spawn_points.is_empty():
-		push_error("RoundManager: add Marker3D children as spawn points.")
+		push_error("RoundManager: add SpawnPoint children.")
 		return
 	_start_round(1)
 
@@ -45,13 +45,15 @@ func break_time_left() -> float:
 	return maxf(_break_left, 0.0) if state == State.BREAK else 0.0
 
 
-## Ends the current round now: the zombies not spawned yet never come, and the living ones die. They give no points.
+## Ends the current round now: the zombies not spawned yet never come, and the living ones die. They give no points and
+## drop nothing.
 func kill_all() -> void:
 	if state != State.ACTIVE:
 		return
 	_zombies_to_spawn = 0
 	for child: Node in get_children():
 		if child is Zombie:
+			(child as Zombie).drops = null
 			var health := Health.find_on(child)
 			health.damage(health.current)
 	# With no living zombie, no death ends the round.
@@ -93,12 +95,22 @@ func _spawn_zombie() -> void:
 	var zombie := zombie_scene.instantiate() as Zombie
 	zombie.configure(settings.zombie_speed(round_number), settings.zombie_health(round_number), player)
 	Health.find_on(zombie).died.connect(_on_zombie_died)
-	zombie.transform = _spawn_points[_next_spawn_point].global_transform
-	_next_spawn_point = (_next_spawn_point + 1) % _spawn_points.size()
+	zombie.transform = _next_active_spawn_point().global_transform
 	_zombies_to_spawn -= 1
 	_zombies_alive += 1
 	_spawn_cooldown = settings.spawn_interval
 	add_child(zombie)
+
+
+## The next active point after the one that spawned last. A point with no door is always active, so one exists unless
+## every point lists doors and all are closed. Then the zombie spawns at the next point anyway.
+func _next_active_spawn_point() -> SpawnPoint:
+	for _i: int in _spawn_points.size():
+		var point := _spawn_points[_next_spawn_point]
+		_next_spawn_point = (_next_spawn_point + 1) % _spawn_points.size()
+		if point.is_active():
+			return point
+	return _spawn_points[_next_spawn_point]
 
 
 func _on_zombie_died() -> void:

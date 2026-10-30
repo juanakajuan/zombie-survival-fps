@@ -24,3 +24,6 @@ You stand in an arena. Zombies come at you in rounds, and you shoot them before 
 - A weapon station is a `BuyStation` with a `WeaponItem`. It sells the weapon, and once the player holds it, that weapon's ammo.
 - The reserve is per weapon (`WeaponData.max_reserve`). A reload moves rounds from the reserve into the magazine, and with an empty reserve there is no reload.
 - A `BuyStation` sells one `BuyItem` resource (`economy/`). A subclass of `BuyItem` says when the item can be bought and what it gives (`AmmoItem` fills the reserve). A new thing to buy, such as a weapon or a door, is a new `BuyItem` subclass and a `.tres`, not a new station.
+- A door is a `BuyStation` that sells a `DoorItem` (`doors/`). Buying it opens the door for good: its station has no collider, and the level bakes the navigation mesh again, so zombies path through the gap.
+- A `SpawnPoint` (`rounds/`) lists the doors of its area. It spawns zombies only while one of its doors is open. A point that lists no door always spawns. `RoundManager` spawns only at `SpawnPoint` children.
+- A pickup (`pickups/`) gives a `BuyItem` to the player for free when the item would do something. Otherwise it stays on the ground. A zombie drops one by chance when it dies, by its `DropTable`.

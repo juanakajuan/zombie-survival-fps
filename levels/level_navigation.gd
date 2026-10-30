@@ -14,10 +14,11 @@ func _on_map_changed(map: RID) -> void:
 	if map == get_navigation_map():
 		NavigationServer3D.map_changed.disconnect(_on_map_changed)
 		# CSG shapes build their meshes at the end of the frame.
-		get_tree().process_frame.connect(_bake, CONNECT_ONE_SHOT)
+		get_tree().process_frame.connect(bake, CONNECT_ONE_SHOT)
 
 
-func _bake() -> void:
+## Parses the geometry again and bakes. Call it after a collider appears or goes away.
+func bake() -> void:
 	var source := NavigationMeshSourceGeometryData3D.new()
 	NavigationServer3D.parse_source_geometry_data(navigation_mesh, source, get_parent())
 	NavigationServer3D.bake_from_source_geometry_data(navigation_mesh, source)
