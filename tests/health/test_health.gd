@@ -18,6 +18,17 @@ func test_damage_reduces_current_and_emits_damaged() -> void:
 	assert_eq(_died_count, 0, "not dead yet")
 
 
+func test_invulnerable_health_ignores_damage() -> void:
+	var health := _spawn_health(100.0)
+	health.invulnerable = true
+	health.damage(40.0)
+	assert_almost_eq(health.current, 100.0, 0.001, "current")
+	assert_eq(_damage_events.size(), 0, "no damaged signal")
+	health.invulnerable = false
+	health.damage(40.0)
+	assert_almost_eq(health.current, 60.0, 0.001, "current after it is off")
+
+
 func test_damage_past_zero_clamps_and_emits_died_once() -> void:
 	var health := _spawn_health(100.0)
 	health.damage(250.0)
