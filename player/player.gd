@@ -67,11 +67,12 @@ const GROUP := &"player"
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var hud: Hud = $Hud
 @onready var pause_menu: PauseMenu = $PauseMenu
+@onready var debug_menu: DebugMenu = $DebugMenu
 @onready var body: Node3D = $Body
 @onready var animator: PlayerAnimator = $Animator
 @onready var wallet: Wallet = $Wallet
 @onready var hurt_sound: AudioStreamPlayer = $HurtSound
-@onready var _health: Health = $Health
+@onready var health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
 var weapon: Weapon
@@ -103,12 +104,15 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	_health.died.connect(_on_health_died)
-	_health.damaged.connect(hurt_sound.play.unbind(1))
+	health.died.connect(_on_health_died)
+	health.damaged.connect(hurt_sound.play.unbind(1))
 	weapon.damaged.connect(_on_damaged)
 	melee.damaged.connect(_on_damaged)
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.settings_changed.connect(_apply_settings)
+	debug_menu.player = self
+	debug_menu.close_requested.connect(_close_debug_menu)
+	weapon.equipped.connect(_on_weapon_equipped)
 	settings = GameSettings.load_saved()
 	_apply_settings()
 	# Every Player instance shares the scene's capsule, so crouching must resize a copy.
@@ -141,6 +145,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			look((event as InputEventMouseMotion).screen_relative)
 	elif event.is_action_pressed("third_person") and OS.is_debug_build():
 		_set_third_person(not _third_person)
+	elif event.is_action_pressed("debug_menu") and OS.is_debug_build():
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		debug_menu.open()
 	elif event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -237,7 +244,7 @@ func is_meleeing() -> bool:
 
 
 func is_dead() -> bool:
-	return _health.is_dead()
+	return health.is_dead()
 
 
 func _update_focus() -> void:
@@ -266,6 +273,15 @@ func _on_damaged(target: Node, killed: bool) -> void:
 func _resume() -> void:
 	pause_menu.close()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _close_debug_menu() -> void:
+	debug_menu.close()
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _on_weapon_equipped() -> void:
+	_set_third_person(_third_person)
 
 
 func _apply_settings() -> void:

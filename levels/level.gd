@@ -9,6 +9,7 @@ extends Node3D
 
 func _ready() -> void:
 	player.hud.round_manager = round_manager
+	player.debug_menu.round_manager = round_manager
 	game_over.restart_requested.connect(restart)
 
 

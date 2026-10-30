@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://player/melee.gd" id="10_melee"]
 [ext_resource type="PackedScene" path="res://player/punch_view.tscn" id="11_punch_view"]
 [ext_resource type="AudioStream" path="res://audio/player_hurt.tres" id="12_hurt"]
+[ext_resource type="PackedScene" path="res://debug_menu/debug_menu.tscn" id="13_debug_menu"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -57,6 +58,8 @@ melee = NodePath("../Melee")
 wallet = NodePath("../Wallet")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
+
+[node name="DebugMenu" parent="." instance=ExtResource("13_debug_menu")]
 
 [node name="HurtSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("12_hurt")
