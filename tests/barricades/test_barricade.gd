@@ -23,6 +23,28 @@ func test_a_zombie_stops_at_a_full_barricade_pulls_the_boards_one_by_one_and_the
 	assert_true(barricade.is_inside(zombie.global_position), "the zombie crossed once the last board was off, at %s" % zombie.global_position)
 
 
+func test_a_zombie_at_the_window_hits_a_player_who_repairs_it_and_pulls_no_board_meanwhile() -> void:
+	await spawn_nav_world()
+	var barricade := _spawn_barricade(Vector3.ZERO, 3)
+	var player := await spawn_player(Vector3(0.0, 0.0, -0.7), 3)
+	var zombie := spawn_zombie(Vector3(0.0, 0.0, 3.0), player)
+	zombie.board_pull_interval = 0.3
+	await run_seconds(2.0)
+	assert_true(player.health.current < player.health.max_health, "the zombie at the window hits the player just inside it")
+	assert_eq(barricade.boards, 3, "a zombie that hits pulls no board")
+	player.position = Vector3(0.0, 0.0, -6.0)
+	await run_seconds(1.5)
+	assert_true(barricade.boards < 3, "with the player out of reach, the zombie pulls boards again")
+
+
+func test_two_zombies_at_a_window_pull_boards_faster_than_one() -> void:
+	await spawn_nav_world()
+	var player := await spawn_player(Vector3(0.0, 0.0, -10.0), 3)
+	var alone := await _boards_pulled_in(player, [Vector3(0.0, 0.0, 2.0)] as Array[Vector3], 2.0)
+	var pair := await _boards_pulled_in(player, [Vector3(-0.5, 0.0, 2.0), Vector3(0.5, 0.0, 2.0)] as Array[Vector3], 2.0)
+	assert_true(pair > alone, "two zombies pull %d boards and one pulls %d" % [pair, alone])
+
+
 func test_holding_interact_on_a_damaged_barricade_adds_a_board_and_points() -> void:
 	var player := await spawn_player(Vector3.ZERO, 5)
 	var barricade := _spawn_barricade(Vector3(0.0, 0.0, -2.0), 5)
@@ -131,6 +153,23 @@ func test_a_zombie_from_a_spawn_point_with_a_barricade_walks_through_it() -> voi
 	assert_eq(barricade.boards, 0, "the zombie pulled all the boards")
 	assert_true(barricade.is_inside(zombie.global_position), "the zombie is inside, at %s" % zombie.global_position)
 	assert_true(zombie.entry == null, "the zombie dropped its entry once inside")
+
+
+## The boards that zombies from `starts` pull off a 10-board barricade at the origin in `seconds`. The zombies are freed after.
+func _boards_pulled_in(player: Player, starts: Array[Vector3], seconds: float) -> int:
+	var barricade := _spawn_barricade(Vector3.ZERO, 10)
+	var zombies: Array[Zombie] = []
+	for start: Vector3 in starts:
+		var zombie := spawn_zombie(start, player)
+		zombie.board_pull_interval = 0.3
+		zombies.append(zombie)
+	await run_seconds(seconds)
+	var pulled := barricade.max_boards - barricade.boards
+	for zombie: Zombie in zombies:
+		zombie.free()
+	barricade.free()
+	await physics_frames(1)
+	return pulled
 
 
 func _spawn_barricade(at: Vector3, boards: int) -> Barricade:

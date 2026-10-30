@@ -14,6 +14,9 @@ enum State { CHASE, BREACH, ATTACK, DEAD }
 @export_group("Barricade")
 ## The seconds that the zombie takes to pull off one board.
 @export_range(0.1, 10.0, 0.1, "suffix:s") var board_pull_interval: float = 1.5
+## How far the zombie reaches while it stands at a barricade with boards. It stops at the outer edge of the zone, so
+## attack_range would not get to a player who repairs the barricade from inside.
+@export_range(0.5, 5.0, 0.05, "suffix:m") var window_reach: float = 2.2
 
 @export_group("Sound")
 @export_range(0.5, 30.0, 0.5, "suffix:s") var groan_interval_min: float = 4.0
@@ -157,13 +160,15 @@ func _physics_process(delta: float) -> void:
 
 
 ## ATTACK when the target is in reach (the exit margin keeps it from flickering at the edge), else BREACH while a
-## barricade with boards blocks the zombie, else CHASE.
+## barricade with boards blocks the zombie, else CHASE. At a window the reach is window_reach, so a player who repairs
+## takes hits, and the zombie pulls no board while it hits.
 func _next_state(has_target: bool, distance: float) -> State:
+	var at_window := blocker != null and blocker.has_boards()
 	if has_target:
-		var reach := attack_range + (attack_exit_margin if state == State.ATTACK else 0.0)
+		var reach := (window_reach if at_window else attack_range) + (attack_exit_margin if state == State.ATTACK else 0.0)
 		if distance <= reach:
 			return State.ATTACK
-	if blocker != null and blocker.has_boards():
+	if at_window:
 		return State.BREACH
 	return State.CHASE
 

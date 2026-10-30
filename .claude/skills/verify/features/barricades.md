@@ -1,10 +1,10 @@
 # Barricades
 
-A barricade is a window with five brown boards, in the south-west yard of the test range. Zombies spawn in the yard and come through the window. A zombie stops outside the window and pulls off one board every 1.5 s. When no board is left, it walks through. The player looks at a damaged window within 2.5 m, and the prompt shows `HOLD E  REPAIR  4/5`. Holding E puts back one board each second, and each board gives 10 points, up to 50 points in a round. A full window shows no prompt. The player cannot walk through the window, even with no boards. Zombies and shots pass it.
+A barricade is a window with five brown boards, in the south-west yard of the test range. Zombies spawn in the yard and come through the window. A zombie stops outside the window and pulls off one board every 1.5 s. When no board is left, it walks through. The player looks at a damaged window within 2.5 m, and the prompt shows `HOLD E  REPAIR  4/5`. Holding E puts back one board each second, and each board gives 10 points, up to 50 points in a round. A zombie at the window hits a player within 2.2 m of it, through the boards, and pulls no board while it hits. A full window shows no prompt. The player cannot walk through the window, even with no boards. Zombies and shots pass it.
 
 ## Sub-features
 
-- `barricade-breach` is the zombie that stops at the window and pulls a board at a time: `barricades.boards` goes down by one each 1.5 s while a zombie stands there. It crosses only when the value is `0`. Tests cover the crossing.
+- `barricade-breach` is the zombie that stops at the window and pulls a board at a time: `barricades.boards` goes down by one each 1.5 s while a zombie stands there. It crosses only when the value is `0`. Tests cover the crossing, the hits on a player who repairs, and two zombies that pull faster than one.
 - `barricade-repair` is the hold on E: `barricades.boards` goes up by one for each second of hold, and `hud.points` goes up by 10 for each board.
 - `barricade-prompt` is the HUD prompt `HOLD E REPAIR n/5` on a damaged window, and no prompt on a full one.
 - `barricade-limit` is the limit of 50 repair points in each round, restored when a round starts. Tests cover it: the journey gives 10 points.
