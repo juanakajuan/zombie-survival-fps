@@ -30,10 +30,19 @@ func test_spend_with_too_few_points_changes_nothing() -> void:
 func test_reward_hit_adds_the_kill_bonus_only_for_a_kill() -> void:
 	var player := await spawn_player()
 	var wallet := player.wallet
-	wallet.reward_hit(false)
+	wallet.reward_hit(false, false)
 	assert_eq(wallet.points, wallet.points_per_hit, "a hit")
-	wallet.reward_hit(true)
+	wallet.reward_hit(true, false)
 	assert_eq(wallet.points, wallet.points_per_hit * 2 + wallet.kill_bonus, "a kill")
+
+
+func test_reward_hit_adds_the_headshot_bonus_only_for_a_headshot_kill() -> void:
+	var player := await spawn_player()
+	var wallet := player.wallet
+	wallet.reward_hit(false, true)
+	assert_eq(wallet.points, wallet.points_per_hit, "a headshot that does not kill pays the hit only")
+	wallet.reward_hit(true, true)
+	assert_eq(wallet.points, wallet.points_per_hit * 2 + wallet.kill_bonus + wallet.headshot_bonus, "a headshot kill")
 
 
 func test_wallet_starts_with_starting_points() -> void:

@@ -51,6 +51,7 @@ class Readout extends RefCounted:
 	var objective_text: String
 	var in_break: bool
 	var hit_marker: bool
+	var headshot_marker: bool
 	var crosshair_visible: bool
 
 
@@ -107,6 +108,7 @@ func readout() -> Readout:
 	r.objective_text = _objective.text
 	r.in_break = _break_label.is_visible_in_tree()
 	r.hit_marker = _crosshair.hit_marker_visible()
+	r.headshot_marker = _crosshair.headshot_marker_visible()
 	r.crosshair_visible = _crosshair.is_visible_in_tree()
 	return r
 
@@ -134,7 +136,9 @@ func _on_weapon_hit(collider: Object, _position: Vector3) -> void:
 		_crosshair.hit()
 
 
-func _on_damaged(_target: Node, killed: bool) -> void:
+func _on_damaged(_target: Node, killed: bool, headshot: bool) -> void:
+	if headshot:
+		_crosshair.hit(true)
 	(kill_sound if killed else hit_sound).play()
 
 

@@ -11,10 +11,14 @@
 [ext_resource type="AudioStream" path="res://audio/zombie_death.tres" id="9_death"]
 [ext_resource type="Resource" path="res://pickups/zombie_drops.tres" id="10_drops"]
 [ext_resource type="PackedScene" path="res://pickups/pickup.tscn" id="11_pickup"]
+[ext_resource type="Script" path="res://health/weak_spot.gd" id="12_weak_spot"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
-height = 1.8
+height = 1.38
+
+[sub_resource type="SphereShape3D" id="head"]
+radius = 0.3
 
 [node name="Zombie" type="CharacterBody3D"]
 script = ExtResource("1_zombie")
@@ -22,10 +26,19 @@ drops = ExtResource("10_drops")
 pickup_scene = ExtResource("11_pickup")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-position = Vector3(0, 0.9, 0)
+position = Vector3(0, 0.69, 0)
 shape = SubResource("capsule")
 
+[node name="WeakSpot" type="CollisionShape3D" parent="."]
+shape = SubResource("head")
+script = ExtResource("12_weak_spot")
+
 [node name="Model" parent="." instance=ExtResource("4_model")]
+
+[node name="HeadAnchor" type="RemoteTransform3D" parent="Model/Shambler/Torso/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.225, -0.1)
+remote_path = NodePath("../../../../../WeakSpot")
+update_scale = false
 
 [node name="Animator" type="Node" parent="."]
 script = ExtResource("5_animator")

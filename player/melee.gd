@@ -4,8 +4,8 @@ extends Node
 ## The strike hits every living Health inside a sphere in front of the head, once each.
 
 signal swung
-## Emitted when the strike damages a Health that is alive. `killed` is true when it took that Health to 0.
-signal damaged(target: Node, killed: bool)
+## Emitted when the strike damages a Health that is alive. `killed` is true when it took that Health to 0. `headshot` is always false: a punch has no weak spot. The signal has the shape of Weapon.damaged, so one handler serves both.
+signal damaged(target: Node, killed: bool, headshot: bool)
 
 enum State { READY, WIND_UP, RECOVER }
 
@@ -90,4 +90,4 @@ func _strike() -> void:
 			continue
 		struck.append(health)
 		health.damage(damage)
-		damaged.emit(collider, health.is_dead())
+		damaged.emit(collider, health.is_dead(), false)

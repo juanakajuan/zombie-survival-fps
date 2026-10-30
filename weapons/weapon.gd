@@ -8,8 +8,8 @@ signal reload_started
 signal dry_fired
 signal reload_finished
 signal hit(collider: Object, position: Vector3)
-## Emitted when a shot damages a Health that is alive. `killed` is true when this shot took it to 0. A dead target takes no damage.
-signal damaged(target: Node, killed: bool)
+## Emitted when a shot damages a Health that is alive. `killed` is true when this shot took it to 0, and `headshot` is true when it hit a WeakSpot. A dead target takes no damage.
+signal damaged(target: Node, killed: bool, headshot: bool)
 ## Emitted after `ammo` or `reserve` changes.
 signal ammo_changed
 
@@ -140,6 +140,7 @@ func _shoot() -> void:
 		return
 	var collider: Object = result["collider"]
 	var point: Vector3 = result["position"]
+	var shape_index: int = result["shape"]
 	_spawn_tracer(point)
 	hit.emit(collider, point)
 	if collider is Node:
@@ -147,8 +148,9 @@ func _shoot() -> void:
 		if health != null:
 			if health.is_dead():
 				return
-			health.damage(data.damage)
-			damaged.emit(collider, health.is_dead())
+			var weak_spot := WeakSpot.find_hit(collider, shape_index)
+			health.damage(data.damage * (weak_spot.damage_multiplier if weak_spot != null else 1.0))
+			damaged.emit(collider, health.is_dead(), weak_spot != null)
 
 
 func _spawn_tracer(to: Vector3) -> void:

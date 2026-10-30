@@ -340,9 +340,9 @@ func _equip(next: Weapon) -> void:
 	weapon_changed.emit(next)
 
 
-func _on_damaged(target: Node, killed: bool) -> void:
+func _on_damaged(target: Node, killed: bool, headshot: bool) -> void:
 	if target is Zombie:
-		wallet.reward_hit(killed)
+		wallet.reward_hit(killed, headshot)
 
 
 func _resume() -> void:

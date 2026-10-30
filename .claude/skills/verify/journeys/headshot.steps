@@ -1,0 +1,15 @@
+# Headshot: shoot a zombie in the head and see the red hit marker, then in the body and see the yellow one.
+until zombies.alive 4 300
+wait 60
+aim_head
+tap fire
+expect hud.hit_marker true
+expect hud.headshot_marker true
+shot 01-headshot
+wait 15
+expect hud.headshot_marker false
+aim
+tap fire
+expect hud.hit_marker true
+expect hud.headshot_marker false
+shot 02-body-shot
