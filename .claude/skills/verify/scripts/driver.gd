@@ -273,6 +273,8 @@ func _state() -> Dictionary[String, String]:
 		s["hud.crosshair"] = str(hud.crosshair_visible)
 		s["hud.hit_marker"] = str(hud.hit_marker)
 		s["hud.headshot_marker"] = str(hud.headshot_marker)
+		s["hud.perks"] = " ".join(hud.perk_icons)
+		s["hud.max_health"] = str(ceili(player.health.max_health))
 	var zombies := 0
 	var bars := 0
 	var dummies_up := 0
@@ -299,6 +301,9 @@ func _state() -> Dictionary[String, String]:
 	s["doors.open"] = str(doors_open)
 	s["pickups"] = str(pickups)
 	s["barricades.boards"] = str(boards)
+	var power := level.get_node_or_null("PowerSwitch") as PowerSwitch
+	if power != null:
+		s["power.on"] = str(power.is_on())
 	var game_over := level.get_node_or_null("GameOver") as GameOver
 	if game_over != null:
 		s["game_over.visible"] = str(game_over.visible)

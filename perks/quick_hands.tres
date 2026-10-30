@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PerkItem" format=3]
+
+[ext_resource type="Script" path="res://perks/perk_item.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+icon_text = "R"
+icon_color = Color(0.2, 0.8, 0.35, 1)
+reload_time_scale = 0.5
+display_name = "QUICK HANDS"
+cost = 3000

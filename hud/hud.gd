@@ -23,6 +23,7 @@ extends CanvasLayer
 			_show_weapon()
 @export var melee: Melee
 @export var wallet: Wallet
+@export var perks: Perks
 @export var health_color: Color = Color(1, 1, 1, 0.95)
 @export var low_health_color: Color = Color(0.95, 0.2, 0.2)
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
@@ -53,6 +54,8 @@ class Readout extends RefCounted:
 	var hit_marker: bool
 	var headshot_marker: bool
 	var crosshair_visible: bool
+	## The icon text of each perk icon, in the order they show.
+	var perk_icons: PackedStringArray
 
 
 @onready var hit_sound: AudioStreamPlayer = $HitSound
@@ -72,14 +75,16 @@ class Readout extends RefCounted:
 @onready var _round_value: Label = %RoundValue
 @onready var _objective: Label = %Objective
 @onready var _break_label: Label = %BreakLabel
+@onready var _perk_icons: HBoxContainer = %PerkIcons
+## The hidden icon that each perk icon is a copy of.
+@onready var _perk_icon: PanelContainer = %PerkIcon
 
 
 func _ready() -> void:
 	health.changed.connect(_on_health_changed)
 	melee.damaged.connect(_on_damaged)
 	wallet.changed.connect(_update_points.unbind(1))
-	_health_bar.max_value = health.max_health
-	_health_max.text = "/ %d" % ceili(health.max_health)
+	perks.changed.connect(_update_perks)
 	_on_health_changed(health.current)
 	_show_weapon()
 	_update_points()
@@ -110,10 +115,15 @@ func readout() -> Readout:
 	r.hit_marker = _crosshair.hit_marker_visible()
 	r.headshot_marker = _crosshair.headshot_marker_visible()
 	r.crosshair_visible = _crosshair.is_visible_in_tree()
+	for icon: Node in _perk_icons.get_children():
+		if icon != _perk_icon:
+			r.perk_icons.append((icon.get_child(0) as Label).text)
 	return r
 
 
 func _on_health_changed(current: float) -> void:
+	_health_bar.max_value = health.max_health
+	_health_max.text = "/ %d" % ceili(health.max_health)
 	_health_value.text = str(ceili(current))
 	_health_bar.value = current
 	var color := low_health_color if current <= health.max_health * low_health_fraction else health_color
@@ -147,6 +157,20 @@ func _update_ammo() -> void:
 		return
 	_ammo_value.text = "%d / %d" % [weapon.ammo, weapon.reserve]
 	_reload_label.visible = weapon.is_reloading()
+
+
+func _update_perks() -> void:
+	for icon: Node in _perk_icons.get_children():
+		if icon != _perk_icon:
+			icon.free()
+	for perk: PerkItem in perks.held:
+		var icon := _perk_icon.duplicate() as PanelContainer
+		icon.visible = true
+		var style := icon.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+		style.bg_color = perk.icon_color
+		icon.add_theme_stylebox_override("panel", style)
+		(icon.get_child(0) as Label).text = perk.icon_text
+		_perk_icons.add_child(icon)
 
 
 func _update_points() -> void:

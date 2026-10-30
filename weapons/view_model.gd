@@ -216,7 +216,7 @@ func _on_reload_started(weapon: Weapon) -> void:
 		return
 	_restart_tween()
 	var phases := wind_up_fraction + toss_fraction + empty_hands_fraction + draw_fraction + slide_pull_fraction + slide_release_fraction
-	var time := weapon.data.reload_time / maxf(phases, 1.0)
+	var time := weapon.reload_time() / maxf(phases, 1.0)
 	_wind_up = _model_rest.translated_local(wind_up_offset).rotated_local(Vector3.RIGHT, deg_to_rad(wind_up_angle))
 	_toss_time = time * toss_fraction
 	slide.position = _slide_rest
