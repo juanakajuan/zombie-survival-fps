@@ -5,6 +5,9 @@ extends Marker3D
 ## The doors of this point's area. With none, the point is always active.
 @export var doors: Array[Door]
 
+## The barricade that this point's zombies come through. They walk to it before they chase the player.
+@export var barricade: Barricade
+
 
 func is_active() -> bool:
 	return doors.is_empty() or doors.any(func(door: Door) -> bool: return door.is_open())
