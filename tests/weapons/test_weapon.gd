@@ -278,45 +278,6 @@ func test_shot_goes_through_a_thrown_gun() -> void:
 	assert_true(health.current < health.max_health, "the dummy behind the thrown gun is hit")
 
 
-func test_equip_swaps_the_data_and_fills_the_ammo() -> void:
-	var weapon := _spawn_weapon(_data())
-	weapon.try_fire()
-	var next := _data()
-	next.display_name = "NEXT"
-	next.magazine_size = 9
-	next.max_reserve = 30
-	var signals := [0]
-	weapon.equipped.connect(func() -> void: signals[0] += 1)
-	weapon.equip(next)
-	assert_eq(weapon.data, next, "data")
-	assert_eq(weapon.ammo, 9, "magazine")
-	assert_eq(weapon.reserve, 30, "reserve")
-	assert_eq(signals[0], 1, "equipped emitted once")
-	assert_true(not weapon.is_reloading(), "ready")
-
-
-func test_equip_during_a_reload_cancels_it() -> void:
-	var weapon := _spawn_weapon(_data())
-	weapon.try_fire()
-	weapon.start_reload()
-	weapon.equip(_data())
-	assert_true(not weapon.is_reloading(), "not reloading")
-	assert_true(weapon.try_fire(), "fires at once")
-
-
-func test_equip_replaces_the_view_model() -> void:
-	var data := _data()
-	data.view_model = PISTOL.view_model
-	var weapon := _spawn_weapon(data)
-	var first := weapon.view_model
-	assert_true(first != null, "view model at start")
-	weapon.equip(data)
-	await physics_frames(2)
-	assert_true(weapon.view_model != null and weapon.view_model != first, "a new view model")
-	assert_true(not is_instance_valid(first), "the old view model is freed")
-	assert_eq(weapon.find_children("*", "ViewModel", false, false).size(), 1, "one view model")
-
-
 func _data() -> WeaponData:
 	var data := WeaponData.new()
 	data.damage = 20.0

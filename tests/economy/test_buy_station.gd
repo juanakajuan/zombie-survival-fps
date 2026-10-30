@@ -38,8 +38,9 @@ func test_a_wall_between_the_player_and_the_station_blocks_the_focus() -> void:
 
 
 func test_the_prompt_shows_the_item_and_its_cost() -> void:
+	var player := await spawn_player()
 	var station := spawn_station(STATION_AT)
-	assert_eq(station.prompt_text(), "E  BUY AMMO  %d" % AMMO_COST, "prompt")
+	assert_eq(station.prompt_text(player), "E  BUY AMMO  %d" % AMMO_COST, "prompt")
 
 
 func test_e_buys_ammo_with_points_and_fills_the_reserve() -> void:

@@ -37,6 +37,15 @@ func run_seconds(seconds: float) -> void:
 	await physics_frames(roundi(seconds * Engine.physics_ticks_per_second))
 
 
+## Sends one press of an Input Map action as an input event, as a key or wheel notch does. `Input.action_press()` sends none.
+func press_action(action: StringName) -> void:
+	var event := InputEventAction.new()
+	event.action = action
+	event.pressed = true
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+
+
 ## The lowest (x) and highest (y) value that `value` gives over `seconds` of physics frames.
 func sample_range(value: Callable, seconds: float) -> Vector2:
 	var lowest := INF
@@ -89,6 +98,23 @@ func stations_in(level: Level) -> Array[BuyStation]:
 		if node is BuyStation:
 			found.append(node as BuyStation)
 	return found
+
+
+## Whether a buy station of the level sells an item of this class.
+func sells(level: Level, item_class: GDScript) -> bool:
+	for station: BuyStation in stations_in(level):
+		if is_instance_of(station.item, item_class):
+			return true
+	return false
+
+
+## Whether a buy station of the level sells the weapon with this display name.
+func sells_weapon(level: Level, weapon_name: String) -> bool:
+	for station: BuyStation in stations_in(level):
+		var item := station.item as WeaponItem
+		if item != null and item.weapon.display_name == weapon_name:
+			return true
+	return false
 
 
 ## Turns the player's view to `point` with one mouse motion.

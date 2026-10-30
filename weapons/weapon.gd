@@ -12,8 +12,6 @@ signal hit(collider: Object, position: Vector3)
 signal damaged(target: Node, killed: bool)
 ## Emitted after `ammo` or `reserve` changes.
 signal ammo_changed
-## Emitted by equip() after the new data, view model, and full ammo are in place.
-signal equipped
 
 enum State { READY, RELOADING }
 
@@ -48,7 +46,12 @@ var _cooldown: float = 0.0
 
 
 func _ready() -> void:
-	_stock()
+	ammo = data.magazine_size
+	reserve = data.max_reserve
+	if data.view_model != null:
+		var model := data.view_model.instantiate()
+		add_child(model)
+		view_model = model as ViewModel
 
 
 func _physics_process(delta: float) -> void:
@@ -67,16 +70,6 @@ func _physics_process(delta: float) -> void:
 		try_fire()
 	if Input.is_action_just_pressed("reload"):
 		start_reload()
-
-
-## Swaps to `new_data`: a new view model, a full magazine and reserve, and no reload or cooldown in progress.
-func equip(new_data: WeaponData) -> void:
-	data = new_data
-	if view_model != null:
-		view_model.queue_free()
-		view_model = null
-	_stock()
-	equipped.emit()
 
 
 ## Fires one shot. Returns false when the wielder sprints or punches, or the weapon is cooling down, reloading, or empty.
@@ -116,6 +109,12 @@ func start_reload() -> void:
 	reload_sound.play()
 
 
+## Stops a reload and gives back nothing: the magazine and the reserve stay as they were.
+func cancel_reload() -> void:
+	_state = State.READY
+	_cooldown = 0.0
+
+
 ## Fills the reserve. Returns false when it was already full.
 func refill_reserve() -> bool:
 	if reserve >= data.max_reserve:
@@ -126,17 +125,6 @@ func refill_reserve() -> bool:
 
 func is_reloading() -> bool:
 	return _state == State.RELOADING
-
-
-func _stock() -> void:
-	_state = State.READY
-	_cooldown = 0.0
-	ammo = data.magazine_size
-	reserve = data.max_reserve
-	if data.view_model != null:
-		var model := data.view_model.instantiate()
-		add_child(model)
-		view_model = model as ViewModel
 
 
 func _shoot() -> void:

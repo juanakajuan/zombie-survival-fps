@@ -9,6 +9,8 @@
 [ext_resource type="Script" path="res://levels/level.gd" id="7_level"]
 [ext_resource type="PackedScene" path="res://game_over/game_over.tscn" id="8_game_over"]
 [ext_resource type="PackedScene" path="res://economy/buy_station.tscn" id="9_station"]
+[ext_resource type="Resource" path="res://economy/smg_item.tres" id="10_smg_item"]
+[ext_resource type="Material" path="res://economy/weapon_crate_material.tres" id="11_weapon_crate"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -170,3 +172,10 @@ round_manager = NodePath("../RoundManager")
 
 [node name="AmmoStation" parent="." instance=ExtResource("9_station")]
 position = Vector3(4, 0, 6)
+
+[node name="WeaponStation" parent="." instance=ExtResource("9_station")]
+position = Vector3(4, 0, 3)
+item = ExtResource("10_smg_item")
+
+[node name="MeshInstance3D" parent="WeaponStation" index="0"]
+surface_material_override/0 = ExtResource("11_weapon_crate")

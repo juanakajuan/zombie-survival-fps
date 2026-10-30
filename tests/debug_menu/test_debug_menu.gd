@@ -83,11 +83,27 @@ func test_menu_lists_a_give_command_for_each_weapon_of_the_scene() -> void:
 		assert_true("GIVE " + data.display_name in player.debug_menu.command_labels(), "command for %s" % data.display_name)
 
 
+func test_give_held_weapon_takes_it_in_hand_with_full_ammo_and_no_copy() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var pistol := player.weapon
+	var data := WeaponData.new()
+	data.display_name = "TEST GUN"
+	var menu := _menu_giving(player, data)
+	menu.run_command("GIVE TEST GUN")
+	pistol.ammo = 0
+	pistol.reserve = 0
+	player.debug_menu.run_command("GIVE " + pistol.data.display_name)
+	assert_eq(player.weapon, pistol, "the pistol is in hand")
+	assert_eq(player.weapons.size(), 2, "weapons held after giving the pistol again")
+	assert_eq(player.hud.readout().ammo_text, "%d / %d" % [pistol.data.magazine_size, pistol.data.max_reserve], "HUD ammo")
+
+
 func test_give_weapon_in_third_person_keeps_the_new_model_hidden() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	_tap(&"third_person")
 	await physics_frames(2)
-	player.debug_menu.run_command("GIVE " + player.weapon.data.display_name)
+	var menu := player.debug_menu
+	menu.run_command("GIVE " + menu.weapons[menu.weapons.size() - 1].display_name)
 	await physics_frames(2)
 	assert_true(player.is_third_person(), "third person is still on")
 	assert_true(not player.weapon.view_model.is_visible_in_tree(), "the new first-person gun is hidden")

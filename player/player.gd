@@ -5,6 +5,9 @@ extends CharacterBody3D
 ## Emitted once when the Health child gets to 0. After it, the player ignores all input.
 signal died
 
+## Emitted when another weapon becomes the current one, and when a bought weapon is equipped.
+signal weapon_changed(weapon: Weapon)
+
 ## The group that player.tscn puts the player in. Other features find the player with it.
 const GROUP := &"player"
 
@@ -56,6 +59,12 @@ const GROUP := &"player"
 ## How far the player reaches to use a buy station.
 @export_range(0.5, 10.0, 0.1, "suffix:m") var interact_range: float = 2.5
 
+@export_group("Weapons")
+## How many weapons the player holds. Buying another with all held replaces the current one.
+@export_range(1, 4) var max_weapons: int = 2
+## The scene that give_weapon instances for each weapon.
+@export var weapon_scene: PackedScene
+
 @export_group("Third person (debug)")
 ## In a debug build, the third_person action moves the camera behind the player so the body shows.
 ## The camera sits this far behind the head, and stops short of walls.
@@ -75,7 +84,10 @@ const GROUP := &"player"
 @onready var health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
+## The weapon in hand. It is one of `weapons`.
 var weapon: Weapon
+## The weapons the player holds, in slot order. Only `weapon` fires; the others are holstered.
+var weapons: Array[Weapon] = []
 var melee: Melee
 var punch_view: PunchView
 var settings: GameSettings
@@ -96,6 +108,7 @@ func _enter_tree() -> void:
 	# The weapon and its view model read the wielder in their _ready, which runs before this node's _ready.
 	weapon = $Head/Camera3D/Weapon
 	weapon.wielder = self
+	weapons.append(weapon)
 	melee = $Melee
 	melee.wielder = self
 	punch_view = $Head/Camera3D/PunchView
@@ -112,7 +125,6 @@ func _ready() -> void:
 	pause_menu.settings_changed.connect(_apply_settings)
 	debug_menu.player = self
 	debug_menu.close_requested.connect(_close_debug_menu)
-	weapon.equipped.connect(_on_weapon_equipped)
 	settings = GameSettings.load_saved()
 	_apply_settings()
 	# Every Player instance shares the scene's capsule, so crouching must resize a copy.
@@ -145,6 +157,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			look((event as InputEventMouseMotion).screen_relative)
 	elif event.is_action_pressed("third_person") and OS.is_debug_build():
 		_set_third_person(not _third_person)
+	elif event.is_action_pressed("weapon_1"):
+		switch_to(0)
+	elif event.is_action_pressed("weapon_2"):
+		switch_to(1)
+	elif event.is_action_pressed("weapon_next"):
+		switch_to(posmod(weapons.find(weapon) + 1, weapons.size()))
+	elif event.is_action_pressed("weapon_previous"):
+		switch_to(posmod(weapons.find(weapon) - 1, weapons.size()))
 	elif event.is_action_pressed("debug_menu") and OS.is_debug_build():
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		debug_menu.open()
@@ -211,6 +231,43 @@ func mouse_delta_to_angles(yaw: float, pitch: float) -> Vector2:
 	return Vector2(-wrapf(yaw - rotation.y, -PI, PI), -(pitch - head.rotation.x)) / sensitivity
 
 
+## Adds a weapon with this data and takes it in hand. When the player already holds `max_weapons`, it replaces
+## the weapon in hand. Returns the new weapon.
+func give_weapon(data: WeaponData) -> Weapon:
+	var given := weapon_scene.instantiate() as Weapon
+	given.data = data
+	given.wielder = self
+	given.trigger_enabled = weapon.trigger_enabled
+	camera.add_child(given)
+	given.damaged.connect(_on_damaged)
+	_holster(weapon)
+	if weapons.size() >= max_weapons:
+		var replaced := weapon
+		weapons[weapons.find(replaced)] = given
+		replaced.queue_free()
+	else:
+		weapons.append(given)
+	_equip(given)
+	return given
+
+
+## The held weapon that has this data, or null.
+func weapon_holding(data: WeaponData) -> Weapon:
+	for held: Weapon in weapons:
+		if held.data == data:
+			return held
+	return null
+
+
+## Takes the weapon in this slot in hand. It does nothing for the slot in hand, a slot with no weapon, or a dead player.
+## The weapon that goes away loses its reload in progress.
+func switch_to(index: int) -> void:
+	if is_dead() or index < 0 or index >= weapons.size() or weapons[index] == weapon:
+		return
+	_holster(weapon)
+	_equip(weapons[index])
+
+
 ## The buy station within interact_range that the player looks at, or null. A dead player has none.
 func focused_station() -> BuyStation:
 	return _focused
@@ -261,8 +318,26 @@ func _update_focus() -> void:
 
 func _on_health_died() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	weapon.trigger_enabled = false
+	for held: Weapon in weapons:
+		held.trigger_enabled = false
 	died.emit()
+
+
+func _holster(held: Weapon) -> void:
+	held.cancel_reload()
+	held.visible = false
+	held.process_mode = Node.PROCESS_MODE_DISABLED
+
+
+func _equip(next: Weapon) -> void:
+	weapon = next
+	next.visible = true
+	next.process_mode = Node.PROCESS_MODE_INHERIT
+	if next.view_model != null:
+		next.view_model.visible = not _third_person
+		next.view_model.draw()
+	hud.weapon = next
+	weapon_changed.emit(next)
 
 
 func _on_damaged(target: Node, killed: bool) -> void:
@@ -278,10 +353,6 @@ func _resume() -> void:
 func _close_debug_menu() -> void:
 	debug_menu.close()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-
-
-func _on_weapon_equipped() -> void:
-	_set_third_person(_third_person)
 
 
 func _apply_settings() -> void:
@@ -318,8 +389,9 @@ func _set_third_person(on: bool) -> void:
 	var casting := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if on else GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false):
 		mesh.cast_shadow = casting
-	if weapon.view_model != null:
-		weapon.view_model.visible = not on
+	for held: Weapon in weapons:
+		if held.view_model != null:
+			held.view_model.visible = not on
 	punch_view.visible = not on
 
 

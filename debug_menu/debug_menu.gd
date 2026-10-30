@@ -91,12 +91,22 @@ func _give_points(amount: int) -> void:
 	player.wallet.add(amount)
 
 
+## A weapon the player holds already comes into the hand with full ammo instead of a second copy.
 func _give_weapon(data: WeaponData) -> void:
-	player.weapon.equip(data)
+	var held := player.weapon_holding(data)
+	if held == null:
+		player.give_weapon(data)
+		return
+	player.switch_to(player.weapons.find(held))
+	_fill(held)
 
 
 func _refill_ammo() -> void:
-	var weapon := player.weapon
+	for held: Weapon in player.weapons:
+		_fill(held)
+
+
+func _fill(weapon: Weapon) -> void:
 	weapon.ammo = weapon.data.magazine_size
 	weapon.reserve = weapon.data.max_reserve
 
