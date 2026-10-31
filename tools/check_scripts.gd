@@ -4,14 +4,14 @@ extends SceneTree
 ## Run it through tools/check.sh, which imports the project first.
 
 const SKIP_DIRS: PackedStringArray = ["res://addons"]
-## The file walker skips dot folders, so list scripts there by hand.
-const EXTRA_FILES: PackedStringArray = ["res://.claude/skills/verify/scripts/driver.gd"]
+const HiddenScripts := preload("res://tools/hidden_scripts.gd")
 
 
 func _init() -> void:
 	var failed: PackedStringArray = []
 	var paths := _find_files("res://")
-	paths.append_array(EXTRA_FILES)
+	for rel: String in HiddenScripts.FILES:
+		paths.append("res://".path_join(rel))
 	for path: String in paths:
 		if not _loads(path):
 			failed.append(path)

@@ -24,11 +24,10 @@ class Rule:
 		reads_strings = p_reads_strings
 
 
-const SKIP_DIRS: PackedStringArray = ["addons", ".godot", ".git", "worktrees"]
+const SKIP_DIRS: PackedStringArray = ["addons"]
 const ALLOW_MARK := "# lint-allow"
 const TEST_CASE_PATH := "res://tests/test_case.gd"
-# The scan skips hidden folders, so files in them are listed here.
-const HIDDEN_FILES: PackedStringArray = [".claude/skills/verify/scripts/driver.gd"]
+const HiddenScripts := preload("res://tools/hidden_scripts.gd")
 
 var _rules: Array[Rule] = []
 var _allow_re := RegEx.create_from_string(
@@ -97,7 +96,7 @@ func _init() -> void:
 	if args.size() > 0:
 		root = args[0]
 	_scan(root, root)
-	for rel: String in HIDDEN_FILES:
+	for rel: String in HiddenScripts.FILES:
 		if FileAccess.file_exists(root.path_join(rel)):
 			_lint_file(rel, root.path_join(rel))
 	print("lint: %d hits" % _hits)
