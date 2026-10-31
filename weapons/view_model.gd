@@ -102,7 +102,6 @@ var _toss_time := 0.0
 static var _unshadowed_copies: Dictionary[BaseMaterial3D, BaseMaterial3D] = {}
 var _player: Player
 var _lowered := false
-## The wielded weapon's view_materials.
 var _materials: Dictionary[String, Material] = {}
 
 var _bob_phase := 0.0
@@ -292,7 +291,6 @@ func _hold_hand_upright(upright: bool) -> void:
 		hand_anchor.update_rotation = not upright
 
 
-## Swaps each surface material under root whose name is a key of materials for the value.
 static func _swap_materials(root: Node, materials: Dictionary[String, Material]) -> void:
 	if materials.is_empty():
 		return
@@ -328,7 +326,6 @@ func _restart_tween() -> void:
 	_tween = create_tween()
 
 
-## Yaw and pitch of this node's view, in radians.
 func _view_angles() -> Vector2:
 	var forward := -global_basis.z
 	return Vector2(atan2(-forward.x, -forward.z), asin(clampf(forward.y, -1.0, 1.0)))

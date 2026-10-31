@@ -172,7 +172,6 @@ func test_a_zombie_from_a_spawn_point_with_a_barricade_walks_through_it() -> voi
 	assert_true(zombie.entry == null, "the zombie dropped its entry once inside")
 
 
-## The boards that zombies from `starts` pull off a 10-board barricade at the origin in `seconds`. The zombies are freed after.
 func _boards_pulled_in(player: Player, starts: Array[Vector3], seconds: float) -> int:
 	var barricade := _spawn_barricade(Vector3.ZERO, 10)
 	var zombies: Array[Zombie] = []

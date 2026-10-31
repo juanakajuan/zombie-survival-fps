@@ -24,7 +24,6 @@ func _ready() -> void:
 	model.transform = Transform3D(Basis.from_scale(Vector3.ONE * fit), -bounds.get_center() * fit)
 
 
-## The meshes of the silhouette.
 func silhouette_meshes() -> Array[GeometryInstance3D]:
 	var meshes: Array[GeometryInstance3D] = []
 	for node: Node in _silhouette.find_children("*", "GeometryInstance3D", true, false):

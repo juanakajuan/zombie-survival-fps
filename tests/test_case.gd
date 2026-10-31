@@ -88,7 +88,6 @@ func spawn_pickup(item: BuyItem, at: Vector3, lifetime: float = 0.0) -> Pickup:
 	return pickup
 
 
-## The pickups that are children of `parent`.
 func pickups_in(parent: Node) -> Array[Pickup]:
 	var found: Array[Pickup] = []
 	for child: Node in parent.get_children():
@@ -128,7 +127,6 @@ func spawn_points_in(level: Level) -> Array[SpawnPoint]:
 	return found
 
 
-## Whether a buy station of the level sells an item of this class.
 func sells(level: Level, item_class: GDScript) -> bool:
 	for station: BuyStation in stations_in(level):
 		if is_instance_of(station.item, item_class):
@@ -145,7 +143,6 @@ func sells_weapon(level: Level, weapon_name: String) -> bool:
 	return false
 
 
-## Whether a path has a point on the inside of the barricade.
 func path_goes_inside(path: PackedVector3Array, barricade: Barricade) -> bool:
 	for point: Vector3 in path:
 		if barricade.is_inside(point):
@@ -153,7 +150,6 @@ func path_goes_inside(path: PackedVector3Array, barricade: Barricade) -> bool:
 	return false
 
 
-## Turns the player's view to `point` with one mouse motion.
 func look_at_point(player: Player, point: Vector3) -> void:
 	player.look(player.mouse_delta_to(point))
 

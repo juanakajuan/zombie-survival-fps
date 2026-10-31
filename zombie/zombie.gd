@@ -17,7 +17,6 @@ const GROUP := &"zombie"
 @export_range(0.0, 2.0, 0.05, "suffix:m") var attack_exit_margin: float = 0.3
 
 @export_group("Barricade")
-## The seconds that the zombie takes to pull off one board.
 @export_range(0.1, 10.0, 0.1, "suffix:s") var board_pull_interval: float = 1.5
 
 @export_group("Sound")
@@ -43,7 +42,6 @@ var entry: Barricade
 ## Set by the barricade zone that the zombie stands in. The zombie pulls its boards while it has any.
 var blocker: Barricade
 
-## Drawn over the model. HitFlash makes it opaque red during a hit.
 var _tint := StandardMaterial3D.new()
 var _attack_cooldown: float = 0.0
 var _pull_cooldown: float = 0.0
@@ -193,7 +191,6 @@ func _enter(next: State) -> void:
 			_pull_cooldown = board_pull_interval
 
 
-## The point that the path leads to: the entry barricade's inside point until the zombie is inside, then the target.
 func _chase_goal(live_target: Node3D) -> Vector3:
 	if entry != null and entry.is_inside(global_position):
 		entry = null

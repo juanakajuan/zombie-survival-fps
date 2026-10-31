@@ -95,7 +95,6 @@ func _insert_step(progress: float) -> void:
 	left_hand.show()
 
 
-## The left hand's transform in the model while it holds the magazine where the magazine is now.
 func _left_hand_grip() -> Transform3D:
 	var angles := left_hand_angles * (PI / 180.0)
 	var grip := magazine.transform.translated_local(left_hand_offset).origin

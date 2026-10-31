@@ -125,7 +125,6 @@ func _shops(level: Level) -> Array[BuyStation]:
 	return stations_in(level).filter(func(station: BuyStation) -> bool: return not (station.item is DoorItem or _is_machine(station)))
 
 
-## Whether the station is a machine that needs the power.
 func _is_machine(station: BuyStation) -> bool:
 	return station.item is PerkItem or station.item is UpgradeItem
 

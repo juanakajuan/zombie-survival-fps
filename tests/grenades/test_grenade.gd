@@ -11,7 +11,6 @@ func _tap_grenade() -> void:
 	Input.action_release("grenade")
 
 
-## A tap, and the wait for the grenade to leave the hand.
 func _throw_grenade(player: Player) -> void:
 	await _tap_grenade()
 	await run_seconds(player.grenades.throw_wind_time + 0.1)

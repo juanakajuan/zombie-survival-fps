@@ -9,7 +9,6 @@ var _self_revive := PerkItem.new()
 var _released_at: int = 0
 
 
-## Holds the grenade key for `hold` seconds, then releases it. Returns the grenade once it leaves the hand.
 func _cook_and_release(player: Player, hold: float) -> Grenade:
 	var thrown: Array[Grenade] = []
 	player.grenades.thrown.connect(thrown.append)

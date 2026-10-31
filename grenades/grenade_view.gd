@@ -71,6 +71,5 @@ func is_hand_visible() -> bool:
 	return hand.is_visible_in_tree()
 
 
-## Whether the grenade is drawn in the hand.
 func is_grenade_visible() -> bool:
 	return grenade.is_visible_in_tree()

@@ -182,7 +182,6 @@ func _damage(collider: Object, amount: float, headshot: bool) -> bool:
 	return true
 
 
-## Sends the arc from the first target hit at `from` to up to `data.chain_targets` more, each one a hit.
 func _chain(first: CollisionObject3D, from: Vector3) -> void:
 	var struck: Array[RID] = [first.get_rid()]
 	if wielder != null:
@@ -201,8 +200,6 @@ func _chain(first: CollisionObject3D, from: Vector3) -> void:
 		from = to
 
 
-## The nearest body with a living Health within `data.chain_range` of `from` that `from` can see, and that is not in
-## `struck`, or null.
 func _next_chain_target(from: Vector3, struck: Array[RID]) -> CollisionObject3D:
 	var sphere := SphereShape3D.new()
 	sphere.radius = data.chain_range

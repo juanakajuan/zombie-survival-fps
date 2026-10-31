@@ -12,7 +12,7 @@ signal damaged(target: Node, killed: bool, headshot: bool)
 @export_range(0.1, 10.0, 0.1, "suffix:s") var fuse_time: float = 2.5
 ## The blast reaches this far from the grenade.
 @export_range(0.5, 20.0, 0.1, "suffix:m") var radius: float = 5.0
-## The damage at the centre. A round 1 zombie has 100 health.
+## The damage at the centre.
 @export_range(1.0, 10000.0, 1.0) var max_damage: float = 250.0
 ## The damage at the edge of the blast. The damage falls off in a line between the two.
 @export_range(0.0, 10000.0, 1.0) var min_damage: float = 20.0

@@ -70,7 +70,6 @@ const GROUP := &"player"
 @export_range(0.1, 40.0, 0.1) var aim_sharpness: float = 14.0
 
 @export_group("Interact")
-## How far the player reaches to use a buy station.
 @export_range(0.5, 10.0, 0.1, "suffix:m") var interact_range: float = 2.5
 
 @export_group("Weapons")
@@ -119,7 +118,6 @@ var _downed_left := 0.0
 var _self_revive_left := 0.0
 ## The perk that downed the player. It is set only while downed.
 var _self_revive: PerkItem
-## The weapon in hand before the player went down.
 var _weapon_before_down: Weapon
 ## The pistol of a downed player who holds none. It is not in `weapons`, and a revive frees it.
 var _temporary_weapon: Weapon

@@ -18,7 +18,6 @@ signal changed(points: int)
 @export var powerups: Powerups
 
 var points: int
-## What earned points are multiplied by. It is 1 when no effect multiplies them.
 var multiplier: int:
 	get:
 		return powerups.points_multiplier() if powerups != null else 1

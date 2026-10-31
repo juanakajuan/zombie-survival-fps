@@ -72,7 +72,6 @@ func run_command(label: String) -> void:
 	run.call()
 
 
-## The text of the god mode button.
 func god_mode_text() -> String:
 	return _god_button.text
 
