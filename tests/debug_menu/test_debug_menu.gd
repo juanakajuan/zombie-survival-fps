@@ -139,3 +139,18 @@ func _tap(action: StringName) -> void:
 	event.pressed = true
 	Input.parse_input_event(event)
 	Input.flush_buffered_events()
+
+
+func test_give_commands_put_each_weapon_in_hand() -> void:
+	var player := await spawn_player()
+	var menu := player.debug_menu
+	assert_true(not menu.gifts.is_empty(), "the menu has weapons to give")
+	for gift: BuyItem in menu.gifts:
+		var item := gift as WeaponItem
+		menu.run_command("GIVE %s" % item.display_name)
+		assert_true(player.weapon.data == item.weapon, "%s is in hand" % item.display_name)
+	assert_eq(player.wallet.points, 0, "the gifts cost nothing")
+	var held := player.weapons.size()
+	var last: BuyItem = menu.gifts.back()
+	menu.run_command("GIVE %s" % last.display_name)
+	assert_eq(player.weapons.size(), held, "giving a held weapon adds no copy")

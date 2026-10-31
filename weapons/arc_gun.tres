@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://weapons/arc_gun_view.tscn" id="2_view"]
+[ext_resource type="PackedScene" path="res://weapons/arc_tracer.tscn" id="3_tracer"]
+[ext_resource type="PackedScene" path="res://weapons/arc_gun.glb" id="4_model"]
+[ext_resource type="Resource" path="res://weapons/arc_gun_upgraded.tres" id="5_upgrade"]
+
+[resource]
+script = ExtResource("1_data")
+display_name = "ARC GUN"
+damage = 110.0
+fire_interval = 0.45
+magazine_size = 8
+max_reserve = 48
+reload_time = 2.4
+max_range = 60.0
+automatic = false
+chain_targets = 4
+chain_range = 6.0
+chain_damage_scale = 0.75
+view_model = ExtResource("2_view")
+tracer = ExtResource("3_tracer")
+world_model = ExtResource("4_model")
+upgrade = ExtResource("5_upgrade")

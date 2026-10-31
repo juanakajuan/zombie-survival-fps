@@ -4,6 +4,10 @@
 [ext_resource type="Script" path="res://weapon_box/weapon_box_entry.gd" id="2_entry"]
 [ext_resource type="Resource" path="res://economy/smg_item.tres" id="3_smg"]
 [ext_resource type="Resource" path="res://weapon_box/pistol_item.tres" id="4_pistol"]
+[ext_resource type="Resource" path="res://economy/shotgun_item.tres" id="5_shotgun"]
+[ext_resource type="Resource" path="res://economy/rifle_item.tres" id="6_rifle"]
+[ext_resource type="Resource" path="res://economy/machine_gun_item.tres" id="7_machine_gun"]
+[ext_resource type="Resource" path="res://weapon_box/arc_gun_item.tres" id="8_arc_gun"]
 
 [sub_resource type="Resource" id="smg_entry"]
 script = ExtResource("2_entry")
@@ -15,6 +19,26 @@ script = ExtResource("2_entry")
 item = ExtResource("4_pistol")
 weight = 1.0
 
+[sub_resource type="Resource" id="shotgun_entry"]
+script = ExtResource("2_entry")
+item = ExtResource("5_shotgun")
+weight = 3.0
+
+[sub_resource type="Resource" id="rifle_entry"]
+script = ExtResource("2_entry")
+item = ExtResource("6_rifle")
+weight = 3.0
+
+[sub_resource type="Resource" id="machine_gun_entry"]
+script = ExtResource("2_entry")
+item = ExtResource("7_machine_gun")
+weight = 2.0
+
+[sub_resource type="Resource" id="arc_gun_entry"]
+script = ExtResource("2_entry")
+item = ExtResource("8_arc_gun")
+weight = 1.0
+
 [resource]
 script = ExtResource("1_table")
-entries = Array[ExtResource("2_entry")]([SubResource("smg_entry"), SubResource("pistol_entry")])
+entries = Array[ExtResource("2_entry")]([SubResource("smg_entry"), SubResource("pistol_entry"), SubResource("shotgun_entry"), SubResource("rifle_entry"), SubResource("machine_gun_entry"), SubResource("arc_gun_entry")])
