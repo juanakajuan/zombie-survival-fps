@@ -12,7 +12,7 @@ This folder is the maintained source for proof of what a player can do in the ga
 ## Driving conventions
 
 - Run every journey with `.claude/skills/verify/scripts/drive.sh <steps file> [run id]`.
-- Send input only with the steps commands (`hold`, `release`, `tap`, `key`, `look`, `aim`, `fight_until`). Do not call game methods.
+- Send input only with the steps commands (`hold`, `release`, `tap`, `key`, `look`, `aim`, `fight_until`, `punch_until`). Do not call game methods.
 - Use the Input Map action names and the state keys as they are written.
 - A ready journey file is in `../journeys/<feature>.steps`. Copy it and add steps for a new check.
 

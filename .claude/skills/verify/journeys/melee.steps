@@ -1,21 +1,14 @@
-# Melee: let a zombie come close, punch it with V, and check that the points grow.
+# Melee: punch the first zombie that comes close with V until it dies, while the player is alive.
 expect hud.points 0
 until zombies.alive 4 300
-wait 420
+punch_until hud.objective 3 LEFT 900
+state 01-killed
+shot 01-killed
+expect hud.points 80
+expect player.dead false
 aim
-shot 01-before
 tap melee
 wait 5
 shot 02-mid-swing
 wait 40
-aim
-tap melee
-wait 5
-shot 03-second-swing
-wait 40
-aim
-tap melee
-wait 40
-state 04-after
-shot 04-after
-expect_not hud.points 0
+expect player.dead false
