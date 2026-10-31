@@ -1,0 +1,31 @@
+# Grenade cook: hold G to pull the pin and let the fuse burn in the hand, then release to throw.
+# The throw is aimed at the ground ahead of the zombies, as in grenade.steps. The fuse starts at the press, so a grenade held for 60 frames and thrown explodes 150 frames after the press, 90 frames after the release, not 150 frames after the release.
+# The shot 01 shows the left hand with the grenade raised at the lower left. The shot 02 comes right after the release, and shows the swing or the throw that follows it.
+expect hud.grenades 2
+expect hud.points 0
+until zombies.alive 4 300
+wait 40
+aim
+look 0 220
+hold grenade
+wait 25
+state 01-cooking
+shot 01-cooking
+expect hud.grenades 1
+expect_not hud.grenade_fuse 2.5
+wait 35
+release grenade
+shot 02-release
+state 02-release
+wait 12
+look 0 -190
+wait 18
+state 03-thrown
+shot 03-thrown
+expect hud.grenades 1
+expect hud.points 0
+wait 90
+state 04-blast
+shot 04-blast
+expect_not hud.points 0
+expect_not zombies.alive 4
