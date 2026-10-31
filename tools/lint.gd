@@ -26,8 +26,6 @@ class Rule:
 
 const SKIP_DIRS: PackedStringArray = ["addons", ".godot", ".git", "worktrees"]
 const ALLOW_MARK := "# lint-allow"
-# This file quotes the lint-allow format in its own docs and messages.
-const SELF_PATH := "tools/lint.gd"
 const TEST_CASE_PATH := "res://tests/test_case.gd"
 # The scan skips hidden folders, so files in them are listed here.
 const HIDDEN_FILES: PackedStringArray = [".claude/skills/verify/scripts/driver.gd"]
@@ -116,8 +114,6 @@ func _scan(root: String, dir: String) -> void:
 
 
 func _lint_file(rel: String, path: String) -> void:
-	if rel == SELF_PATH:
-		return
 	var lines := FileAccess.get_file_as_string(path).split("\n")
 	for i: int in lines.size():
 		var line := lines[i]
@@ -168,9 +164,10 @@ func _test_case_methods() -> PackedStringArray:
 
 
 func _allowed_rule(rel: String, line_number: int, line: String) -> String:
-	if not line.contains(ALLOW_MARK):
+	var comment := line.substr(_without_comment(line, true).length())
+	if not comment.begins_with(ALLOW_MARK):
 		return ""
-	var found := _allow_re.search(line)
+	var found := _allow_re.search(comment)
 	if found == null:
 		_report(rel, line_number, "incomplete lint-allow", "Write: # lint-allow <rule>: <reason> (until YYYY-MM-DD, approved: <human>).")
 		return ""
