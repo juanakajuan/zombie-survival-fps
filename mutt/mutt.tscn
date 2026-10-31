@@ -1,0 +1,82 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://zombie/zombie.gd" id="1_zombie"]
+[ext_resource type="Script" path="res://health/health.gd" id="2_health"]
+[ext_resource type="Script" path="res://health/hit_flash.gd" id="3_flash"]
+[ext_resource type="PackedScene" path="res://mutt/mutt_model.glb" id="4_model"]
+[ext_resource type="Script" path="res://mutt/mutt_animator.gd" id="5_animator"]
+[ext_resource type="PackedScene" path="res://health/health_bar.tscn" id="6_bar"]
+[ext_resource type="AudioStream" path="res://audio/zombie_groan.tres" id="7_groan"]
+[ext_resource type="AudioStream" path="res://audio/zombie_attack.tres" id="8_attack"]
+[ext_resource type="AudioStream" path="res://audio/zombie_death.tres" id="9_death"]
+[ext_resource type="Script" path="res://health/weak_spot.gd" id="12_weak_spot"]
+
+[sub_resource type="CapsuleShape3D" id="body"]
+radius = 0.35
+height = 1.2
+
+[sub_resource type="SphereShape3D" id="head"]
+radius = 0.22
+
+[node name="Mutt" type="CharacterBody3D" groups=["zombie"]]
+script = ExtResource("1_zombie")
+attack_range = 1.2
+attack_damage = 25.0
+attack_interval = 0.7
+groan_interval_min = 2.0
+groan_interval_max = 5.0
+turn_rate = 14.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.35, -0.15)
+shape = SubResource("body")
+
+[node name="WeakSpot" type="CollisionShape3D" parent="."]
+shape = SubResource("head")
+script = ExtResource("12_weak_spot")
+
+[node name="Model" parent="." instance=ExtResource("4_model")]
+
+[node name="HeadAnchor" type="RemoteTransform3D" parent="Model/Mutt/Body/Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, -0.17)
+remote_path = NodePath("../../../../../WeakSpot")
+update_scale = false
+
+[node name="Animator" type="Node" parent="."]
+script = ExtResource("5_animator")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("2_health")
+
+[node name="HitFlash" type="Node" parent="."]
+script = ExtResource("3_flash")
+
+[node name="HealthBar" parent="." instance=ExtResource("6_bar")]
+position = Vector3(0, 1.25, 0)
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.4
+target_desired_distance = 0.5
+radius = 0.4
+height = 0.9
+
+[node name="GroanSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("7_groan")
+unit_size = 6.0
+max_distance = 40.0
+pitch_scale = 1.7
+bus = &"SFX"
+
+[node name="AttackSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("8_attack")
+unit_size = 6.0
+max_distance = 30.0
+pitch_scale = 1.5
+bus = &"SFX"
+
+[node name="DeathSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("9_death")
+unit_size = 6.0
+max_distance = 40.0
+pitch_scale = 1.6
+bus = &"SFX"
