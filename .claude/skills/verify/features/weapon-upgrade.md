@@ -30,4 +30,4 @@ Preconditions:
 
 - The run can end with `ERROR: 2 resources still in use at exit` from the break sound after the mid-round kill-all, as in the perks journey (#62).
 - The machine sells to the weapon in hand. To upgrade the SMG, hold it when you press E.
-- The Compound has no upgrade machine yet.
+- In the Compound, the upgrade machine stands at the east end of the perk machines, along the south wall of the warehouse.
