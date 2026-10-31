@@ -120,6 +120,19 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
 
+[node name="FullscreenSpacer" type="Control" parent="Center/Panel/VBox/Settings"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ShowFpsLabel" type="Label" parent="Center/Panel/VBox/Settings"]
+layout_mode = 2
+text = "SHOW FPS"
+
+[node name="ShowFpsToggle" type="CheckButton" parent="Center/Panel/VBox/Settings"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 0
+
 [node name="Buttons" type="HBoxContainer" parent="Center/Panel/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 16

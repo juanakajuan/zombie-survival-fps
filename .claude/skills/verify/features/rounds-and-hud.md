@@ -12,6 +12,7 @@ Zombies come in rounds. The HUD shows the round number at the top center, and un
 - `health-regen` refills the player's health at 40 each second, 5 s after the last hit. Proof: `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/health_regen.steps`. The `low` screenshot shows the red edge at `20 / 100`, and the `healed` screenshot shows `100 / 100` with no red edge.
 - `hud-round` shows the round number, and `N LEFT` under it (zombies alive plus zombies still to spawn). In the break it shows `NEXT ROUND IN s`.
 - `zombie-scaling` gives round n zombies `100 + 20 (n - 1)` health, so a round 2 zombie needs 5 pistol hits.
+- `hud-fps` shows the frame rate (`60 FPS`) in the top-left corner while the SHOW FPS setting in the pause menu is on. It is off by default and saved with the other settings. Proof: `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/fps_counter.steps`. The `menu` screenshot shows SHOW FPS on, and the `on` screenshot shows the counter.
 - `zombie-health-bar` shows a red bar 2.2 m over a zombie after its first hit. It always faces the camera, empties as the zombie loses health, and hides at 0 health. An unhurt zombie has no bar.
 
 ## How to get to it (user POV)

@@ -11,6 +11,7 @@ var field_of_view: float = 80.0
 ## Linear volume of the master bus, from 0 to 1.
 var master_volume: float = 1.0
 var fullscreen: bool = false
+var show_fps: bool = false
 
 
 ## The saved settings. A missing file, or a value of the wrong type, gives the default for that value.
@@ -25,6 +26,9 @@ static func load_saved() -> GameSettings:
 	var fullscreen_value: Variant = file.get_value(SECTION, "fullscreen", settings.fullscreen)
 	if fullscreen_value is bool:
 		settings.fullscreen = fullscreen_value
+	var show_fps_value: Variant = file.get_value(SECTION, "show_fps", settings.show_fps)
+	if show_fps_value is bool:
+		settings.show_fps = show_fps_value
 	return settings
 
 
@@ -34,6 +38,7 @@ func save() -> void:
 	file.set_value(SECTION, "field_of_view", field_of_view)
 	file.set_value(SECTION, "master_volume", master_volume)
 	file.set_value(SECTION, "fullscreen", fullscreen)
+	file.set_value(SECTION, "show_fps", show_fps)
 	var err := file.save(file_path)
 	if err != OK:
 		push_warning("GameSettings: cannot save %s: %s" % [file_path, error_string(err)])
