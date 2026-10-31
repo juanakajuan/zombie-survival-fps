@@ -150,3 +150,21 @@ func test_the_hud_shows_the_fuse_while_cooking_and_nothing_after() -> void:
 	Input.action_release("grenade")
 	await run_seconds(player.grenades.throw_wind_time + player.grenades.throw_recover_time + 0.1)
 	assert_eq(player.hud.readout().grenade_fuse_text, "", "no fuse after the throw")
+
+
+func test_a_throw_goes_through_cook_wind_and_recovery_and_the_grenade_leaves_at_the_end_of_the_wind() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var grenades := player.grenades
+	assert_eq(grenades.state(), Grenades.State.READY, "ready before the pin pull")
+	Input.action_press("grenade")
+	await run_seconds(grenades.cook_raise_time + 0.1)
+	assert_eq(grenades.state(), Grenades.State.COOKING, "cooking while held")
+	Input.action_release("grenade")
+	await physics_frames(FRAME_MARGIN)
+	assert_eq(grenades.state(), Grenades.State.WINDING, "winding after the release")
+	assert_true(grenades.has_grenade_in_hand(), "the grenade is in the hand during the wind")
+	await run_seconds(grenades.throw_wind_time)
+	assert_eq(grenades.state(), Grenades.State.RECOVERING, "recovering after the wind")
+	assert_true(not grenades.has_grenade_in_hand(), "the grenade has left the hand")
+	await run_seconds(grenades.throw_recover_time)
+	assert_eq(grenades.state(), Grenades.State.READY, "ready after the recovery")

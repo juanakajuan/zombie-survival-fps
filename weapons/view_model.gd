@@ -159,9 +159,15 @@ func _process(delta: float) -> void:
 		var punch := _player.melee.visual_progress()
 		if punch >= 0.0:
 			punch_dip = sin(PI * clampf(punch, 0.0, 1.0))
-		var grenade := _player.grenades.visual_progress()
-		if grenade >= 0.0:
-			punch_dip = maxf(punch_dip, minf(1.0, minf(grenade, 3.0 - grenade)))
+		var grenades := _player.grenades
+		var fraction := grenades.visual_fraction()
+		match grenades.state():
+			Grenades.State.COOKING:
+				punch_dip = maxf(punch_dip, fraction)
+			Grenades.State.WINDING:
+				punch_dip = maxf(punch_dip, lerpf(grenades.raise_at_release(), 1.0, fraction))
+			Grenades.State.RECOVERING:
+				punch_dip = maxf(punch_dip, 1.0 - fraction)
 
 	if on_floor:
 		_bob_phase = fmod(_bob_phase + speed * delta * bob_cycles_per_metre * TAU, TAU)
