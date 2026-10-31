@@ -22,6 +22,7 @@ extends CanvasLayer
 		if is_node_ready():
 			_show_weapon()
 @export var melee: Melee
+@export var grenades: Grenades
 @export var wallet: Wallet
 @export var perks: Perks
 @export var powerups: Powerups
@@ -45,6 +46,9 @@ var round_manager: RoundManager:
 class Readout extends RefCounted:
 	var health_text: String
 	var ammo_text: String
+	var grenades_text: String
+	## The seconds before the grenade in hand explodes, with one decimal. Empty when no grenade is in hand.
+	var grenade_fuse_text: String
 	var points_text: String
 	## One entry for each running timed effect, in the order that they started: the name and the seconds left.
 	var powerups: PackedStringArray
@@ -82,6 +86,8 @@ class Readout extends RefCounted:
 @onready var _low_health_vignette: TextureRect = %LowHealthVignette
 @onready var _weapon_name: Label = %WeaponName
 @onready var _ammo_value: Label = %AmmoValue
+@onready var _grenade_value: Label = %GrenadeValue
+@onready var _grenade_fuse: Label = %GrenadeFuse
 @onready var _points_value: Label = %PointsValue
 @onready var _powerup_label: Label = %PowerupLabel
 @onready var _prompt: Label = %Prompt
@@ -101,10 +107,13 @@ class Readout extends RefCounted:
 func _ready() -> void:
 	health.changed.connect(_on_health_changed)
 	melee.damaged.connect(_on_damaged)
+	grenades.damaged.connect(_on_damaged)
+	grenades.changed.connect(_update_grenades)
 	wallet.changed.connect(_update_points.unbind(1))
 	perks.changed.connect(_update_perks)
 	_on_health_changed(health.current)
 	_show_weapon()
+	_update_grenades(grenades.count)
 	_update_points()
 	_update_round()
 
@@ -114,6 +123,7 @@ func _process(_delta: float) -> void:
 	_update_objective()
 	_update_prompt()
 	_update_powerups()
+	_update_grenade_fuse()
 	_update_fps()
 
 
@@ -121,6 +131,9 @@ func readout() -> Readout:
 	var r := Readout.new()
 	r.health_text = _health_value.text
 	r.ammo_text = _ammo_value.text
+	r.grenades_text = _grenade_value.text
+	_update_grenade_fuse()
+	r.grenade_fuse_text = _grenade_fuse.text if _grenade_fuse.visible else ""
 	r.points_text = _points_value.text
 	_update_powerups()
 	r.powerups = _powerup_lines()
@@ -203,6 +216,15 @@ func _update_ammo() -> void:
 		return
 	_ammo_value.text = "%d / %d" % [weapon.ammo, weapon.reserve]
 	_reload_label.visible = weapon.is_reloading()
+
+
+func _update_grenades(count: int) -> void:
+	_grenade_value.text = str(count)
+
+
+func _update_grenade_fuse() -> void:
+	_grenade_fuse.visible = grenades.has_grenade_in_hand()
+	_grenade_fuse.text = "%.1f" % grenades.fuse_left()
 
 
 func _update_perks() -> void:

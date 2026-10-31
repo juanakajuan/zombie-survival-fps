@@ -32,6 +32,7 @@ Each feature file starts with an H1 title and one paragraph about the behavior t
 - [Movement and look](./movement-and-look.md) covers walking, jumps, the slide, crouch and the crawl tunnel, mouse look and its pitch limit, the debug third-person view, and the Esc pause menu that releases the mouse and captures it again on resume.
 - [Weapon and targets](./weapon-and-targets.md) covers firing, the tracer and the hit marker, the pistol in the player's hand, aim down the sights, ammo on the HUD, target dummies, and reload.
 - [Melee](./melee.md) covers the punch on V: the left hand animation, the damage at short reach, and the points from a punch.
+- [Grenades](./grenades.md) covers the grenade on G: the throw, the fuse, the blast that hurts zombies in a radius, the count on the HUD, and the refill at each new round.
 - [Economy](./economy.md) covers points from zombie hits and kills, the reserve ammo, and the buy station that sells ammo with E.
 - [Wall buys](./wall-buys.md) covers the wall buys and the weapons they sell: the shotgun and its pellets, the rifle, and the machine gun.
 - [Weapon box](./weapon-box.md) covers the box that gives a random weapon for points, the weapon over the box that E takes, and the move that refunds the points.

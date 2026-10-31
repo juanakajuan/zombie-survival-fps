@@ -105,7 +105,9 @@ var weapon: Weapon
 ## The weapons the player holds, in slot order. Only `weapon` fires; the others are holstered.
 var weapons: Array[Weapon] = []
 var melee: Melee
+var grenades: Grenades
 var punch_view: PunchView
+var grenade_view: GrenadeView
 var settings: GameSettings
 
 enum Stance { STANDING, CROUCHED, SLIDING }
@@ -137,8 +139,12 @@ func _enter_tree() -> void:
 	weapons.append(weapon)
 	melee = $Melee
 	melee.wielder = self
+	grenades = $Grenades
+	grenades.wielder = self
 	punch_view = $Head/Camera3D/PunchView
 	punch_view.melee = melee
+	grenade_view = $Head/Camera3D/GrenadeView
+	grenade_view.grenades = grenades
 
 
 func _ready() -> void:
@@ -148,6 +154,7 @@ func _ready() -> void:
 	health.damaged.connect(hurt_sound.play.unbind(1))
 	weapon.damaged.connect(_on_damaged)
 	melee.damaged.connect(_on_damaged)
+	grenades.damaged.connect(_on_damaged)
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.settings_changed.connect(_apply_settings)
 	debug_menu.player = self
@@ -217,8 +224,12 @@ func _physics_process(delta: float) -> void:
 			_focused.press(self)
 		if Input.is_action_pressed("interact"):
 			_focused.hold(self, delta)
-	if weapon.trigger_enabled and not weapon.is_reloading() and Input.is_action_just_pressed("melee"):
+	if weapon.trigger_enabled and not weapon.is_reloading() and not is_throwing() and Input.is_action_just_pressed("melee"):
 		melee.try_swing()
+	if weapon.trigger_enabled and not is_meleeing() and Input.is_action_just_pressed("grenade"):
+		grenades.start_cook()
+	if grenades.is_cooking() and not Input.is_action_pressed("grenade"):
+		grenades.release()
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_update_stance(on_floor, delta)
 	var jumping := on_floor and Input.is_action_just_pressed("jump") and not is_dead() and not is_downed()
@@ -347,6 +358,12 @@ func is_meleeing() -> bool:
 	return melee.is_swinging()
 
 
+## True from the pin pull of a grenade until the end of its throw. The weapon cannot fire or reload, and the player
+## cannot punch, during it.
+func is_throwing() -> bool:
+	return grenades.is_busy()
+
+
 ## True from 0 health without a self-revive perk, or from the end of the downed time.
 func is_dead() -> bool:
 	return _life == Life.DEAD
@@ -392,6 +409,7 @@ func _on_health_changed(current: float) -> void:
 
 func _go_down(self_revive: PerkItem) -> void:
 	_life = Life.DOWNED
+	grenades.drop()
 	_downed_left = downed_time
 	_self_revive_left = self_revive.self_revive_time
 	_self_revive = self_revive
@@ -422,6 +440,7 @@ func _stand_up() -> void:
 
 func _die() -> void:
 	_life = Life.DEAD
+	grenades.drop()
 	_set_stance(Stance.CROUCHED)
 	hud.hide_downed()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -515,6 +534,7 @@ func _set_third_person(on: bool) -> void:
 		if held.view_model != null:
 			held.view_model.visible = not on
 	punch_view.visible = not on
+	grenade_view.visible = not on
 
 
 ## The head position with the look rotation. Shots, punches, and the buy-station check start here and point along -Z.
