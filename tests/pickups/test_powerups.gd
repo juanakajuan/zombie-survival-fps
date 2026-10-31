@@ -3,6 +3,8 @@ extends TestCase
 const DOUBLE_POINTS: DoublePointsItem = preload("res://pickups/double_points.tres")
 const MAX_AMMO: BuyItem = preload("res://pickups/max_ammo.tres")
 const NUKE: NukeItem = preload("res://pickups/nuke.tres")
+const REPAIR_ALL: RepairAllItem = preload("res://pickups/repair_all.tres")
+const BARRICADE_SCENE: PackedScene = preload("res://barricades/barricade.tscn")
 
 
 func test_a_second_pickup_of_the_same_effect_starts_its_time_again() -> void:
@@ -115,3 +117,21 @@ func test_a_nuke_kills_every_living_zombie_pays_its_points_and_drops_nothing() -
 		assert_true(zombie.is_dead(), "the zombie at %s is dead" % zombie.position)
 	assert_eq(player.wallet.points, NUKE.points, "a fixed payment, not doubled, with no points for the kills")
 	assert_eq(pickups_in(self).size(), 0, "the dead zombies dropped nothing")
+
+
+func test_repair_all_fills_every_barricade_and_pays_its_points() -> void:
+	var player := await spawn_player()
+	var barricades: Array[Barricade] = []
+	for x: int in [10, 15]:
+		var barricade := BARRICADE_SCENE.instantiate() as Barricade
+		barricade.position = Vector3(x, 0.0, 0.0)
+		add_child(barricade)
+		barricade.remove_board()
+		barricade.remove_board()
+		barricades.append(barricade)
+	player.powerups.start(DOUBLE_POINTS)
+	spawn_pickup(REPAIR_ALL, Vector3.ZERO)
+	await physics_frames(3)
+	for barricade: Barricade in barricades:
+		assert_true(barricade.is_full(), "the barricade at %s is full" % barricade.position)
+	assert_eq(player.wallet.points, REPAIR_ALL.points, "a fixed payment, not doubled")
