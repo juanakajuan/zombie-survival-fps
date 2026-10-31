@@ -133,6 +133,17 @@ def sting(freqs: list[float], step: float, tail: float) -> np.ndarray:
     return out
 
 
+def howl(length: float) -> np.ndarray:
+    t = t_axis(length)
+    pitch = np.interp(t, [0.0, 0.5, 1.2, length], [320.0, 620.0, 560.0, 380.0]) * (1.0 + 0.02 * np.sin(2 * np.pi * 5.5 * t))
+    phase = 2.0 * np.pi * np.cumsum(pitch) / RATE
+    voice = np.sin(phase) + 0.35 * np.sin(2 * phase) + 0.15 * np.sin(3 * phase)
+    env = np.minimum(t / 0.25, 1.0) * np.clip((length - t) / 0.6, 0.0, 1.0)
+    breath = lowpass(noise(t), 2500.0) * 0.15
+    drone = (np.sin(2 * np.pi * 110.0 * t) + np.sin(2 * np.pi * 155.6 * t)) * decay(t, length * 0.5, 0.05)
+    return (voice + breath) * env + 0.5 * drone
+
+
 SOUNDS = {
     "gunshot": gunshot(),
     "dry_click": dry_click(),
@@ -147,6 +158,7 @@ SOUNDS = {
     "player_hurt": player_hurt(),
     "round_start": sting([220.0, 277.2, 329.6, 440.0], 0.12, 0.9),
     "break_start": sting([440.0, 329.6, 277.2, 220.0], 0.14, 0.9),
+    "special_round_start": howl(1.8),
 }
 
 for name, samples in SOUNDS.items():

@@ -29,6 +29,13 @@ extends CanvasLayer
 @export var health_color: Color = Color(1, 1, 1, 0.95)
 @export var low_health_color: Color = Color(0.95, 0.2, 0.2)
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
+@export_group("Special round")
+## The color of the round number and the banner during a special round.
+@export var special_color: Color = Color(0.72, 0.5, 0.95)
+## The seconds that the banner shows at the start of a special round.
+@export_range(0.0, 10.0, 0.1, "suffix:s") var special_banner_time: float = 3.0
+@export_group("")
+
 ## Player sets it from the Show FPS setting.
 @export var show_fps: bool = false
 
@@ -38,7 +45,7 @@ var round_manager: RoundManager:
 		round_manager = value
 		round_manager.round_started.connect(_update_round.unbind(1))
 		round_manager.round_ended.connect(_update_round.unbind(1))
-		round_manager.round_started.connect(round_start_sound.play.unbind(1))
+		round_manager.round_started.connect(_on_round_started.unbind(1))
 		round_manager.round_ended.connect(break_sound.play.unbind(1))
 		_update_round()
 
@@ -58,7 +65,11 @@ class Readout extends RefCounted:
 	var reloading: bool
 	var round_visible: bool
 	var round_text: String
+	var round_color: Color
 	var objective_text: String
+	## The banner that names a special round as it starts.
+	var special_banner_visible: bool
+	var special_banner_text: String
 	var in_break: bool
 	var hit_marker: bool
 	var headshot_marker: bool
@@ -75,9 +86,13 @@ class Readout extends RefCounted:
 	var fps_text: String
 
 
+var _banner_left: float = 0.0
+var _round_color: Color
+
 @onready var hit_sound: AudioStreamPlayer = $HitSound
 @onready var kill_sound: AudioStreamPlayer = $KillSound
 @onready var round_start_sound: AudioStreamPlayer = $RoundStartSound
+@onready var special_round_sound: AudioStreamPlayer = $SpecialRoundSound
 @onready var break_sound: AudioStreamPlayer = $BreakSound
 @onready var _crosshair: Crosshair = %Crosshair
 @onready var _health_value: Label = %HealthValue
@@ -94,6 +109,8 @@ class Readout extends RefCounted:
 @onready var _reload_label: Label = %ReloadLabel
 @onready var _round_panel: Control = %RoundPanel
 @onready var _round_value: Label = %RoundValue
+@onready var _round_caption: Label = %RoundCaption
+@onready var _special_banner: Label = %SpecialBanner
 @onready var _objective: Label = %Objective
 @onready var _break_label: Label = %BreakLabel
 @onready var _downed_label: Label = %DownedLabel
@@ -104,6 +121,7 @@ class Readout extends RefCounted:
 
 
 func _ready() -> void:
+	_round_color = _round_value.get_theme_color("font_color")
 	health.changed.connect(_on_health_changed)
 	melee.damaged.connect(_on_damaged)
 	grenades.damaged.connect(_on_damaged)
@@ -117,7 +135,9 @@ func _ready() -> void:
 	_update_round()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_banner_left -= delta
+	_special_banner.visible = _banner_left > 0.0
 	_crosshair.visible = weapon.wielder == null or not weapon.wielder.is_aiming()
 	_update_objective()
 	_update_prompt()
@@ -143,9 +163,12 @@ func readout() -> Readout:
 	r.reloading = _reload_label.is_visible_in_tree()
 	r.round_visible = _round_panel.is_visible_in_tree()
 	r.round_text = _round_value.text
+	r.round_color = _round_value.get_theme_color("font_color")
 	_update_objective()
 	r.objective_text = _objective.text
 	r.in_break = _break_label.is_visible_in_tree()
+	r.special_banner_visible = _special_banner.is_visible_in_tree()
+	r.special_banner_text = _special_banner.text
 	r.hit_marker = _crosshair.hit_marker_visible()
 	r.headshot_marker = _crosshair.headshot_marker_visible()
 	r.crosshair_visible = _crosshair.is_visible_in_tree()
@@ -275,8 +298,20 @@ func _update_round() -> void:
 	if not _round_panel.visible:
 		return
 	_round_value.text = str(round_manager.round_number)
+	var color := special_color if round_manager.is_special_round() else _round_color
+	_round_value.add_theme_color_override("font_color", color)
+	_round_caption.add_theme_color_override("font_color", color)
 	_break_label.visible = round_manager.state == RoundManager.State.BREAK
 	_update_objective()
+
+
+func _on_round_started() -> void:
+	if not round_manager.is_special_round():
+		round_start_sound.play()
+		return
+	special_round_sound.play()
+	_banner_left = special_banner_time
+	_special_banner.visible = special_banner_time > 0.0
 
 
 func _update_objective() -> void:
@@ -285,4 +320,4 @@ func _update_objective() -> void:
 	if round_manager.state == RoundManager.State.BREAK:
 		_objective.text = "NEXT ROUND IN %d" % ceili(round_manager.break_time_left())
 	else:
-		_objective.text = "%d LEFT" % round_manager.zombies_left()
+		_objective.text = ("%d MUTTS LEFT" if round_manager.is_special_round() else "%d LEFT") % round_manager.zombies_left()

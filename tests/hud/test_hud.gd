@@ -92,11 +92,41 @@ func test_break_label_follows_round_end_and_next_round() -> void:
 	assert_true(not player.hud.readout().in_break, "break label hidden in round 2")
 
 
-func _spawn_round_manager() -> RoundManager:
+func test_a_special_round_shows_a_banner_and_purple_round_and_plays_its_own_sound() -> void:
+	var manager := _spawn_round_manager(2)
+	var player := await spawn_player()
+	var hud := player.hud
+	hud.round_manager = manager
+	var normal_color := hud.readout().round_color
+	assert_true(not hud.readout().special_banner_visible, "no banner in round 1")
+	assert_eq(hud.readout().objective_text, "1 LEFT", "objective in round 1")
+	_kill_zombies(manager)
+	await physics_frames(roundi(manager.settings.break_time * Engine.physics_ticks_per_second) + FRAME_MARGIN)
+	assert_eq(manager.round_number, 2, "round 2 started")
+	var readout := hud.readout()
+	assert_true(readout.special_banner_visible, "banner at the start of the special round")
+	assert_eq(readout.special_banner_text, "MUTT ROUND", "banner text")
+	assert_true(readout.round_color.is_equal_approx(hud.special_color), "round number in the special color")
+	assert_eq(readout.objective_text, "%d MUTTS LEFT" % manager.zombies_left(), "objective names the Mutts")
+	assert_true(hud.special_round_sound.playing, "the special round sound plays")
+	assert_true(not hud.round_start_sound.playing, "the normal round sound does not play")
+	await run_seconds(hud.special_banner_time + FRAME_MARGIN / 60.0)
+	assert_true(not hud.readout().special_banner_visible, "the banner goes after its time")
+	_kill_zombies(manager)
+	await physics_frames(roundi(manager.settings.break_time * Engine.physics_ticks_per_second) + FRAME_MARGIN)
+	assert_eq(manager.round_number, 3, "round 3 started")
+	assert_true(hud.readout().round_color.is_equal_approx(normal_color), "round 3 is in the normal color")
+	assert_true(not hud.readout().special_banner_visible, "no banner in round 3")
+
+
+func _spawn_round_manager(first_special_round: int = 100) -> RoundManager:
 	var settings := RoundSettings.new()
 	settings.first_round_zombies = 1
 	settings.first_round_speed = 0.0
 	settings.break_time = 0.5
+	settings.first_special_round = first_special_round
+	settings.special_round_interval = 100
+	settings.special_speed = 0.0
 	var manager := RoundManager.new()
 	manager.settings = settings
 	var marker := SpawnPoint.new()
