@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="body_material"]
+albedo_color = Color(0.17, 0.33, 0.14, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="metal_material"]
+albedo_color = Color(0.62, 0.6, 0.5, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="body_mesh"]
+material = SubResource("body_material")
+radius = 0.09
+height = 0.18
+radial_segments = 16
+rings = 8
+
+[sub_resource type="CylinderMesh" id="cap_mesh"]
+material = SubResource("metal_material")
+top_radius = 0.03
+bottom_radius = 0.04
+height = 0.05
+radial_segments = 12
+
+[sub_resource type="BoxMesh" id="lever_mesh"]
+material = SubResource("metal_material")
+size = Vector3(0.024, 0.11, 0.012)
+
+[node name="GrenadeModel" type="Node3D"]
+
+[node name="Body" type="MeshInstance3D" parent="."]
+mesh = SubResource("body_mesh")
+
+[node name="Cap" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("cap_mesh")
+
+[node name="Lever" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.98, 0.2, 0, -0.2, 0.98, 0, 0, 0, 1, 0.045, 0.06, 0)
+mesh = SubResource("lever_mesh")

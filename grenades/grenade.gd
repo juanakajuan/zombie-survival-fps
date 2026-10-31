@@ -29,7 +29,10 @@ signal damaged(target: Node, killed: bool, headshot: bool)
 ## by player_damage_scale. Grenades sets it.
 var thrower: Player
 
-var _fuse_left: float
+## Seconds until the blast. The owner may set it before the grenade enters the tree, for a grenade that has burned
+## already. NAN, the default, starts the full fuse_time. 0 or less explodes the grenade on its first physics tick.
+var fuse_left: float = NAN
+
 var _flash_left: float = 0.0
 var _flash_energy: float
 var _exploded: bool = false
@@ -40,7 +43,8 @@ var _exploded: bool = false
 
 
 func _ready() -> void:
-	_fuse_left = fuse_time
+	if is_nan(fuse_left):
+		fuse_left = fuse_time
 	_flash_energy = _light.light_energy
 	if thrower != null:
 		add_collision_exception_with(thrower)
@@ -50,8 +54,8 @@ func _physics_process(delta: float) -> void:
 	if _exploded:
 		_fade_flash(delta)
 		return
-	_fuse_left -= delta
-	if _fuse_left <= 0.0:
+	fuse_left -= delta
+	if fuse_left <= 0.0:
 		_explode()
 
 
