@@ -20,6 +20,7 @@
 [ext_resource type="Resource" path="res://perks/hair_trigger.tres" id="27_hair_trigger"]
 [ext_resource type="Resource" path="res://perks/second_wind.tres" id="28_second_wind"]
 [ext_resource type="PackedScene" path="res://economy/wall_buy.tscn" id="29_wall_buy"]
+[ext_resource type="PackedScene" path="res://upgrades/upgrade_machine.tscn" id="29_upgrade_machine"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -611,3 +612,7 @@ power = NodePath("../PowerSwitch")
 [node name="ShotgunWallBuy" parent="." instance=ExtResource("29_wall_buy")]
 position = Vector3(0, 0, 18.75)
 rotation = Vector3(0, 1.5707964, 0)
+
+[node name="UpgradeMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("29_upgrade_machine")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 10, 0, 4.8)
+power = NodePath("../PowerSwitch")

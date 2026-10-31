@@ -22,3 +22,8 @@ extends Resource
 @export var world_model: PackedScene
 ## The streak that shows each shot fly from the muzzle. It has no effect on the hit. With none, shots show no streak.
 @export var tracer: PackedScene
+## What the upgrade machine turns this weapon into, or null when it cannot be upgraded. An upgraded weapon has none.
+@export var upgrade: WeaponData
+## Swaps a material of the view model's gun, by the material's name in the model, for another. The gun that a reload
+## throws away gets the same swap. An upgraded weapon uses it to look different.
+@export var view_materials: Dictionary[String, Material] = {}
