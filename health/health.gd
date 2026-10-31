@@ -8,14 +8,29 @@ signal died
 signal changed(current: float)
 
 @export_range(1.0, 10000.0, 1.0) var max_health: float = 100.0
+@export_group("Regeneration")
+## The hit points that come back each second. 0 turns regeneration off.
+@export_range(0.0, 1000.0, 1.0, "suffix:hp/s") var regen_rate: float = 0.0
+## The seconds with no damage before health starts to come back.
+@export_range(0.0, 30.0, 0.1, "suffix:s") var regen_delay: float = 0.0
 
 var current: float
 ## Debug only. While true, damage() does nothing.
 var invulnerable: bool = false
 
+var _since_damage := 0.0
+
 
 func _ready() -> void:
 	current = max_health
+
+
+func _physics_process(delta: float) -> void:
+	if regen_rate <= 0.0 or is_dead() or current >= max_health:
+		return
+	_since_damage += delta
+	if _since_damage >= regen_delay:
+		heal(regen_rate * delta)
 
 
 ## Returns the first direct child of `node` that is a Health, or null.
@@ -30,6 +45,7 @@ func damage(amount: float) -> void:
 	if invulnerable or is_dead() or amount <= 0.0:
 		return
 	current = maxf(current - amount, 0.0)
+	_since_damage = 0.0
 	damaged.emit(amount)
 	changed.emit(current)
 	if is_dead():

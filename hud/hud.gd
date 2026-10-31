@@ -58,6 +58,8 @@ class Readout extends RefCounted:
 	var crosshair_visible: bool
 	var downed_visible: bool
 	var downed_text: String
+	## The opacity of the red edge that shows low health, from 0 (hidden) to 1 (at 0 health).
+	var low_health_vignette: float
 	var revive_visible: bool
 	var revive_text: String
 	## The icon text of each perk icon, in the order they show.
@@ -72,6 +74,7 @@ class Readout extends RefCounted:
 @onready var _health_value: Label = %HealthValue
 @onready var _health_max: Label = %HealthMax
 @onready var _health_bar: SegmentBar = %HealthBar
+@onready var _low_health_vignette: TextureRect = %LowHealthVignette
 @onready var _weapon_name: Label = %WeaponName
 @onready var _ammo_value: Label = %AmmoValue
 @onready var _points_value: Label = %PointsValue
@@ -130,6 +133,7 @@ func readout() -> Readout:
 	r.crosshair_visible = _crosshair.is_visible_in_tree()
 	r.downed_visible = _downed_label.is_visible_in_tree()
 	r.downed_text = _downed_label.text
+	r.low_health_vignette = _low_health_vignette.modulate.a if _low_health_vignette.visible else 0.0
 	r.revive_visible = _revive_label.is_visible_in_tree()
 	r.revive_text = _revive_label.text
 	for icon: Node in _perk_icons.get_children():
@@ -156,9 +160,12 @@ func _on_health_changed(current: float) -> void:
 	_health_max.text = "/ %d" % ceili(health.max_health)
 	_health_value.text = str(ceili(current))
 	_health_bar.value = current
-	var color := low_health_color if current <= health.max_health * low_health_fraction else health_color
+	var low_health := health.max_health * low_health_fraction
+	var color := low_health_color if current <= low_health else health_color
 	_health_value.add_theme_color_override("font_color", color)
 	_health_bar.fill_color = color
+	_low_health_vignette.visible = current < low_health
+	_low_health_vignette.modulate.a = clampf(1.0 - current / low_health, 0.0, 1.0)
 
 
 func _show_weapon() -> void:
