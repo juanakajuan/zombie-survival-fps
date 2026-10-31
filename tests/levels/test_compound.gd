@@ -102,6 +102,21 @@ func test_the_power_switch_is_in_the_office_and_powers_every_perk_machine_outsid
 		assert_true(machine.has_power(), "%s has power" % machine.name)
 
 
+func test_the_weapon_box_starts_near_the_player_and_each_of_its_places_has_a_path_to_the_start() -> void:
+	var level := await spawn_level(null, COMPOUND_SCENE)
+	var box := level.get_node("WeaponBox") as WeaponBox
+	var start := level.player.global_position
+	assert_true(box.global_position.distance_to(start) < 15.0, "the box starts in the yard near the start")
+	assert_true(box.places.size() > 1, "the box has more than one place")
+	for node: Node in level.get_tree().get_nodes_in_group(Door.GROUP):
+		(node as Door).open()
+	await run_seconds(1.0)
+	for place: Node3D in box.places:
+		var front := place.global_position + place.global_basis.z * 1.3
+		var back := place.global_position - place.global_basis.z * 1.3
+		assert_true(_path_reaches(level, front, start) or _path_reaches(level, back, start), "the player can walk to the box at %s" % place.name)
+
+
 func _shops(level: Level) -> Array[BuyStation]:
 	return stations_in(level).filter(func(station: BuyStation) -> bool: return not (station.item is DoorItem or station.item is PerkItem))
 

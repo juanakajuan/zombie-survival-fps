@@ -28,6 +28,6 @@ Preconditions:
 
 ## Gotchas
 
-- The box exists only in the test range. The Compound has none yet.
+- In the Compound, the box starts in the yard at `-6 0 21.5`, south of the container near the start. Its other places are in the warehouse, by the watchtower, and in the east yard. The journeys are for the test range.
 - The first 3 uses at a place never move the box (`WeaponBox.safe_uses`), so a journey with one use is deterministic.
 - The offer shows over the box, so look up after the use to see it in a screenshot.
