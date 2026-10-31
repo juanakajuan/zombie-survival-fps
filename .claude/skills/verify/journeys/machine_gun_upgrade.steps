@@ -1,0 +1,46 @@
+# Machine gun upgrade: buy the machine gun at its wall buy, buy the room door, turn on the power, upgrade the machine gun, fire it.
+debug GOD MODE
+debug +5000 POINTS
+debug +5000 POINTS
+walk_to -2.6 -8 600
+face 90 -8
+until hud.prompt_visible true 60
+expect hud.prompt E BUY MACHINE GUN 2500
+tap interact
+wait 5
+expect hud.weapon MACHINE GUN
+walk_to 0 8 600
+walk_to 16.5 10 600
+face 180 0
+until hud.prompt_visible true 60
+tap interact
+wait 10
+expect doors.open 1
+walk_to 16.5 15 600
+walk_to 16.8 18.6 600
+face -90 -20
+until hud.prompt_visible true 60
+expect hud.prompt E TURN ON POWER
+tap interact
+wait 10
+expect power.on true
+debug KILL ALL ZOMBIES
+walk_to 16.5 15 600
+walk_to 16.5 10 600
+walk_to 2.6 0 900
+face -90 -15
+until hud.prompt_visible true 60
+expect hud.prompt E BUY UPGRADE MACHINE GUN 5000
+shot 01-machine
+tap interact
+wait 30
+expect hud.weapon MACHINE GUN+
+expect hud.ammo 150 / 450
+expect hud.prompt MACHINE GUN+ CANNOT BE UPGRADED
+face 0 0
+wait 40
+shot 02-upgraded
+tap fire
+shot 03-fired
+expect hud.ammo 149 / 450
+state 03-fired
