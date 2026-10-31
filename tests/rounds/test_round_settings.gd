@@ -40,5 +40,37 @@ func test_zombie_speed_stops_at_the_max_speed() -> void:
 	assert_almost_eq(SETTINGS.zombie_speed(1000), SETTINGS.max_speed, 0.001, "speed in round 1000")
 
 
+func test_runners_start_at_the_first_runner_round() -> void:
+	assert_eq(SETTINGS.runner_count(SETTINGS.first_runner_round - 1), 0, "runners the round before")
+	assert_true(SETTINGS.runner_count(SETTINGS.first_runner_round) > 0, "runners in the first runner round")
+
+
+func test_runner_count_grows_with_the_round_and_stops_at_the_max_fraction() -> void:
+	var settings := RoundSettings.new()
+	settings.first_runner_round = 3
+	settings.first_runner_fraction = 0.25
+	settings.runner_fraction_per_round = 0.25
+	settings.max_runner_fraction = 0.5
+	var count := settings.zombie_count(3)
+	assert_eq(settings.runner_count(2), 0, "runners in round 2")
+	assert_eq(settings.runner_count(3), roundi(count * 0.25), "runners in round 3")
+	assert_eq(settings.runner_count(4), roundi(settings.zombie_count(4) * 0.5), "runners in round 4")
+	assert_eq(settings.runner_count(100), roundi(settings.zombie_count(100) * 0.5), "runners in round 100")
+
+
+func test_runner_count_is_never_more_than_the_zombie_count() -> void:
+	var settings := RoundSettings.new()
+	settings.first_runner_round = 1
+	settings.first_runner_fraction = 1.0
+	settings.max_runner_fraction = 1.0
+	for n: int in range(1, 20):
+		assert_true(settings.runner_count(n) <= settings.zombie_count(n), "round %d has at most all zombies as runners" % n)
+	assert_eq(settings.runner_count(1), settings.zombie_count(1), "all zombies run at fraction 1")
+
+
+func test_runners_are_faster_than_the_fastest_walker() -> void:
+	assert_true(SETTINGS.runner_speed > SETTINGS.max_speed, "runner speed %s, max walking speed %s" % [SETTINGS.runner_speed, SETTINGS.max_speed])
+
+
 func _flat_distance(a: Node3D, b: Node3D) -> float:
 	return Vector2(a.global_position.x - b.global_position.x, a.global_position.z - b.global_position.z).length()
