@@ -6,6 +6,7 @@
 script = ExtResource("1_settings")
 first_round_zombies = 4
 zombies_per_round = 2
+max_alive = 24
 first_round_health = 100.0
 health_per_round = 20.0
 first_round_speed = 2.5

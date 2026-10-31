@@ -6,6 +6,8 @@ extends Resource
 @export_group("Count")
 @export_range(1, 100) var first_round_zombies: int = 4
 @export_range(0, 20) var zombies_per_round: int = 2
+## The most zombies alive at one time. The round spawns the rest of its count when others die.
+@export_range(1, 100) var max_alive: int = 24
 
 @export_group("Health")
 @export_range(1.0, 10000.0, 1.0) var first_round_health: float = 100.0

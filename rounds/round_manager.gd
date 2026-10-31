@@ -1,7 +1,9 @@
 class_name RoundManager
 extends Node
 ## Runs the rounds. Round 1 starts when the level loads. Each round spawns its zombies at the SpawnPoint children that are
-## active, one after the other. A special round spawns Mutts in their place, and its last Mutt leaves `special_reward`. When the last zombie of the round dies, the break starts, and the next round starts after it.
+## active, one after the other. While RoundSettings.max_alive zombies are alive, the next spawn waits. A special round
+## spawns Mutts in their place, and its last Mutt leaves `special_reward`. When the last zombie of the round dies, the
+## break starts, and the next round starts after it.
 
 signal round_started(round_number: int)
 signal round_ended(round_number: int)
@@ -84,7 +86,7 @@ func _physics_process(delta: float) -> void:
 			if _zombies_to_spawn == 0:
 				return
 			_spawn_cooldown -= delta
-			if _spawn_cooldown <= 0.0:
+			if _spawn_cooldown <= 0.0 and _zombies_alive < settings.max_alive:
 				_spawn_zombie()
 		State.BREAK:
 			if round_number == 0:
