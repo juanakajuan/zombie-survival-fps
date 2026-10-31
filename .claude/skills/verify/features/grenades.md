@@ -1,6 +1,6 @@
 # Grenades
 
-The player presses G to pull the pin: the left hand comes up with a small green grenade, and the fuse starts at the press. Releasing G swings the hand forward, and the grenade leaves it along the aim, arcs, and bounces on the ground. A tap throws with nearly the whole fuse, and holding G cooks the grenade, so it explodes sooner after the throw. About 2.5 s after the press it explodes in an orange flash, or in the hand when G is held that long. Every living zombie within about 5 m takes damage, more the closer it is, and the player gets points as for a hit, with the kill bonus for a zombie that dies. The blast also hurts the player, at half the damage. The HUD shows the count under the ammo (`G GRENADES 2`). The player starts with 2, each new round adds 2, and the most the player holds is 4.
+The player presses G to pull the pin: the left hand comes up with a small green grenade, and the fuse starts at the press. Releasing G swings the hand forward, and the grenade leaves it along the aim, arcs, and bounces on the ground. A tap throws with nearly the whole fuse, and holding G cooks the grenade, so it explodes sooner after the throw. About 2.5 s after the press it explodes in an orange flash, or in the hand when G is held that long. Every living zombie within about 5 m takes damage, more the closer it is, and the player gets points as for a hit, with the kill bonus for a zombie that dies. The blast also hurts the player, at a quarter of the damage. The HUD shows the count under the ammo (`G GRENADES 2`). The player starts with 2, each new round adds 2, and the most the player holds is 4.
 
 ## Sub-features
 
@@ -36,6 +36,6 @@ Preconditions:
 ## Gotchas
 
 - Throw early. A grenade that hits a zombie in the air bounces back at the player. Thrown at the ground a few metres ahead while the zombies are still far, it is already in their path when it explodes.
-- The blast hurts the player. A grenade that lands at the player's feet takes about half of what a zombie would take, so keep the throw out past 3 m.
+- The blast hurts the player. A grenade that lands at the player's feet takes about a quarter of what a zombie would take, so keep the throw out past 3 m.
 - The swing takes 0.12 s, which is 7 frames, and a `shot` takes real time, so a `shot` after `release grenade` shows the start of the swing or the thrown grenade, not a fixed frame. To look at the middle of the swing, set `Grenades.throw_wind_time` to about 0.8 while you tune, and put it back.
 - The run is real time, so the exact landing spot and the frame of the blast move a little between runs. `expect_not` against the start value is the safe check.
