@@ -43,7 +43,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 |---|---|
 | `wait <frames>` | Wait for physics frames. |
 | `hold <action>` / `release <action>` | Press or release an Input Map action: `move_forward`, `move_back`, `move_left`, `move_right`, `jump`, `sprint`, `crouch`, `fire`, `aim`, `reload`, `interact`, `melee`, `grenade`, `restart`, `weapon_1`, `weapon_2`, `weapon_next`, `weapon_previous`, `third_person`, `debug_menu`. |
-| `tap <action>` | Press, hold 2 frames, release, wait 1 frame. |
+| `tap <action>` | Press, wait until the game has applied the press and one more physics frame has run, then release and wait until the game has applied the release. |
 | `key <name>` | Tap a physical key, for example `key Escape` (opens or closes the pause menu), `key F5` (the debug third-person view), or `key F1` (the debug menu). |
 | `look <dx> <dy>` | One mouse-motion event in pixels. `look 200 0` turns right by 29 degrees. |
 | `aim` | One mouse-motion event that turns the view to the nearest zombie's chest. It is not the `aim` action: use `hold aim` to aim down the sights. |
@@ -76,7 +76,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `game.paused`, `pause_menu.open` | Whether the game tree is paused, and whether the pause menu shows. Esc toggles both. |
 | `zombies.alive`, `zombies.bars`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, and target dummies that show. |
 | `doors.open`, `pickups` | Doors that are open, and pickups on the ground in the level (a placed one counts too). |
-| `power.on`, `hud.perks`, `hud.max_health`, `hud.downed` | The downed timer text on the HUD (for example `DOWNED  7`, empty when hidden), whether the power switch is on, the text of each perk icon on the HUD in order, with one space between them (empty with no perk), and the max health under the health number. |
+| `power.on`, `hud.perks`, `hud.max_health`, `hud.downed` | Whether the power switch is on, the text of each perk icon on the HUD in order with one space between them (empty with no perk), the max health under the health number, and the downed timer text on the HUD (for example `DOWNED  7`, empty when hidden). |
 | `hud.fps` | The frame counter in the top-left corner, for example `60 FPS` (empty while the SHOW FPS setting is off). |
 | `hud.revive` | The self-revive line under the downed timer, for example `SECOND WIND  GETTING UP IN 3` (empty when hidden). |
 | `barricades.boards` | The boards left on all barricades in the level, added up. The test range has one barricade with 5 boards, so it starts at `5`. |
@@ -128,4 +128,5 @@ All are in `.claude/skills/verify/scripts/` and run from any directory.
 
 - gamescope cannot turn off V-Sync. The log has `WARNING: The requested V-Sync mode Disabled is not available`. This is not an error.
 - The run is real time, so frame counts in `until` are limits, not exact times. Values after movement can change by a small amount between runs. Use `expect_not` against the start value, or `until`, for movement.
-- Input events are flushed at the start of the next main-loop iteration, and a slow frame can run two physics frames in one iteration. `look`, `aim`, and `face` wait for that flush. The other input commands wait at least one physics frame, so an `expect` after them sees the result.
+- Input events are flushed at the start of the next main-loop iteration, and a slow frame can run several physics frames in one iteration. Every input command waits for that flush, so an `expect` after it sees the result. A press and its release never land in the same flush, so the game sees every `tap` and `key`.
+- Because a slow frame runs several physics frames, a `tap fire` or a timed `hold fire` with an automatic weapon fires a varying number of rounds. Check that the ammo changed with `expect_not`, or fire until the magazine is empty for an exact count, as `journeys/machine_gun.steps` does.

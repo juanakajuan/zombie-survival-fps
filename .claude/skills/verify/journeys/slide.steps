@@ -1,6 +1,7 @@
-# Slide: turn to face +Z, sprint, then hold crouch. The slide starts faster than the sprint and the camera goes low. Releasing crouch stands the player up before the wall at z = 20.
+# Slide: step east of the weapon box at 0 0 9.5, turn to face +Z, sprint, then hold crouch. The slide starts faster than the sprint and the camera goes low. Releasing crouch stands the player up before the wall at z = 20.
 expect player.position 0.0 0.0 6.0
-look 1257 0
+walk_to 2 6 120
+face 180 0
 hold sprint
 hold move_forward
 wait 45

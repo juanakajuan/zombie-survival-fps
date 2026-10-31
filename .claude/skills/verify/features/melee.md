@@ -4,7 +4,7 @@ The player presses V to punch with the left hand. The player sees a cartoon fist
 
 ## Sub-features
 
-- `punch` starts a swing on V. A second press during the swing does nothing.
+- `punch` starts a swing on V. A second press during the swing does nothing, and so does V during a reload or with a grenade in hand.
 - `punch-hit` damages each living zombie in a short sphere in front of the head, once for each swing, at the end of the wind-up.
 - `punch-points` gives the points of a hit, and the kill bonus for the killing punch. Target dummies give none.
 - `punch-view` shows the left fist during the swing only, and dips the pistol.

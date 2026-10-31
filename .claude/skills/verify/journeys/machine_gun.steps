@@ -1,4 +1,6 @@
-# Machine gun: get points from the debug menu, walk to the machine gun wall buy on the large crate, buy it, hold fire, reload it.
+# Machine gun: get points from the debug menu, walk to the machine gun wall buy on the large crate, buy it, and hold fire until the magazine is empty and the reload starts.
+# Firing to empty gives an exact count: a timed burst fires 9 or 10 rounds, as the run is real time.
+debug GOD MODE
 expect hud.weapon PISTOL
 debug +5000 POINTS
 face 4.1 0
@@ -24,16 +26,17 @@ shot 02-machine-gun
 hold fire
 wait 60
 shot 03-firing
+until hud.reloading true 900
 release fire
-expect_not hud.ammo 100 / 300
+expect hud.ammo 0 / 300
 state 03-fired
 hold aim
 wait 30
 shot 04-aimed
 release aim
-tap reload
 wait 120
 shot 05-reload
+expect hud.reloading true
 until hud.reloading false 300
-expect hud.ammo 100 / 291
+expect hud.ammo 100 / 200
 state 05-reloaded

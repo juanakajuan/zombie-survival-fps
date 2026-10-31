@@ -30,7 +30,7 @@ Preconditions:
 - **Health bar.** Run `aim`, `tap fire`. `expect zombies.bars 1` passes, and the screenshot shows a small red bar over the hurt zombie.
 - **Clear round 1.** Run `fight_until hud.break true 3600`. `expect zombies.alive 0`, `expect hud.round 1`, and `expect hud.objective NEXT ROUND IN 10` pass. The screenshot shows ROUND 1 and the yellow BREAK label.
 - **Round 2.** Run `until hud.break false 700`. `expect hud.round 2` passes. Then `until zombies.alive 6 400` passes, with `expect hud.objective 6 LEFT` and `expect zombies.bars 0`.
-- **Low health color.** No journey drives it yet. Do not fire, run `until hud.health 30 1800` (each hit is 10, so the health reaches 30 exactly), then take a `shot`. The health number and bar show red.
+- **Low health color.** Each hit is 40, so the health goes 100, 60, 20. `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/health_regen.steps` leaves one zombie, reloads so the last fight has a full magazine, runs `until hud.health 20 1200`, and saves `low.png`: the health number and bar show red, with the red edge around the screen. It then kills the zombie and waits for `hud.health 100`.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/rounds.steps`.
 
 ## Gotchas
