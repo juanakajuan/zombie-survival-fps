@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://weapons/machine_gun_view.tscn" id="2_view"]
+[ext_resource type="PackedScene" path="res://weapons/tracer.tscn" id="3_tracer"]
+[ext_resource type="Material" path="res://weapons/upgrade_accent.tres" id="4_accent"]
+[ext_resource type="PackedScene" path="res://weapons/machine_gun.glb" id="5_model"]
+
+[sub_resource type="StandardMaterial3D" id="main"]
+resource_name = "UpgradedBody"
+albedo_color = Color(0.1, 0.62, 0.38, 1)
+roughness = 0.55
+
+[resource]
+script = ExtResource("1_data")
+display_name = "MACHINE GUN+"
+damage = 50.0
+fire_interval = 0.09
+magazine_size = 150
+max_reserve = 450
+reload_time = 3.5
+max_range = 100.0
+automatic = true
+view_model = ExtResource("2_view")
+tracer = ExtResource("3_tracer")
+world_model = ExtResource("5_model")
+view_materials = Dictionary[String, Material]({
+"Accent": ExtResource("4_accent"),
+"Body": SubResource("main")
+})
