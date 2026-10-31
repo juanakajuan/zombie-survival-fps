@@ -62,6 +62,11 @@ func _run() -> void:
 				break
 	_write_text("summary.txt", "failures=%d\n" % _failures)
 	print("driver: done, %d failures" % _failures)
+	# A sound that still plays at quit stays in the AudioServer's playback list, and the engine reports it as leaked.
+	# Freeing the level stops every player, and the audio thread drops the playbacks within a few frames.
+	unload_current_scene()
+	for i: int in 10:
+		await process_frame
 	quit(1 if _failures > 0 else 0)
 
 
