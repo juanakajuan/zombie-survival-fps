@@ -12,22 +12,40 @@
 [ext_resource type="Resource" path="res://pickups/zombie_drops.tres" id="10_drops"]
 [ext_resource type="PackedScene" path="res://pickups/pickup.tscn" id="11_pickup"]
 [ext_resource type="Script" path="res://health/weak_spot.gd" id="12_weak_spot"]
+[ext_resource type="Material" path="res://zombie/runner_shirt.tres" id="13_shirt"]
+[ext_resource type="Material" path="res://zombie/runner_shirt_dark.tres" id="14_shirt_dark"]
+[ext_resource type="Material" path="res://zombie/runner_pants.tres" id="15_pants"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
 height = 1.38
 
+[sub_resource type="CapsuleShape3D" id="crawl"]
+radius = 0.3
+height = 1.1
+
 [sub_resource type="SphereShape3D" id="head"]
 radius = 0.3
 
-[node name="Zombie" type="CharacterBody3D" groups=["zombie"]]
+[node name="Zombie" type="CharacterBody3D" node_paths=PackedStringArray("crawl_shape") groups=["zombie"]]
 script = ExtResource("1_zombie")
+crawl_shape = NodePath("CrawlShape")
 drops = ExtResource("10_drops")
 pickup_scene = ExtResource("11_pickup")
+runner_materials = Dictionary[String, Material]({
+"ShamblerPants": ExtResource("15_pants"),
+"ShamblerShirt": ExtResource("13_shirt"),
+"ShamblerShirtDark": ExtResource("14_shirt_dark")
+})
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.69, 0)
 shape = SubResource("capsule")
+
+[node name="CrawlShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0.3, -0.1)
+shape = SubResource("crawl")
+disabled = true
 
 [node name="WeakSpot" type="CollisionShape3D" parent="."]
 shape = SubResource("head")

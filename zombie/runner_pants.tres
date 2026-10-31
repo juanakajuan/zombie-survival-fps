@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "RunnerPants"
+cull_mode = 2
+albedo_color = Color(0.5271, 0.5271, 0.5564, 1)
+roughness = 0.75

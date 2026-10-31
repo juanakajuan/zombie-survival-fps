@@ -6,6 +6,8 @@ signal damaged(amount: float)
 signal died
 ## Emitted after `current` changes, from damage, heal(), raise_max(), lower_max(), or reset().
 signal changed(current: float)
+## Emitted by damage_at() after the damage, with the world point that the hit came at.
+signal struck_at(amount: float, point: Vector3)
 
 @export_range(1.0, 10000.0, 1.0) var max_health: float = 100.0
 @export_group("Regeneration")
@@ -50,6 +52,14 @@ func damage(amount: float) -> void:
 	changed.emit(current)
 	if is_dead():
 		died.emit()
+
+
+## damage() for a hit that comes at `point` in world space, such as a shot or the centre of a blast.
+func damage_at(amount: float, point: Vector3) -> void:
+	if invulnerable or is_dead() or amount <= 0.0:
+		return
+	damage(amount)
+	struck_at.emit(amount, point)
 
 
 func is_dead() -> bool:

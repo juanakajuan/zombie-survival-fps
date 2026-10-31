@@ -154,7 +154,8 @@ func test_a_zombie_from_a_spawn_point_with_a_barricade_walks_through_it() -> voi
 	assert_true(barricade != null, "the yard spawn point names a barricade")
 	assert_true(not barricade.is_inside(spawn.global_position), "the spawn point is outside")
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
-	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.zombie_health(1), level.player, spawn.barricade)
+	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.zombie_health(1), level.player,
+			spawn.barricade)
 	zombie.board_pull_interval = 0.2
 	zombie.move_speed = 6.0
 	zombie.drops = null

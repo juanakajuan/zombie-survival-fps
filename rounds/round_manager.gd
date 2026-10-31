@@ -1,8 +1,9 @@
 class_name RoundManager
 extends Node
 ## Runs the rounds. Round 1 starts when the level loads. Each round spawns its zombies at the SpawnPoint children that are
-## active, one after the other. While RoundSettings.max_alive zombies are alive, the next spawn waits. When the last
-## zombie of the round dies, the break starts, and the next round starts after it.
+## active, one after the other. While RoundSettings.max_alive zombies are alive, the next spawn waits. A special round
+## spawns Mutts in their place, and its last Mutt leaves `special_reward`. When the last zombie of the round dies, the
+## break starts, and the next round starts after it.
 
 signal round_started(round_number: int)
 signal round_ended(round_number: int)
@@ -10,7 +11,13 @@ signal round_ended(round_number: int)
 enum State { BREAK, ACTIVE }
 
 @export var settings: RoundSettings
-@export var zombie_scene: PackedScene = preload("res://zombie/zombie.tscn")
+# load(), not preload(): zombie.gd reaches this script through Player and Hud, so a preload makes a load cycle that
+# fails when mutt.tscn or zombie.gd loads first.
+@export var zombie_scene: PackedScene = load("res://zombie/zombie.tscn") as PackedScene
+@export var special_scene: PackedScene = load("res://mutt/mutt.tscn") as PackedScene
+## The free item on the ground where the last Mutt of a special round dies.
+@export var special_reward: BuyItem = preload("res://pickups/max_ammo.tres")
+@export var pickup_scene: PackedScene = preload("res://pickups/pickup.tscn")
 ## The zombies chase this player.
 @export var player: Player
 
@@ -43,6 +50,11 @@ func _ready() -> void:
 ## The zombies of the current round that are alive or not spawned yet.
 func zombies_left() -> int:
 	return _zombies_alive + _zombies_to_spawn
+
+
+## Whether the current round, or the round that just ended during a break, is a special round.
+func is_special_round() -> bool:
+	return settings.is_special_round(round_number)
 
 
 ## The seconds until the next round starts. It is 0 during a round.
@@ -87,17 +99,25 @@ func _physics_process(delta: float) -> void:
 func _start_round(number: int) -> void:
 	round_number = number
 	state = State.ACTIVE
-	_zombies_to_spawn = settings.zombie_count(number)
+	_zombies_to_spawn = settings.special_count(number) if settings.is_special_round(number) else settings.zombie_count(number)
 	_drops_this_round = 0
 	round_started.emit(number)
 	_spawn_zombie()
 
 
 func _spawn_zombie() -> void:
-	var zombie := zombie_scene.instantiate() as Zombie
 	var point := _next_active_spawn_point()
-	zombie.configure(settings.zombie_speed(round_number), settings.zombie_health(round_number), player, point.barricade)
-	Health.find_on(zombie).died.connect(_on_zombie_died)
+	var zombie: Zombie
+	if is_special_round():
+		zombie = special_scene.instantiate() as Zombie
+		zombie.configure(settings.special_speed, settings.crawl_speed, settings.special_health(round_number), player,
+				point.barricade)
+	else:
+		zombie = zombie_scene.instantiate() as Zombie
+		var gait := _next_gait()
+		var speed := settings.runner_speed if gait == Zombie.Gait.RUN else settings.zombie_speed(round_number)
+		zombie.configure(speed, settings.crawl_speed, settings.zombie_health(round_number), player, point.barricade, gait)
+	Health.find_on(zombie).died.connect(_on_zombie_died.bind(zombie))
 	zombie.dropped.connect(_on_zombie_dropped)
 	if _drops_this_round >= settings.max_drops:
 		zombie.drops = null
@@ -108,6 +128,16 @@ func _spawn_zombie() -> void:
 	add_child(zombie)
 
 
+## The gait of the zombie that spawns next. The round's runners are spread evenly over its spawn order: the zombie at
+## index i runs when the count floor(i * runners / count) grows at i + 1. The first zombie runs only if all of them do.
+func _next_gait() -> Zombie.Gait:
+	var count := settings.zombie_count(round_number)
+	var runners := settings.runner_count(round_number)
+	var index := count - _zombies_to_spawn
+	var runs := floori(float(index + 1) * runners / count) > floori(float(index) * runners / count)
+	return Zombie.Gait.RUN if runs else Zombie.Gait.WALK
+
+
 ## The next active point after the one that spawned last. `_ready` makes sure that one point has no door, so the
 ## recursion ends.
 func _next_active_spawn_point() -> SpawnPoint:
@@ -116,8 +146,13 @@ func _next_active_spawn_point() -> SpawnPoint:
 	return point if point.is_active() else _next_active_spawn_point()
 
 
-func _on_zombie_died() -> void:
+func _on_zombie_died(zombie: Zombie) -> void:
 	_zombies_alive -= 1
+	if state == State.ACTIVE and _zombies_alive == 0 and _zombies_to_spawn == 0 and is_special_round():
+		var pickup := pickup_scene.instantiate() as Pickup
+		pickup.item = special_reward
+		pickup.position = zombie.position
+		add_child.call_deferred(pickup)
 	_end_round_if_clear()
 
 

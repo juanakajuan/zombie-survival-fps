@@ -123,7 +123,7 @@ func test_the_zombie_dying_plays_its_death_sound_and_stops_groaning() -> void:
 
 func test_a_living_zombie_groans_within_the_longest_interval() -> void:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
-	zombie.configure(0.0, 100.0, null)
+	zombie.configure(0.0, 0.0, 100.0, null)
 	zombie.groan_interval_min = 0.5
 	zombie.groan_interval_max = 1.0
 	add_child(zombie)

@@ -6,6 +6,8 @@ extends CharacterBody3D
 signal dropped
 
 enum State { CHASE, BREACH, ATTACK, DEAD }
+## How the zombie moves. A RUN zombie wears `runner_materials` and uses the run pose. A CRAWL zombie has lost its legs.
+enum Gait { WALK, RUN, CRAWL }
 
 const GROUP := &"zombie"
 
@@ -26,6 +28,21 @@ const GROUP := &"zombie"
 @export_group("Look")
 @export_range(0.0, 50.0, 0.5, "suffix:1/s") var turn_rate: float = 10.0
 
+@export_group("Gait")
+## Used by a RUN zombie. A surface of the model whose material has the name of a key shows the material of that key.
+@export var runner_materials: Dictionary[String, Material] = {}
+
+@export_group("Legs")
+## A shot or a blast that deals this much damage at leg height, and that the zombie lives through, takes its legs. Then
+## it crawls.
+@export_range(1.0, 1000.0, 1.0) var leg_loss_damage: float = 60.0
+## A hit below this height over the feet is on the legs, under the hips. A blast counts at the height of its centre.
+@export_range(0.0, 2.0, 0.01, "suffix:m") var leg_height: float = 0.6
+## The low collider of a crawler. The scene sets it. Null means the body never loses its legs, as the Mutt.
+@export var crawl_shape: CollisionShape3D
+## The height of the health bar over a crawler.
+@export_range(0.0, 3.0, 0.05, "suffix:m") var crawl_bar_height: float = 0.9
+
 @export_group("Drops")
 ## What the zombie may drop when it dies. Null means it drops nothing.
 @export var drops: DropTable
@@ -35,7 +52,11 @@ const GROUP := &"zombie"
 var target: Node3D
 ## Set by configure(). RoundSettings owns the value for each round.
 var move_speed: float
+## Set by configure(). The move speed after the zombie loses its legs.
+var crawl_speed: float
 var state: State = State.CHASE
+## Set by configure().
+var gait: Gait = Gait.WALK
 ## Set by configure(). The barricade that the zombie walks through before it chases the target. It is cleared once the
 ## zombie is inside.
 var entry: Barricade
@@ -54,7 +75,7 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var _shape: CollisionShape3D = $CollisionShape3D
 @onready var weak_spot: WeakSpot = $WeakSpot
 @onready var _hit_flash: HitFlash = $HitFlash
-@onready var animator: ZombieAnimator = $Animator
+@onready var animator: BodyAnimator = $Animator
 @onready var _model: Node3D = $Model
 @onready var health_bar: HealthBar = $HealthBar
 @onready var groan_sound: AudioStreamPlayer3D = $GroanSound
@@ -74,8 +95,12 @@ func _ready() -> void:
 	# without this the zombie never reaches a path point that is above its feet.
 	_agent.path_height_offset = 2.0 * NavigationServer3D.map_get_cell_height(_agent.get_navigation_map())
 	_hit_flash.material = _tint
+	if gait == Gait.RUN:
+		ViewModel.swap_materials(_model, runner_materials)
+	animator.gait = gait
 	animator.attach(_model)
 	_health.died.connect(_on_died)
+	_health.struck_at.connect(_on_struck_at)
 	_groan_left = randf_range(groan_interval_min, groan_interval_max)
 
 
@@ -84,14 +109,29 @@ func tint() -> Color:
 	return _tint.albedo_color
 
 
+## The material that the model shows in place of the material of the .glb with this name, or null when the model has none.
+## A RUN zombie shows its runner material here.
+func body_material(model_material: String) -> BaseMaterial3D:
+	for mesh: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
+		for surface: int in mesh.mesh.get_surface_count():
+			var original := mesh.mesh.surface_get_material(surface)
+			if original != null and original.resource_name == model_material:
+				return mesh.get_active_material(surface) as BaseMaterial3D
+	return null
+
+
 ## Whether the zombie is dead. A dead zombie stays in the tree while its body falls and sinks.
 func is_dead() -> bool:
 	return state == State.DEAD
 
 
-## Sets the speed, health, and target of this zombie. Call it before the zombie enters the tree.
-func configure(speed: float, max_health: float, chase: Node3D, through: Barricade = null) -> void:
+## Sets the speeds, health, target, and gait of this zombie. Call it before the zombie enters the tree. The speed does not
+## follow from the gait: RoundSettings gives each gait its own speed. `crawl` is the speed after the legs come off.
+func configure(speed: float, crawl: float, max_health: float, chase: Node3D, through: Barricade = null,
+		with_gait: Gait = Gait.WALK) -> void:
 	move_speed = speed
+	crawl_speed = crawl
+	gait = with_gait
 	target = chase
 	entry = through
 	Health.find_on(self).max_health = max_health
@@ -213,10 +253,23 @@ func _on_died() -> void:
 	state = State.DEAD
 	velocity = Vector3.ZERO
 	_shape.set_deferred("disabled", true)
+	if crawl_shape != null:
+		crawl_shape.set_deferred("disabled", true)
 	weak_spot.set_deferred("disabled", true)
 	groan_sound.stop()
 	death_sound.play()
 	_drop_pickup()
+
+
+func _on_struck_at(amount: float, point: Vector3) -> void:
+	if is_dead() or crawl_shape == null or gait == Gait.CRAWL or amount < leg_loss_damage or to_local(point).y > leg_height:
+		return
+	gait = Gait.CRAWL
+	move_speed = crawl_speed
+	animator.gait = gait
+	_shape.set_deferred("disabled", true)
+	crawl_shape.set_deferred("disabled", false)
+	health_bar.position.y = crawl_bar_height
 
 
 func _drop_pickup() -> void:
