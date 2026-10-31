@@ -22,6 +22,18 @@ func test_health_text_follows_damage_and_reset() -> void:
 	assert_eq(player.hud.readout().health_text, "100", "health after reset")
 
 
+func test_red_edge_grows_as_health_gets_low_and_goes_when_it_comes_back() -> void:
+	var player := await spawn_player()
+	player.hud.low_health_fraction = 0.3
+	assert_almost_eq(player.hud.readout().low_health_vignette, 0.0, 0.001, "hidden at full health")
+	player.health.damage(75.0)
+	assert_almost_eq(player.hud.readout().low_health_vignette, 1.0 / 6.0, 0.01, "faint at 25 hp")
+	player.health.damage(20.0)
+	assert_almost_eq(player.hud.readout().low_health_vignette, 5.0 / 6.0, 0.01, "strong at 5 hp")
+	await run_seconds(player.health.regen_delay + 2.0)
+	assert_almost_eq(player.hud.readout().low_health_vignette, 0.0, 0.001, "hidden after health comes back")
+
+
 func test_ammo_text_follows_shots() -> void:
 	var player := await spawn_player()
 	var weapon := player.weapon

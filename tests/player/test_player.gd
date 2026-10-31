@@ -14,6 +14,24 @@ func test_no_input_stays_on_floor_and_still() -> void:
 	assert_almost_eq(_horizontal_distance(start, player.global_position), 0.0, 0.05, "player does not drift")
 
 
+func test_health_comes_back_after_a_time_with_no_damage() -> void:
+	var player := await spawn_player()
+	player.health.damage(50.0)
+	await run_seconds(player.health.regen_delay - 0.5)
+	assert_almost_eq(player.health.current, 50.0, 0.001, "no change before the delay")
+	await run_seconds(0.5 + 50.0 / player.health.regen_rate + 0.2)
+	assert_almost_eq(player.health.current, player.health.max_health, 0.001, "full after the delay and the refill")
+
+
+func test_three_zombie_hits_kill_the_player() -> void:
+	var player := await spawn_player()
+	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
+	var hit := zombie.attack_damage
+	zombie.free()
+	assert_true(player.health.max_health <= 3.0 * hit, "three hits are enough")
+	assert_true(player.health.max_health > 2.0 * hit, "two hits are not enough")
+
+
 func test_forward_moves_toward_negative_z_at_walk_speed() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("move_forward")

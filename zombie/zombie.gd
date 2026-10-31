@@ -6,7 +6,7 @@ enum State { CHASE, BREACH, ATTACK, DEAD }
 
 @export_group("Attack")
 @export_range(0.5, 5.0, 0.05, "suffix:m") var attack_range: float = 1.3
-@export_range(0.0, 100.0, 1.0) var attack_damage: float = 10.0
+@export_range(0.0, 100.0, 1.0) var attack_damage: float = 40.0
 @export_range(0.1, 10.0, 0.05, "suffix:s") var attack_interval: float = 1.0
 ## The zombie leaves ATTACK only when the target is this much farther than attack_range, so it does not flicker at the edge.
 @export_range(0.0, 2.0, 0.05, "suffix:m") var attack_exit_margin: float = 0.3
