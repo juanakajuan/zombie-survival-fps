@@ -31,6 +31,29 @@
         "9500",
         "--disable-telemetry"
       ]
+    },
+    "blender": {
+      "type": "stdio",
+      "command": "/usr/bin/uvx",
+      "args": [
+        "--isolated",
+        "--no-config",
+        "--no-env-file",
+        "--no-sources",
+        "--index-strategy",
+        "first-index",
+        "--keyring-provider",
+        "disabled",
+        "--index",
+        "https://pypi.org/simple",
+        "--default-index",
+        "https://pypi.org/simple",
+        "--link-mode",
+        "copy",
+        "--from",
+        "git+https://projects.blender.org/lab/blender_mcp.git@2cea8d566dde07fbac28a61d698909d69724e853#subdirectory=mcp",
+        "blender-mcp"
+      ]
     }
   }
 }

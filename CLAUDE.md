@@ -83,6 +83,12 @@ A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes o
 - Do not edit files in `addons/godot_ai/`. The human updates the addon with the **Update** button in the Godot AI dock. After an update, change the `godot-ai==` version in `.mcp.json` to match.
 - Telemetry is off: `.mcp.json` passes `--disable-telemetry`, and the editor setting `godot_ai/telemetry_enabled` is false.
 
+## Blender MCP server
+
+- `.mcp.json` registers the `blender` server: the official Blender Lab MCP (projects.blender.org/lab/blender_mcp), pinned to a commit. It is not the `blender-mcp` package on PyPI.
+- It works only while Blender runs with its MCP add-on enabled. The add-on listens on 127.0.0.1:9876 (`ss -ltn | grep 9876`).
+- The add-on opens its port only when Blender's Online Access preference is on. The human turns on Online Access and the add-on in Blender's Preferences. Do not change Blender preferences from the command line while Blender is open: Blender saves its own preferences on exit and undoes the change.
+
 ## Style
 
 - Follow the official GDScript style guide: snake_case for files, folders, functions, and variables, and PascalCase for nodes and `class_name`.
