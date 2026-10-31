@@ -314,6 +314,7 @@ func _state() -> Dictionary[String, String]:
 		s["hud.health"] = hud.health_text
 		s["hud.ammo"] = hud.ammo_text
 		s["hud.weapon"] = hud.weapon_name
+		s["hud.grenades"] = hud.grenades_text
 		s["hud.points"] = hud.points_text
 		var powerups := PackedStringArray()
 		for line: String in hud.powerups:

@@ -1,0 +1,25 @@
+# Grenade: throw one at the ground ahead of the zombies with G, wait out the fuse, and check the blast.
+# A round 1 zombie has 100 health and the blast does 250 at the centre, so a zombie near the blast dies and pays a hit plus the kill bonus.
+# The throw is early, while the zombies are far, because a grenade that hits a zombie bounces back. The blast goes off 150 frames after the throw, when the nearest zombie has walked up to it.
+expect hud.grenades 2
+expect hud.points 0
+until zombies.alive 4 300
+wait 40
+aim
+look 0 220
+state 01-before
+shot 01-before
+tap grenade
+expect hud.grenades 1
+wait 30
+look 0 -190
+shot 02-flying
+wait 123
+state 03-blast
+shot 03-blast
+wait 60
+state 04-after
+shot 04-after
+expect_not hud.points 0
+expect_not zombies.alive 4
+expect hud.grenades 1
