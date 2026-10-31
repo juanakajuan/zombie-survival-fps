@@ -9,6 +9,7 @@ A wall buy is a dark board on a wall with a pale silhouette of a weapon on it an
 - `pellets` fires 8 rays for one shell: one press shows many tracers and `hud.ammo` drops by 1. Each pellet that hits a living zombie pays 10 points.
 - `aim` puts the red bead in the notch of the rear sight at the screen centre.
 - `reload` throws the gun away and takes the missing shells from the reserve.
+- `upgrade` at the upgrade machine (with power) turns it into SHOTGUN+: a blue body, 10 pellets of 32 damage, and `10 / 60` ammo.
 
 ## How to get to it (user POV)
 
@@ -26,6 +27,7 @@ Preconditions:
 - **Buy.** Run `tap interact`, `wait 5`. `expect hud.points 3800`, `expect hud.weapon SHOTGUN`, and `expect hud.ammo 6 / 36` pass.
 - **Fire.** Run `face 0 0`, `wait 10`, `tap fire`, then `shot` at once. The screenshot shows a spray of tracers. `expect hud.ammo 5 / 36` passes.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/shotgun.steps`.
+- **Upgrade.** `journeys/shotgun_upgrade.steps` buys the shotgun, the room door, and the power with `walk_to`, then upgrades the shotgun: `expect hud.weapon SHOTGUN+` and `expect hud.ammo 10 / 60` pass.
 
 ## Gotchas
 

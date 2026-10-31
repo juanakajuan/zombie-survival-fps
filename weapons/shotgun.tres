@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://weapons/shotgun_view.tscn" id="2_view"]
 [ext_resource type="PackedScene" path="res://weapons/tracer.tscn" id="3_tracer"]
 [ext_resource type="PackedScene" path="res://weapons/shotgun.glb" id="4_model"]
+[ext_resource type="Resource" path="res://weapons/shotgun_upgraded.tres" id="5_upgrade"]
 
 [resource]
 script = ExtResource("1_data")
@@ -20,3 +21,4 @@ automatic = false
 view_model = ExtResource("2_view")
 tracer = ExtResource("3_tracer")
 world_model = ExtResource("4_model")
+upgrade = ExtResource("5_upgrade")
