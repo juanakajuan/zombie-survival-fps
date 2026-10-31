@@ -14,7 +14,10 @@ func _ready() -> void:
 		(node as Door).opened.connect(navigation.bake)
 	for node: Node in get_tree().get_nodes_in_group(WeaponBox.GROUP):
 		(node as WeaponBox).moved.connect(navigation.bake)
-	round_manager.round_started.connect(func(_round_number: int) -> void: player.wallet.start_round())
+	round_manager.round_started.connect(func(_round_number: int) -> void:
+		player.wallet.start_round()
+		player.grenades.start_round()
+	)
 	game_over.restart_requested.connect(restart)
 
 

@@ -105,6 +105,7 @@ var weapon: Weapon
 ## The weapons the player holds, in slot order. Only `weapon` fires; the others are holstered.
 var weapons: Array[Weapon] = []
 var melee: Melee
+var grenades: Grenades
 var punch_view: PunchView
 var settings: GameSettings
 
@@ -137,6 +138,8 @@ func _enter_tree() -> void:
 	weapons.append(weapon)
 	melee = $Melee
 	melee.wielder = self
+	grenades = $Grenades
+	grenades.wielder = self
 	punch_view = $Head/Camera3D/PunchView
 	punch_view.melee = melee
 
@@ -148,6 +151,7 @@ func _ready() -> void:
 	health.damaged.connect(hurt_sound.play.unbind(1))
 	weapon.damaged.connect(_on_damaged)
 	melee.damaged.connect(_on_damaged)
+	grenades.damaged.connect(_on_damaged)
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.settings_changed.connect(_apply_settings)
 	debug_menu.player = self
@@ -219,6 +223,8 @@ func _physics_process(delta: float) -> void:
 			_focused.hold(self, delta)
 	if weapon.trigger_enabled and not weapon.is_reloading() and Input.is_action_just_pressed("melee"):
 		melee.try_swing()
+	if weapon.trigger_enabled and not is_downed() and Input.is_action_just_pressed("grenade"):
+		grenades.try_throw()
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_update_stance(on_floor, delta)
 	var jumping := on_floor and Input.is_action_just_pressed("jump") and not is_dead() and not is_downed()

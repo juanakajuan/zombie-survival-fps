@@ -15,6 +15,8 @@
 [ext_resource type="PackedScene" path="res://debug_menu/debug_menu.tscn" id="13_debug_menu"]
 [ext_resource type="Script" path="res://perks/perks.gd" id="14_perks"]
 [ext_resource type="Script" path="res://pickups/powerups.gd" id="15_powerups"]
+[ext_resource type="Script" path="res://grenades/grenades.gd" id="16_grenades"]
+[ext_resource type="PackedScene" path="res://grenades/grenade.tscn" id="17_grenade"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -66,10 +68,15 @@ script = ExtResource("15_powerups")
 [node name="Melee" type="Node" parent="."]
 script = ExtResource("10_melee")
 
-[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "melee", "wallet", "perks", "powerups") instance=ExtResource("5_hud")]
+[node name="Grenades" type="Node" parent="."]
+script = ExtResource("16_grenades")
+grenade_scene = ExtResource("17_grenade")
+
+[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "melee", "grenades", "wallet", "perks", "powerups") instance=ExtResource("5_hud")]
 health = NodePath("../Health")
 weapon = NodePath("../Head/Camera3D/Weapon")
 melee = NodePath("../Melee")
+grenades = NodePath("../Grenades")
 wallet = NodePath("../Wallet")
 perks = NodePath("../Perks")
 powerups = NodePath("../Powerups")

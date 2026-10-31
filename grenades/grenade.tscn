@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://grenades/grenade.gd" id="1_grenade"]
+
+[sub_resource type="SphereShape3D" id="shape"]
+radius = 0.09
+
+[sub_resource type="PhysicsMaterial" id="bounce"]
+friction = 0.7
+bounce = 0.45
+
+[sub_resource type="StandardMaterial3D" id="body_material"]
+albedo_color = Color(0.17, 0.33, 0.14, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="metal_material"]
+albedo_color = Color(0.62, 0.6, 0.5, 1)
+roughness = 1.0
+
+[sub_resource type="SphereMesh" id="body_mesh"]
+material = SubResource("body_material")
+radius = 0.09
+height = 0.18
+radial_segments = 16
+rings = 8
+
+[sub_resource type="CylinderMesh" id="cap_mesh"]
+material = SubResource("metal_material")
+top_radius = 0.03
+bottom_radius = 0.04
+height = 0.05
+radial_segments = 12
+
+[sub_resource type="BoxMesh" id="lever_mesh"]
+material = SubResource("metal_material")
+size = Vector3(0.024, 0.11, 0.012)
+
+[sub_resource type="StandardMaterial3D" id="flash_material"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.62, 0.15, 1)
+
+[sub_resource type="SphereMesh" id="flash_mesh"]
+material = SubResource("flash_material")
+
+[node name="Grenade" type="RigidBody3D"]
+collision_layer = 2
+mass = 0.4
+physics_material_override = SubResource("bounce")
+continuous_cd = true
+angular_damp = 0.6
+script = ExtResource("1_grenade")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("shape")
+
+[node name="Model" type="Node3D" parent="."]
+
+[node name="Body" type="MeshInstance3D" parent="Model"]
+mesh = SubResource("body_mesh")
+
+[node name="Cap" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("cap_mesh")
+
+[node name="Lever" type="MeshInstance3D" parent="Model"]
+transform = Transform3D(0.98, 0.2, 0, -0.2, 0.98, 0, 0, 0, 1, 0.045, 0.06, 0)
+mesh = SubResource("lever_mesh")
+
+[node name="Flash" type="MeshInstance3D" parent="."]
+visible = false
+cast_shadow = 0
+mesh = SubResource("flash_mesh")
+
+[node name="Light" type="OmniLight3D" parent="."]
+visible = false
+light_color = Color(1, 0.65, 0.25, 1)
+light_energy = 8.0
+omni_range = 8.0
