@@ -5,6 +5,7 @@ extends SceneTree
 ## Args after `--`: --steps=<abs path> --out=<abs dir> [--scene=res://...]
 
 const DEFAULT_SCENE := "res://levels/test_range.tscn"
+const SECOND_WIND: PerkItem = preload("res://perks/second_wind.tres")
 
 var _steps_path: String = ""
 var _out_dir: String = ""
@@ -119,12 +120,9 @@ func _step(line: String) -> bool:
 	return true
 
 
-## The game has no self-revive perk to buy yet, so this gives the player one, to show the downed state.
+## Gives the player SECOND WIND without the power switch and the points, to show the downed state quickly.
 func _give_self_revive() -> void:
-	var perk := PerkItem.new()
-	perk.icon_text = "SR"
-	perk.self_revive = true
-	(get_first_node_in_group(Player.GROUP) as Player).perks.add(perk)
+	(get_first_node_in_group(Player.GROUP) as Player).perks.add(SECOND_WIND)
 
 
 func _wait_frames(count: int) -> void:
