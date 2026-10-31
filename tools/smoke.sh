@@ -13,10 +13,12 @@ rm -f "$out"
 log="$(mktemp)"
 trap 'rm -f "$log"' EXIT
 
+# gamescope exits 0 whatever godot returns, even on a crash. A non-zero status here is the timeout or
+# gamescope itself. A game crash shows as engine errors or a missing screenshot below.
 if ! timeout 120 gamescope --backend headless -W 1280 -H 720 -- \
 	godot --path . --display-driver x11 --audio-driver Dummy ${scene:+"$scene"} -- --smoke-out="$out" --smoke-frames="$frames" >"$log" 2>&1; then
 	cat "$log" >&2
-	echo "smoke: the game exited with an error" >&2
+	echo "smoke: gamescope failed or timed out" >&2
 	exit 1
 fi
 if grep -E '^(ERROR|SCRIPT ERROR|USER ERROR)' -A2 "$log"; then
