@@ -1,7 +1,7 @@
 extends TestCase
 
 const COMPOUND_SCENE: PackedScene = preload("res://levels/compound.tscn")
-## The foot and the top of each ramp, in level coordinates. Each ramp goes up toward -Z, the way the player looks at start.
+## The foot of each ramp, in level coordinates. Each ramp goes up toward -Z.
 const MEZZANINE_RAMP_FOOT := Vector3(-20.0, 0.0, 0.0)
 const WATCHTOWER_RAMP_FOOT := Vector3(29.0, 0.0, -9.0)
 const HIGH_FLOOR_HEIGHT := 4.0
@@ -132,6 +132,7 @@ func _assert_walks_up_the_ramp_from(foot: Vector3, floor_name: String) -> void:
 	var level := await spawn_level(null, COMPOUND_SCENE)
 	var player := level.get_node("Player") as Player
 	player.global_position = foot
+	look_at_point(player, foot + Vector3.FORWARD * 100.0)
 	Input.action_press("move_forward")
 	await run_seconds(5.0)
 	assert_almost_eq(player.global_position.y, HIGH_FLOOR_HEIGHT, 0.1, "player height after walking up to the %s" % floor_name)

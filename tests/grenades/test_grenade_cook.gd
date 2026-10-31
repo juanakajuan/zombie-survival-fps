@@ -5,7 +5,6 @@ const SETTLE_FRAMES := 5
 const FRAME_MARGIN := 3
 const TIMING_TOLERANCE := 0.1
 
-var _self_revive := PerkItem.new()
 var _released_at: int = 0
 
 
@@ -28,13 +27,6 @@ func _seconds_from_release_to_blast(grenade: Grenade) -> float:
 	while not grenade.has_exploded() and Engine.get_physics_frames() - _released_at < 6 * Engine.physics_ticks_per_second:
 		await physics_frames(1)
 	return float(Engine.get_physics_frames() - _released_at) / Engine.physics_ticks_per_second
-
-
-func _down(player: Player) -> void:
-	_self_revive.self_revive_time = 30.0
-	if player.perks.can_add(_self_revive):
-		player.perks.add(_self_revive)
-	player.health.damage(player.health.max_health)
 
 
 func test_a_tap_throws_a_grenade_along_the_aim_that_explodes_after_the_fuse() -> void:
@@ -137,7 +129,7 @@ func test_a_player_who_goes_down_while_cooking_drops_the_grenade_at_the_feet() -
 	Input.action_press("grenade")
 	await run_seconds(0.5)
 	_released_at = Engine.get_physics_frames()
-	_down(player)
+	down_player(player)
 	assert_true(player.is_downed(), "the player is down")
 	assert_true(not player.is_throwing(), "the cook is over")
 	assert_eq(thrown.size(), 1, "the grenade drops")

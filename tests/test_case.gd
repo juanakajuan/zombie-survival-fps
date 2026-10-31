@@ -12,6 +12,7 @@ const LEVEL_SCENE: PackedScene = preload("res://levels/test_range.tscn")
 const ROUND_SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
 
 var failures: PackedStringArray = []
+var _downing_perk := PerkItem.new()
 
 
 func assert_true(condition: bool, message: String) -> void:
@@ -151,6 +152,14 @@ func path_goes_inside(path: PackedVector3Array, barricade: Barricade) -> bool:
 
 func look_at_point(player: Player, point: Vector3) -> void:
 	player.look(player.mouse_delta_to(point))
+
+
+## Downs the player. The downed state ends in death unless the test revives the player.
+func down_player(player: Player) -> void:
+	_downing_perk.self_revive_time = player.downed_time + 1.0
+	if player.perks.can_add(_downing_perk):
+		player.perks.add(_downing_perk)
+	player.health.damage(player.health.max_health)
 
 
 ## Adds a level (the test range by default) and returns when the navigation map answers queries from its baked navmesh.

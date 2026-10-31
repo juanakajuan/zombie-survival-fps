@@ -1,8 +1,6 @@
 extends TestCase
 
 const SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
-## Shorter than the spawn interval, so the next zombie does not spawn on the measured one.
-const MEASURE_TIME := 0.9
 
 
 func test_each_round_has_more_and_stronger_zombies_than_the_one_before() -> void:
@@ -26,8 +24,9 @@ func test_the_game_settings_set_how_fast_and_tough_round_one_zombies_are() -> vo
 	await physics_frames(2)
 	var zombie := manager.get_child(1) as Zombie
 	var start := _flat_distance(zombie, player)
-	await run_seconds(MEASURE_TIME)
-	var speed := (start - _flat_distance(zombie, player)) / MEASURE_TIME
+	var measure_time := SETTINGS.spawn_interval * 0.9
+	await run_seconds(measure_time)
+	var speed := (start - _flat_distance(zombie, player)) / measure_time
 	assert_true(speed > SETTINGS.zombie_speed(1) * 0.8 and speed < SETTINGS.zombie_speed(1) * 1.05,
 		"round 1 zombie walks at %s m/s, settings say %s m/s" % [speed, SETTINGS.zombie_speed(1)])
 	var health := Health.find_on(zombie)

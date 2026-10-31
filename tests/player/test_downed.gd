@@ -5,8 +5,6 @@ const SECOND_WIND: PerkItem = preload("res://perks/second_wind.tres")
 const IRON_GUT: PerkItem = preload("res://perks/iron_gut.tres")
 const SETTLE_FRAMES := 10
 
-var _self_revive := PerkItem.new()
-
 
 func test_without_a_self_revive_perk_zero_health_kills_at_once() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
@@ -26,7 +24,7 @@ func test_zero_health_downs_the_player() -> void:
 	player.downed.connect(func() -> void: counts[0] += 1)
 	player.died.connect(func() -> void: counts[1] += 1)
 	var stand_height := player.camera.global_position.y
-	_down(player)
+	down_player(player)
 	await run_seconds(0.5)
 	assert_true(player.is_downed(), "is_downed")
 	assert_true(not player.is_dead(), "not dead")
@@ -40,7 +38,7 @@ func test_zero_health_downs_the_player() -> void:
 
 func test_downed_player_moves_slowly_and_cannot_jump() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	_down(player)
+	down_player(player)
 	Input.action_press("move_forward")
 	Input.action_press("sprint")
 	await run_seconds(1.0)
@@ -56,7 +54,7 @@ func test_downed_player_moves_slowly_and_cannot_jump() -> void:
 func test_downed_player_fires_a_full_pistol() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	player.weapon.ammo = 3
-	_down(player)
+	down_player(player)
 	assert_eq(player.weapon.data, player.downed_weapon, "the pistol is in hand")
 	assert_eq(player.weapon.ammo, player.weapon.data.magazine_size, "full magazine")
 	assert_true(player.weapon.try_fire(), "the pistol fires")
@@ -68,7 +66,7 @@ func test_downed_player_holsters_another_weapon_for_the_held_pistol() -> void:
 	var pistol := player.weapon
 	var smg := player.give_weapon(SMG)
 	pistol.ammo = 2
-	_down(player)
+	down_player(player)
 	assert_true(player.weapon == pistol, "the held pistol is in hand")
 	assert_eq(pistol.ammo, pistol.data.magazine_size, "full magazine")
 	assert_true(not smg.visible, "the SMG is holstered")
@@ -80,7 +78,7 @@ func test_downed_player_without_a_pistol_gets_a_temporary_one() -> void:
 	player.max_weapons = 1
 	var smg := player.give_weapon(SMG)
 	assert_eq(player.weapons.size(), 1, "the SMG replaced the pistol")
-	_down(player)
+	down_player(player)
 	assert_eq(player.weapon.data, player.downed_weapon, "a pistol is in hand")
 	assert_eq(player.weapon.ammo, player.weapon.data.magazine_size, "full magazine")
 	assert_eq(player.weapons.size(), 1, "the pistol is not one of the held weapons")
@@ -94,7 +92,7 @@ func test_downed_player_without_a_pistol_gets_a_temporary_one() -> void:
 func test_weapon_switch_does_nothing_while_downed() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	player.give_weapon(SMG)
-	_down(player)
+	down_player(player)
 	var pistol := player.weapon
 	press_action(&"weapon_2")
 	press_action(&"weapon_next")
@@ -107,7 +105,7 @@ func test_downed_time_ends_in_death() -> void:
 	player.downed_time = 0.5
 	var counts: Array[int] = [0]
 	player.died.connect(func() -> void: counts[0] += 1)
-	_down(player)
+	down_player(player)
 	await run_seconds(0.3)
 	assert_eq(counts[0], 0, "alive before the time ends")
 	await run_seconds(0.4)
@@ -138,7 +136,7 @@ func test_revive_stands_the_player_up() -> void:
 	player.downed_time = 0.5
 	var smg := player.give_weapon(SMG)
 	var stand_height := player.camera.global_position.y
-	_down(player)
+	down_player(player)
 	await run_seconds(0.3)
 	player.revive(0.5)
 	await run_seconds(0.5)
@@ -154,10 +152,10 @@ func test_revive_stands_the_player_up() -> void:
 
 func test_full_health_revives_and_zero_health_downs_again() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	_down(player)
+	down_player(player)
 	player.health.reset()
 	assert_true(not player.is_downed(), "the health reset stands the player up")
-	_down(player)
+	down_player(player)
 	assert_true(player.is_downed(), "downed again at 0 health")
 
 
@@ -173,7 +171,7 @@ func test_zombie_keeps_attacking_a_downed_player() -> void:
 	var player := await spawn_player(Vector3.ZERO, 3)
 	var zombie := spawn_zombie(Vector3(0.0, 0.0, -1.0), player)
 	zombie.attack_interval = 0.3
-	_down(player)
+	down_player(player)
 	await run_seconds(1.0)
 	assert_eq(zombie.state, Zombie.State.ATTACK, "the zombie attacks the downed player")
 	player.revive(0.5)
@@ -215,10 +213,3 @@ func test_the_revive_uses_up_second_wind() -> void:
 	player.health.damage(player.health.max_health)
 	assert_true(player.is_dead(), "with the perk used up, 0 health kills")
 
-
-## A self-revive slower than downed_time, so that these tests see the downed state end in death.
-func _down(player: Player) -> void:
-	_self_revive.self_revive_time = 30.0
-	if player.perks.can_add(_self_revive):
-		player.perks.add(_self_revive)
-	player.health.damage(player.health.max_health)
