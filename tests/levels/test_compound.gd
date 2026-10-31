@@ -86,8 +86,24 @@ func test_the_level_has_an_ammo_station_and_a_weapon_station_near_the_player_sta
 		assert_true(station.global_position.distance_to(player.global_position) < 10.0, "%s is in the yard near the start" % station.name)
 
 
+func test_the_power_switch_is_in_the_office_and_powers_every_perk_machine_outside_it() -> void:
+	var level := await spawn_level(null, COMPOUND_SCENE)
+	var power := level.get_node("PowerSwitch") as PowerSwitch
+	assert_true(OFFICE.has_point(Vector2(power.global_position.x, power.global_position.z)), "the switch is in the office")
+	var machines: Array[BuyStation] = stations_in(level).filter(func(station: BuyStation) -> bool: return station.item is PerkItem)
+	assert_eq(machines.size(), 3, "perk machines")
+	for machine: BuyStation in machines:
+		var at := Vector2(machine.global_position.x, machine.global_position.z)
+		assert_true(not WAREHOUSE.has_point(at) and not OFFICE.has_point(at), "%s is outside both buildings" % machine.name)
+		assert_true(machine.power == power, "%s needs the switch" % machine.name)
+		assert_true(not machine.has_power(), "%s has no power at the start" % machine.name)
+	power.turn_on()
+	for machine: BuyStation in machines:
+		assert_true(machine.has_power(), "%s has power" % machine.name)
+
+
 func _shops(level: Level) -> Array[BuyStation]:
-	return stations_in(level).filter(func(station: BuyStation) -> bool: return not station.item is DoorItem)
+	return stations_in(level).filter(func(station: BuyStation) -> bool: return not (station.item is DoorItem or station.item is PerkItem))
 
 
 func _assert_walks_up_the_ramp_from(foot: Vector3, floor_name: String) -> void:
