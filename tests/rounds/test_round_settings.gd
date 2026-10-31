@@ -74,3 +74,23 @@ func test_runners_are_faster_than_the_fastest_walker() -> void:
 
 func _flat_distance(a: Node3D, b: Node3D) -> float:
 	return Vector2(a.global_position.x - b.global_position.x, a.global_position.z - b.global_position.z).length()
+
+
+func test_special_rounds_come_at_the_first_special_round_and_then_each_interval() -> void:
+	var first := SETTINGS.first_special_round
+	var interval := SETTINGS.special_round_interval
+	assert_true(SETTINGS.is_special_round(first), "round %d is special" % first)
+	assert_true(SETTINGS.is_special_round(first + interval), "round %d is special" % (first + interval))
+	assert_true(SETTINGS.is_special_round(first + 2 * interval), "round %d is special" % (first + 2 * interval))
+	for n: int in range(1, first + 2 * interval):
+		if n != first and n != first + interval:
+			assert_true(not SETTINGS.is_special_round(n), "round %d is not special" % n)
+	assert_true(not SETTINGS.is_special_round(SETTINGS.first_runner_round), "the first runner round is a normal round")
+
+
+func test_mutts_are_fewer_weaker_and_faster_than_the_zombies_of_their_round() -> void:
+	var n := SETTINGS.first_special_round
+	assert_true(SETTINGS.special_count(n) < SETTINGS.zombie_count(n), "fewer Mutts than zombies")
+	assert_true(SETTINGS.special_count(n) >= 1, "at least one Mutt")
+	assert_true(SETTINGS.special_health(n) < SETTINGS.zombie_health(n), "Mutts have less health")
+	assert_true(SETTINGS.special_speed > SETTINGS.runner_speed, "Mutts are faster than runners")

@@ -30,6 +30,7 @@ declare -A HINT=(
 	[player_hurt]="A short grunt of pain."
 	[round_start]="A rising call that says a new round starts, about 1.2 s."
 	[break_start]="A falling call that says the round is done, about 1.2 s."
+	[special_round_start]="A long howl that says the Mutts come, about 1.8 s."
 )
 
 peak_db() {

@@ -27,8 +27,9 @@ height = 1.1
 [sub_resource type="SphereShape3D" id="head"]
 radius = 0.3
 
-[node name="Zombie" type="CharacterBody3D" groups=["zombie"]]
+[node name="Zombie" type="CharacterBody3D" node_paths=PackedStringArray("crawl_shape") groups=["zombie"]]
 script = ExtResource("1_zombie")
+crawl_shape = NodePath("CrawlShape")
 drops = ExtResource("10_drops")
 pickup_scene = ExtResource("11_pickup")
 runner_materials = Dictionary[String, Material]({

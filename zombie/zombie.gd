@@ -38,6 +38,8 @@ const GROUP := &"zombie"
 @export_range(1.0, 1000.0, 1.0) var leg_loss_damage: float = 60.0
 ## A hit below this height over the feet is on the legs, under the hips. A blast counts at the height of its centre.
 @export_range(0.0, 2.0, 0.01, "suffix:m") var leg_height: float = 0.6
+## The low collider of a crawler. The scene sets it. Null means the body never loses its legs, as the Mutt.
+@export var crawl_shape: CollisionShape3D
 ## The height of the health bar over a crawler.
 @export_range(0.0, 3.0, 0.05, "suffix:m") var crawl_bar_height: float = 0.9
 
@@ -71,10 +73,9 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var _health: Health = $Health
 @onready var _agent: NavigationAgent3D = $NavigationAgent3D
 @onready var _shape: CollisionShape3D = $CollisionShape3D
-@onready var _crawl_shape: CollisionShape3D = $CrawlShape
 @onready var weak_spot: WeakSpot = $WeakSpot
 @onready var _hit_flash: HitFlash = $HitFlash
-@onready var animator: ZombieAnimator = $Animator
+@onready var animator: BodyAnimator = $Animator
 @onready var _model: Node3D = $Model
 @onready var health_bar: HealthBar = $HealthBar
 @onready var groan_sound: AudioStreamPlayer3D = $GroanSound
@@ -252,7 +253,8 @@ func _on_died() -> void:
 	state = State.DEAD
 	velocity = Vector3.ZERO
 	_shape.set_deferred("disabled", true)
-	_crawl_shape.set_deferred("disabled", true)
+	if crawl_shape != null:
+		crawl_shape.set_deferred("disabled", true)
 	weak_spot.set_deferred("disabled", true)
 	groan_sound.stop()
 	death_sound.play()
@@ -260,13 +262,13 @@ func _on_died() -> void:
 
 
 func _on_struck_at(amount: float, point: Vector3) -> void:
-	if is_dead() or gait == Gait.CRAWL or amount < leg_loss_damage or to_local(point).y > leg_height:
+	if is_dead() or crawl_shape == null or gait == Gait.CRAWL or amount < leg_loss_damage or to_local(point).y > leg_height:
 		return
 	gait = Gait.CRAWL
 	move_speed = crawl_speed
 	animator.gait = gait
 	_shape.set_deferred("disabled", true)
-	_crawl_shape.set_deferred("disabled", false)
+	crawl_shape.set_deferred("disabled", false)
 	health_bar.position.y = crawl_bar_height
 
 

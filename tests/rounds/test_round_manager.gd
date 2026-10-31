@@ -138,6 +138,49 @@ func test_a_round_where_every_zombie_runs_has_only_runners() -> void:
 	assert_eq(_runners(manager), settings.zombie_count(1), "runners in round 1")
 
 
+func test_a_special_round_spawns_mutts_and_its_last_mutt_leaves_a_max_ammo() -> void:
+	var settings := _settings()
+	settings.first_special_round = 2
+	settings.special_round_interval = 2
+	settings.special_count_scale = 0.5
+	settings.special_health_scale = 0.4
+	settings.special_speed = 0.0
+	settings.max_drops = 0
+	var manager := _spawn_manager(settings)
+	await _spawn_all(manager, settings)
+	assert_true(not manager.is_special_round(), "round 1 is normal")
+	for zombie: Zombie in _zombies(manager):
+		Health.find_on(zombie).damage(1.0e6)
+	await run_seconds(settings.break_time + FRAME_MARGIN / 60.0)
+	assert_eq(manager.round_number, 2, "round 2 started")
+	assert_true(manager.is_special_round(), "round 2 is special")
+	assert_eq(manager.zombies_left(), settings.special_count(2), "Mutts left at the start")
+	await run_seconds(settings.spawn_interval * settings.special_count(2) + 0.2)
+	var mutts := _zombies(manager)
+	assert_eq(mutts.size(), settings.special_count(2), "Mutts in round 2")
+	for mutt: Zombie in mutts:
+		assert_true(mutt.animator is MuttAnimator, "a Mutt spawns, not a zombie")
+		assert_almost_eq(Health.find_on(mutt).max_health, settings.special_health(2), 0.001, "Mutt health")
+		assert_almost_eq(mutt.move_speed, settings.special_speed, 0.001, "Mutt speed")
+	for i: int in mutts.size() - 1:
+		Health.find_on(mutts[i]).damage(1.0e6)
+	await physics_frames(2)
+	assert_eq(_pickups(manager).size(), 0, "no reward while a Mutt lives")
+	var last := mutts[-1]
+	Health.find_on(last).damage(1.0e6)
+	await physics_frames(2)
+	var rewards := _pickups(manager)
+	assert_eq(rewards.size(), 1, "one reward")
+	assert_true(rewards[0].item is MaxAmmoItem, "the reward is a Max Ammo")
+	assert_true(_flat_distance(rewards[0].global_position, last.global_position) < 0.01, "the reward is where the last Mutt died")
+	assert_eq(manager.state, RoundManager.State.BREAK, "the special round ended")
+	await run_seconds(settings.break_time + FRAME_MARGIN / 60.0)
+	await _spawn_all(manager, settings)
+	assert_true(not manager.is_special_round(), "round 3 is normal")
+	for zombie: Zombie in _zombies(manager):
+		assert_true(zombie.animator is ZombieAnimator, "round 3 spawns zombies")
+
+
 func _settings() -> RoundSettings:
 	var settings := RoundSettings.new()
 	settings.first_round_zombies = 3
@@ -179,6 +222,14 @@ func _floor() -> StaticBody3D:
 
 func _spawn_all(manager: RoundManager, settings: RoundSettings) -> void:
 	await run_seconds(settings.spawn_interval * settings.zombie_count(manager.round_number) + 0.2)
+
+
+func _pickups(manager: RoundManager) -> Array[Pickup]:
+	var pickups: Array[Pickup] = []
+	for child: Node in manager.get_children():
+		if child is Pickup:
+			pickups.append(child as Pickup)
+	return pickups
 
 
 func _zombies(manager: RoundManager) -> Array[Zombie]:

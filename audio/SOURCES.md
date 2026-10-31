@@ -1,6 +1,6 @@
 # Sound sources
 
-Every file in `sfx/` is Juan's voice, recorded with `tools/record_sfx.sh`. License: CC0.
+Every file in `sfx/` is Juan's voice, recorded with `tools/record_sfx.sh`, except the placeholder that the table names. License: CC0.
 
 | File | Source | License |
 |---|---|---|
@@ -17,5 +17,6 @@ Every file in `sfx/` is Juan's voice, recorded with `tools/record_sfx.sh`. Licen
 | `sfx/player_hurt.wav` | Juan's voice, recorded with tools/record_sfx.sh | CC0 |
 | `sfx/round_start.wav` | Juan's voice, recorded with tools/record_sfx.sh | CC0 |
 | `sfx/break_start.wav` | Juan's voice, recorded with tools/record_sfx.sh | CC0 |
+| `sfx/special_round_start.wav` | A generated howl, a placeholder until it is recorded with `tools/record_sfx.sh special_round_start` | CC0 |
 
 Each `*.tres` next to this file is an `AudioStreamRandomizer`: one sound event, with its stream pool, random pitch, and random volume offset. The volume of the event is the `volume_db` of the player node that plays it.

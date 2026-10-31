@@ -1,5 +1,5 @@
 class_name ZombieAnimator
-extends Node
+extends BodyAnimator
 ## Poses the zombie model in code: a shambling walk that follows the move speed, an idle sway, an arm slam on each hit,
 ## and a fall onto its back when it dies. A RUN zombie blends the walk into a run: a forward lean, longer strides, and
 ## arms that reach out and pump. A CRAWL zombie hides its legs, shows its stumps, drops onto its front, and pulls itself
@@ -85,9 +85,6 @@ extends Node
 ## How fast the pose blends between walking, standing, and attacking.
 @export_range(0.1, 40.0, 0.1) var blend_sharpness: float = 10.0
 
-## The gait to pose. The pose blends toward it. Set it before attach(), which starts the blend at this gait.
-var gait: Zombie.Gait = Zombie.Gait.WALK
-
 var _model: Node3D
 var _model_rest_y: float
 var _death_time: float = 0.0
@@ -107,7 +104,6 @@ var _crawl_weight: float = 0.0
 var _attack_weight: float = 0.0
 
 
-## Finds the parts in the model. Call it before the first advance().
 func attach(model: Node3D) -> void:
 	_model = model
 	_model_rest_y = model.position.y
@@ -124,8 +120,6 @@ func attach(model: Node3D) -> void:
 	_show_legs()
 
 
-## Moves the pose on by one step. `attack_progress` goes from 0 just after a hit to 1 at the next hit, and is
-## negative when the zombie is not attacking.
 func advance(delta: float, speed: float, attack_progress: float) -> void:
 	_time += delta
 	var blend := 1.0 - exp(-blend_sharpness * delta)
@@ -163,7 +157,6 @@ func advance(delta: float, speed: float, attack_progress: float) -> void:
 	_torso.rotation.x = lerpf(-deg_to_rad(run_lean) * run_pose, lunge, _attack_weight) - deg_to_rad(crawl_pitch) * _crawl_weight
 
 
-## Moves the death pose on by one step. Call it each physics frame after the zombie dies, until death_finished().
 func advance_death(delta: float) -> void:
 	_death_time += delta
 	var blend := 1.0 - exp(-blend_sharpness * delta)
@@ -183,12 +176,10 @@ func advance_death(delta: float) -> void:
 	_head.rotation.z = lerpf(_head.rotation.z, deg_to_rad(head_loll) * fall, blend)
 
 
-## Whether the death pose has played to the end, so the zombie can go.
 func death_finished() -> bool:
 	return _death_time >= death_length()
 
 
-## The time from death until the zombie goes.
 func death_length() -> float:
 	return fall_time + bounce_time + lie_time + sink_time
 
@@ -213,7 +204,7 @@ func torso_lean() -> float:
 	return -_torso.rotation.x
 
 
-## Whether the model shows its legs. A crawler shows its stumps in their place.
+## A crawler shows its stumps in place of its legs.
 func has_legs() -> bool:
 	return _leg_l.visible
 

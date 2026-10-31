@@ -191,8 +191,9 @@ func test_a_crawler_dies_on_its_front_and_goes() -> void:
 	health.damage_at(zombie.leg_loss_damage, zombie.global_position)
 	await run_seconds(1.0)
 	health.damage(health.current)
-	await run_seconds(zombie.animator.fall_time + zombie.animator.bounce_time)
-	assert_almost_eq(zombie.animator.fall_tilt(), 0.0, 0.01, "the crawler does not fall back")
+	var animator := zombie.animator as ZombieAnimator
+	await run_seconds(animator.fall_time + animator.bounce_time)
+	assert_almost_eq(animator.fall_tilt(), 0.0, 0.01, "the crawler does not fall back")
 	assert_true(not zombie.animator.has_legs(), "the dead crawler has no legs")
 	await run_seconds(zombie.animator.death_length() + FRAME_MARGIN / 60.0)
 	assert_true(not is_instance_valid(zombie) or not zombie.is_inside_tree(), "the crawler left the tree after its death")
