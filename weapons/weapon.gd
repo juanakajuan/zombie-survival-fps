@@ -8,6 +8,7 @@ signal reload_started
 ## Emitted when the trigger is pulled with no round in the magazine and none in the reserve.
 signal dry_fired
 signal reload_finished
+signal reload_cancelled
 signal hit(collider: Object, position: Vector3)
 ## Emitted when a ray of a shot damages a Health that is alive. `killed` is true when this ray took it to 0, and `headshot` is true when it hit a WeakSpot. A dead target takes no damage.
 signal damaged(target: Node, killed: bool, headshot: bool)
@@ -42,8 +43,8 @@ var view_model: ViewModel
 var wielder: Player
 
 var _state: State = State.READY
-## Seconds until the next shot while READY, or until the reload ends while RELOADING.
-var _cooldown: float = 0.0
+var _shot_cooldown: float = 0.0
+var _reload_left: float = 0.0
 
 
 func _ready() -> void:
@@ -56,8 +57,9 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	_cooldown = maxf(_cooldown - delta, 0.0)
-	if _state == State.RELOADING and _cooldown == 0.0:
+	_shot_cooldown = maxf(_shot_cooldown - delta, 0.0)
+	_reload_left = maxf(_reload_left - delta, 0.0)
+	if _state == State.RELOADING and _reload_left == 0.0:
 		_state = State.READY
 		var taken := mini(data.magazine_size - ammo, reserve)
 		reserve -= taken
@@ -83,15 +85,15 @@ func try_fire() -> bool:
 	if ammo == 0:
 		if reserve > 0:
 			start_reload()
-		elif _cooldown == 0.0:
-			_cooldown = fire_interval()
+		elif _shot_cooldown == 0.0:
+			_shot_cooldown = fire_interval()
 			dry_fired.emit()
 			dry_sound.play()
 		return false
-	if _cooldown > 0.0:
+	if _shot_cooldown > 0.0:
 		return false
 	ammo -= 1
-	_cooldown = fire_interval()
+	_shot_cooldown = fire_interval()
 	fired.emit()
 	shot_sound.play()
 	_shoot()
@@ -105,15 +107,19 @@ func start_reload() -> void:
 	if _state == State.RELOADING or ammo == data.magazine_size or reserve == 0:
 		return
 	_state = State.RELOADING
-	_cooldown = reload_time()
+	_reload_left = reload_time()
 	reload_started.emit()
 	reload_sound.play()
 
 
 ## Stops a reload and gives back nothing: the magazine and the reserve stay as they were.
 func cancel_reload() -> void:
+	var was_reloading := _state == State.RELOADING
 	_state = State.READY
-	_cooldown = 0.0
+	_reload_left = 0.0
+	_shot_cooldown = 0.0
+	if was_reloading:
+		reload_cancelled.emit()
 
 
 ## Fills the reserve. Returns false when it was already full.

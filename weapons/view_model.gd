@@ -131,7 +131,8 @@ func _ready() -> void:
 		_player = weapon.wielder
 		weapon.fired.connect(_on_fired)
 		weapon.reload_started.connect(_on_reload_started.bind(weapon))
-		weapon.reload_finished.connect(_settle)
+		weapon.reload_finished.connect(_snap_to_rest)
+		weapon.reload_cancelled.connect(_snap_to_rest)
 	if _player != null:
 		_player.died.connect(_on_player_died)
 	draw()
@@ -194,12 +195,9 @@ func _process(delta: float) -> void:
 		.rotated_local(Vector3.FORWARD, -deg_to_rad(crouch_roll) * _crouch * steady + deg_to_rad(punch_dip_roll) * punch_dip)
 
 
-## Brings the gun up from low. It also puts a gun back in order when a reload cut its motion short while it was holstered.
+## Brings the gun up from low.
 func draw() -> void:
 	_restart_tween()
-	slide.position = _slide_rest
-	model.show()
-	_hold_hand_upright(false)
 	model.transform = _lowered_transform()
 	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	_tween.tween_property(model, "transform", _model_rest, raise_time)
@@ -263,8 +261,7 @@ func _take_out_new_gun() -> void:
 	model.show()
 
 
-## Puts every part at rest, so a reload always ends with the gun ready even if its motion was cut short.
-func _settle() -> void:
+func _snap_to_rest() -> void:
 	if _lowered:
 		return
 	if _tween != null:

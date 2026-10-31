@@ -1,6 +1,7 @@
 extends TestCase
 
 const SETTLE_FRAMES := 60
+const SMG: WeaponData = preload("res://weapons/smg.tres")
 
 
 func test_gun_rises_into_view_after_spawn() -> void:
@@ -45,6 +46,26 @@ func test_reload_throws_the_gun_behind_the_player_and_draws_a_new_one() -> void:
 	assert_true(not weapon.is_reloading(), "the reload is over")
 	assert_true(model.is_visible_in_tree(), "a new gun is in the hand")
 	assert_true(_pose_in_camera(player).origin.distance_to(rest.origin) < 0.005, "the new gun is at rest")
+
+
+func test_a_reload_cut_short_by_a_switch_leaves_the_gun_ready_when_drawn_again() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var pistol := player.weapon
+	var model := pistol.view_model.model
+	var rest := _pose_in_camera(player)
+	pistol.try_fire()
+	await physics_frames(SETTLE_FRAMES)
+	pistol.start_reload()
+	var frames := 0
+	while model.is_visible_in_tree() and frames < 300:
+		await physics_frames(1)
+		frames += 1
+	assert_true(not model.is_visible_in_tree(), "the reload threw the gun")
+	player.give_weapon(SMG)
+	press_action(&"weapon_1")
+	await physics_frames(SETTLE_FRAMES)
+	assert_true(model.is_visible_in_tree(), "the pistol is back in the hand")
+	assert_true(_pose_in_camera(player).origin.distance_to(rest.origin) < 0.005, "the pistol is at rest")
 
 
 func test_reload_phases_longer_than_the_reload_still_end_in_time() -> void:

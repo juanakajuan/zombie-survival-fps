@@ -44,11 +44,6 @@ func _ready() -> void:
 	super()
 
 
-func draw() -> void:
-	_seat_magazine()
-	super()
-
-
 func _on_reload_started(weapon: Weapon) -> void:
 	if _lowered:
 		return
@@ -101,7 +96,7 @@ func _left_hand_grip() -> Transform3D:
 	return Transform3D(model.transform.basis.inverse() * Basis.from_euler(angles), grip)
 
 
-func _settle() -> void:
+func _snap_to_rest() -> void:
 	if not _lowered:
 		_seat_magazine()
 	super()
