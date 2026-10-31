@@ -13,6 +13,8 @@ A second wall buy, on the north wall of the same room at `13.4 0 11.75`, sells t
 - `reload` throws the gun away and takes the missing shells from the reserve.
 - `buy-rifle` takes 1500 points and equips the rifle: `hud.weapon` is `RIFLE`, `hud.ammo` is `10 / 60`. A held fire button fires one shot.
 - `rifle-aim` puts the red dot of the front post in the notch of the rear sight.
+- `rifle-upgrade` turns the rifle into RIFLE+: an orange body, 150 damage a shot, and `15 / 90` ammo.
+- `upgrade` at the upgrade machine (with power) turns the shotgun into SHOTGUN+: a blue body, 10 pellets of 32 damage, and `10 / 60` ammo.
 
 ## How to get to it (user POV)
 
@@ -31,6 +33,8 @@ Preconditions:
 - **Fire.** Run `face 0 0`, `wait 10`, `tap fire`, then `shot` at once. The screenshot shows a spray of tracers. `expect hud.ammo 5 / 36` passes.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/shotgun.steps`.
 - **Rifle.** Run `debug +5000 POINTS`, `face -113 -5`, `hold move_forward`, `until hud.prompt_visible true 900`, `release move_forward`. `expect hud.prompt E BUY RIFLE 1500` passes. `tap interact`, then `expect hud.weapon RIFLE` and `expect hud.ammo 10 / 60` pass. Hold fire for 30 frames: `expect hud.ammo 9 / 60` passes. The proof is `journeys/rifle.steps`.
+- **Shotgun upgrade.** `journeys/shotgun_upgrade.steps` buys the shotgun, the room door, and the power with `walk_to`, then upgrades the shotgun: `expect hud.weapon SHOTGUN+` and `expect hud.ammo 10 / 60` pass.
+- **Rifle upgrade.** `journeys/rifle_upgrade.steps` does the same with the rifle: `expect hud.weapon RIFLE+` and `expect hud.ammo 15 / 90` pass.
 
 ## Gotchas
 

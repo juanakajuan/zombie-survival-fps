@@ -64,6 +64,18 @@ func test_reload_phases_longer_than_the_reload_still_end_in_time() -> void:
 	assert_true(_pose(player).origin.distance_to(rest.origin) < 0.005, "the new gun is at rest before the reload ends")
 
 
+func test_the_pistol_reload_motion_lasts_until_the_reload_ends() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	await _assert_reload_motion_lasts_until_the_reload_ends(player.weapon)
+
+
+func test_the_smg_reload_motion_lasts_until_the_reload_ends() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var smg := player.give_weapon(preload("res://weapons/smg.tres"))
+	await physics_frames(SETTLE_FRAMES)
+	await _assert_reload_motion_lasts_until_the_reload_ends(smg)
+
+
 func test_sprinting_points_the_gun_away_from_the_crosshair() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var rest := _pose(player)
@@ -178,3 +190,19 @@ func test_first_person_gun_and_hand_neither_cast_nor_receive_shadows() -> void:
 		for surface: int in mesh.mesh.get_surface_count():
 			var material := mesh.get_active_material(surface) as BaseMaterial3D
 			assert_true(material.disable_receive_shadows, "%s surface %d receives no shadow" % [mesh.name, surface])
+
+
+## The last phase of a reload pulls the slide back and lets it go. A player can fire as soon as the reload ends, so that
+## motion must still run just before the end, or the player waits with a gun that looks ready.
+func _assert_reload_motion_lasts_until_the_reload_ends(weapon: Weapon) -> void:
+	var slide := weapon.view_model.slide
+	var slide_rest := slide.position
+	weapon.try_fire()
+	await physics_frames(SETTLE_FRAMES)
+	weapon.start_reload()
+	await run_seconds(weapon.data.reload_time * 0.97)
+	assert_true(weapon.is_reloading(), "%s is still reloading" % weapon.data.display_name)
+	assert_true(slide.position.distance_to(slide_rest) > 0.001, "the %s slide still moves just before the reload ends" % weapon.data.display_name)
+	await run_seconds(weapon.data.reload_time * 0.03 + 2.0 / Engine.physics_ticks_per_second)
+	assert_true(not weapon.is_reloading(), "%s finished the reload" % weapon.data.display_name)
+	assert_true(slide.position.distance_to(slide_rest) < 0.001, "the %s slide is at rest when the reload ends" % weapon.data.display_name)

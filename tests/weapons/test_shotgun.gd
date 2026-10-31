@@ -45,3 +45,16 @@ func test_each_pellet_that_hits_a_living_zombie_damages_it_and_pays_points() -> 
 	# A pellet in the head deals more, so the damage is at least one pellet's damage for each hit.
 	assert_true(health.max_health - health.current >= count * data.damage - 0.001, "each pellet dealt its damage")
 	assert_eq(player.wallet.points, count * player.wallet.points_per_hit, "each pellet paid the hit points")
+
+
+func test_the_upgraded_shotgun_sends_more_pellets_with_more_damage_and_ammo() -> void:
+	var player := await spawn_player()
+	player.give_weapon(SHOTGUN)
+	player.upgrade_weapon()
+	var upgraded := player.weapon.data
+	assert_true(upgraded == SHOTGUN.upgrade, "the upgraded shotgun is in hand")
+	assert_true(upgraded.pellets > SHOTGUN.pellets, "more pellets")
+	assert_true(upgraded.damage > SHOTGUN.damage, "more damage for each pellet")
+	assert_true(upgraded.magazine_size > SHOTGUN.magazine_size, "a larger magazine")
+	assert_true(upgraded.max_reserve > SHOTGUN.max_reserve, "a larger reserve")
+	assert_true(upgraded.upgrade == null, "the upgraded shotgun cannot be upgraded again")
