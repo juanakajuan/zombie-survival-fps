@@ -11,7 +11,6 @@ func _tap_grenade() -> void:
 	Input.action_release("grenade")
 
 
-## A tap, and the wait for the grenade to leave the hand.
 func _throw_grenade(player: Player) -> void:
 	await _tap_grenade()
 	await run_seconds(player.grenades.throw_wind_time + 0.1)
@@ -105,8 +104,8 @@ func test_damage_falls_with_the_distance_and_stops_at_the_radius() -> void:
 	grenade.min_damage = 10.0
 	add_child(grenade)
 	await run_seconds(0.4)
-	var expected_near := lerpf(80.0, 10.0, 1.0 / grenade.radius)
-	var expected_far := lerpf(80.0, 10.0, 3.0 / grenade.radius)
+	var expected_near := lerpf(80.0, 10.0, 1.0 / grenade.blast_radius)
+	var expected_far := lerpf(80.0, 10.0, 3.0 / grenade.blast_radius)
 	assert_almost_eq(_damage_taken(near), expected_near, 1.0, "the near zombie takes the damage of its distance")
 	assert_almost_eq(_damage_taken(far), expected_far, 1.0, "the far zombie takes the damage of its distance")
 	assert_true(_damage_taken(near) > _damage_taken(far), "the closer zombie takes more")
@@ -171,7 +170,7 @@ func test_the_blast_hurts_the_player_by_the_damage_scale() -> void:
 	grenade.damaged.connect(func(_target: Node, _killed: bool, _headshot: bool) -> void: reports[0] += 1)
 	add_child(grenade)
 	await run_seconds(0.4)
-	var expected := lerpf(60.0, 10.0, 1.0 / grenade.radius) * 0.5
+	var expected := lerpf(60.0, 10.0, 1.0 / grenade.blast_radius) * 0.5
 	assert_almost_eq(health.max_health - health.current, expected, 1.0, "the player takes the scaled damage")
 	assert_eq(reports[0], 0, "the player's own damage is not a hit")
 	assert_eq(player.wallet.points, 0, "the player's own damage pays nothing")

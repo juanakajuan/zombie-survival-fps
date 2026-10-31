@@ -37,13 +37,13 @@ func test_each_pellet_that_hits_a_living_zombie_damages_it_and_pays_points() -> 
 	var zombie := spawn_zombie(Vector3(0.0, 0.0, -3.0))
 	await run_seconds(1.0)
 	var health := Health.find_on(zombie)
-	var hits := [0]
-	shotgun.damaged.connect(func(_target: Node, _killed: bool, _headshot: bool) -> void: hits[0] += 1)
+	var hits: Array[int] = [0, 0]
+	shotgun.damaged.connect(func(_target: Node, _killed: bool, headshot: bool) -> void: hits[1 if headshot else 0] += 1)
 	shotgun.try_fire()
-	var count: int = hits[0]
+	var count := hits[0] + hits[1]
 	assert_true(count >= 2, "more than one pellet hit, got %d" % count)
-	# A pellet in the head deals more, so the damage is at least one pellet's damage for each hit.
-	assert_true(health.max_health - health.current >= count * data.damage - 0.001, "each pellet dealt its damage")
+	var expected := hits[0] * data.damage + hits[1] * data.damage * zombie.weak_spot.damage_multiplier
+	assert_almost_eq(health.max_health - health.current, expected, 0.001, "each pellet dealt its damage")
 	assert_eq(player.wallet.points, count * player.wallet.points_per_hit, "each pellet paid the hit points")
 
 

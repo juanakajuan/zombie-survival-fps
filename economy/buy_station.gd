@@ -8,7 +8,6 @@ signal purchased
 ## With a switch, the station sells only while the switch is on. Without one, it always sells.
 @export var power: PowerSwitch
 
-## The price under the name on the label. A purchase can change it.
 var _price_text: String
 
 @onready var _label: Label3D = $Label
@@ -52,7 +51,6 @@ func press(player: Player) -> void:
 	buy(player)
 
 
-## The text of the label over the station.
 func label_text() -> String:
 	return _label.text
 

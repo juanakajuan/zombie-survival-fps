@@ -1,7 +1,6 @@
 class_name WeaponData
 extends Resource
 
-## The name that the HUD shows.
 @export var display_name: String = "WEAPON"
 
 @export_range(0.0, 1000.0, 1.0) var damage: float = 25.0

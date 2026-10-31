@@ -100,8 +100,7 @@ class Readout extends RefCounted:
 @onready var _revive_label: Label = %ReviveLabel
 @onready var _perk_icons: HBoxContainer = %PerkIcons
 @onready var _fps_label: Label = %FpsLabel
-## The hidden icon that each perk icon is a copy of.
-@onready var _perk_icon: PanelContainer = %PerkIcon
+@onready var _perk_icon_template: PanelContainer = %PerkIcon
 
 
 func _ready() -> void:
@@ -156,7 +155,7 @@ func readout() -> Readout:
 	r.revive_visible = _revive_label.is_visible_in_tree()
 	r.revive_text = _revive_label.text
 	for icon: Node in _perk_icons.get_children():
-		if icon != _perk_icon:
+		if icon != _perk_icon_template:
 			r.perk_icons.append((icon.get_child(0) as Label).text)
 	_update_fps()
 	r.fps_visible = _fps_label.is_visible_in_tree()
@@ -229,10 +228,10 @@ func _update_grenade_fuse() -> void:
 
 func _update_perks() -> void:
 	for icon: Node in _perk_icons.get_children():
-		if icon != _perk_icon:
+		if icon != _perk_icon_template:
 			icon.free()
 	for perk: PerkItem in perks.held:
-		var icon := _perk_icon.duplicate() as PanelContainer
+		var icon := _perk_icon_template.duplicate() as PanelContainer
 		icon.visible = true
 		var style := icon.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 		style.bg_color = perk.icon_color

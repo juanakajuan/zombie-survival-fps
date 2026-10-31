@@ -10,9 +10,8 @@ signal exploded
 signal damaged(target: Node, killed: bool, headshot: bool)
 
 @export_range(0.1, 10.0, 0.1, "suffix:s") var fuse_time: float = 2.5
-## The blast reaches this far from the grenade.
-@export_range(0.5, 20.0, 0.1, "suffix:m") var radius: float = 5.0
-## The damage at the centre. A round 1 zombie has 100 health.
+@export_range(0.5, 20.0, 0.1, "suffix:m") var blast_radius: float = 5.0
+## The damage at the centre.
 @export_range(1.0, 10000.0, 1.0) var max_damage: float = 250.0
 ## The damage at the edge of the blast. The damage falls off in a line between the two.
 @export_range(0.0, 10000.0, 1.0) var min_damage: float = 20.0
@@ -22,8 +21,7 @@ signal damaged(target: Node, killed: bool, headshot: bool)
 
 @export_group("Flash")
 @export_range(0.05, 2.0, 0.05, "suffix:s") var flash_time: float = 0.25
-## The radius of the flash sphere when it is biggest.
-@export_range(0.5, 20.0, 0.1, "suffix:m") var flash_size: float = 2.5
+@export_range(0.5, 20.0, 0.1, "suffix:m") var flash_diameter: float = 2.5
 
 ## The player who threw it. The grenade does not collide with the thrower, and the blast hurts the thrower
 ## by player_damage_scale. Grenades sets it.
@@ -72,7 +70,7 @@ func _explode() -> void:
 	_light.visible = true
 	_flash_left = flash_time
 	var shape := SphereShape3D.new()
-	shape.radius = radius
+	shape.radius = blast_radius
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = shape
 	query.transform = Transform3D(Basis.IDENTITY, global_position)
@@ -85,7 +83,7 @@ func _explode() -> void:
 			continue
 		struck.append(health)
 		var target := collider as Node3D
-		var amount := lerpf(max_damage, min_damage, clampf(global_position.distance_to(target.global_position) / radius, 0.0, 1.0))
+		var amount := lerpf(max_damage, min_damage, clampf(global_position.distance_to(target.global_position) / blast_radius, 0.0, 1.0))
 		if collider == thrower:
 			health.damage(amount * player_damage_scale)
 			continue
@@ -104,6 +102,6 @@ func _fade_flash(delta: float) -> void:
 		queue_free()
 		return
 	var progress := 1.0 - _flash_left / flash_time
-	_flash.scale = Vector3.ONE * flash_size * lerpf(0.3, 1.0, progress)
+	_flash.scale = Vector3.ONE * flash_diameter * lerpf(0.3, 1.0, progress)
 	_flash.transparency = progress
 	_light.light_energy = _flash_energy * (1.0 - progress)

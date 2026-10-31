@@ -5,11 +5,9 @@ const SETTLE_FRAMES := 5
 const FRAME_MARGIN := 3
 const TIMING_TOLERANCE := 0.1
 
-var _self_revive := PerkItem.new()
 var _released_at: int = 0
 
 
-## Holds the grenade key for `hold` seconds, then releases it. Returns the grenade once it leaves the hand.
 func _cook_and_release(player: Player, hold: float) -> Grenade:
 	var thrown: Array[Grenade] = []
 	player.grenades.thrown.connect(thrown.append)
@@ -25,18 +23,10 @@ func _cook_and_release(player: Player, hold: float) -> Grenade:
 	return thrown[0] if not thrown.is_empty() else null
 
 
-## The seconds from the key release to the blast of this grenade.
-func _seconds_to_blast(grenade: Grenade) -> float:
+func _seconds_from_release_to_blast(grenade: Grenade) -> float:
 	while not grenade.has_exploded() and Engine.get_physics_frames() - _released_at < 6 * Engine.physics_ticks_per_second:
 		await physics_frames(1)
 	return float(Engine.get_physics_frames() - _released_at) / Engine.physics_ticks_per_second
-
-
-func _down(player: Player) -> void:
-	_self_revive.self_revive_time = 30.0
-	if player.perks.can_add(_self_revive):
-		player.perks.add(_self_revive)
-	player.health.damage(player.health.max_health)
 
 
 func test_a_tap_throws_a_grenade_along_the_aim_that_explodes_after_the_fuse() -> void:
@@ -47,7 +37,7 @@ func test_a_tap_throws_a_grenade_along_the_aim_that_explodes_after_the_fuse() ->
 	assert_eq(player.grenades.count, before - 1, "a throw takes one grenade")
 	await physics_frames(10)
 	assert_true(grenade.global_position.z < -2.0, "the grenade flies along the aim, at %s" % grenade.global_position)
-	var seconds := await _seconds_to_blast(grenade)
+	var seconds := await _seconds_from_release_to_blast(grenade)
 	assert_almost_eq(seconds, grenade.fuse_time - hold, TIMING_TOLERANCE, "the blast comes a fuse after the press")
 
 
@@ -55,7 +45,7 @@ func test_a_cooked_grenade_explodes_sooner_by_the_time_it_was_held() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var hold := 1.0
 	var grenade := await _cook_and_release(player, hold)
-	var seconds := await _seconds_to_blast(grenade)
+	var seconds := await _seconds_from_release_to_blast(grenade)
 	assert_almost_eq(seconds, grenade.fuse_time - hold, TIMING_TOLERANCE, "the blast comes the fuse less the cook after the release")
 
 
@@ -71,7 +61,7 @@ func test_a_grenade_held_past_its_fuse_explodes_in_the_hand() -> void:
 	await run_seconds(reference.fuse_time + 0.3)
 	var aim := player.aim_transform()
 	var hand := aim.origin + aim.basis * player.grenades.hand_offset
-	var expected := lerpf(reference.max_damage, reference.min_damage, hand.distance_to(player.global_position) / reference.radius) * reference.player_damage_scale
+	var expected := lerpf(reference.max_damage, reference.min_damage, hand.distance_to(player.global_position) / reference.blast_radius) * reference.player_damage_scale
 	reference.free()
 	assert_eq(thrown.size(), 0, "no grenade flies")
 	assert_eq(player.grenades.count, before - 1, "the grenade is spent")
@@ -139,12 +129,12 @@ func test_a_player_who_goes_down_while_cooking_drops_the_grenade_at_the_feet() -
 	Input.action_press("grenade")
 	await run_seconds(0.5)
 	_released_at = Engine.get_physics_frames()
-	_down(player)
+	down_player(player)
 	assert_true(player.is_downed(), "the player is down")
 	assert_true(not player.is_throwing(), "the cook is over")
 	assert_eq(thrown.size(), 1, "the grenade drops")
 	assert_true(thrown[0].global_position.distance_to(player.global_position) < 0.5, "it lies at the feet, at %s" % thrown[0].global_position)
-	var seconds := await _seconds_to_blast(thrown[0])
+	var seconds := await _seconds_from_release_to_blast(thrown[0])
 	assert_almost_eq(seconds, thrown[0].fuse_time - 0.5, TIMING_TOLERANCE, "it still explodes when the fuse ends")
 
 

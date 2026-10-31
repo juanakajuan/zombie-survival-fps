@@ -2,7 +2,6 @@ class_name Pickup
 extends Area3D
 ## An item on the ground. A player who walks over it gets the item for free, unless it would do nothing. Then it stays.
 
-## The item that the pickup gives.
 @export var item: BuyItem
 ## The seconds until the pickup disappears. 0 means it never does.
 @export_range(0.0, 120.0, 1.0, "suffix:s") var lifetime: float = 0.0
@@ -41,6 +40,5 @@ func _physics_process(delta: float) -> void:
 			return
 
 
-## The text of the label over the pickup.
 func label_text() -> String:
 	return _label.text

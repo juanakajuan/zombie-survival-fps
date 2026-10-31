@@ -44,11 +44,6 @@ func _ready() -> void:
 	super()
 
 
-func draw() -> void:
-	_seat_magazine()
-	super()
-
-
 func _on_reload_started(weapon: Weapon) -> void:
 	if _lowered:
 		return
@@ -95,14 +90,13 @@ func _insert_step(progress: float) -> void:
 	left_hand.show()
 
 
-## The left hand's transform in the model while it holds the magazine where the magazine is now.
 func _left_hand_grip() -> Transform3D:
 	var angles := left_hand_angles * (PI / 180.0)
 	var grip := magazine.transform.translated_local(left_hand_offset).origin
 	return Transform3D(model.transform.basis.inverse() * Basis.from_euler(angles), grip)
 
 
-func _settle() -> void:
+func _snap_to_rest() -> void:
 	if not _lowered:
 		_seat_magazine()
 	super()

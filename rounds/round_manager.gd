@@ -55,9 +55,7 @@ func kill_all() -> void:
 	for child: Node in get_children():
 		if child is Zombie:
 			(child as Zombie).kill_quietly()
-	# With no living zombie, no death ends the round.
-	if state == State.ACTIVE:
-		_start_break()
+	_end_round_if_clear()
 
 
 ## Starts the next round now when a break is running. Does nothing during a round.
@@ -119,9 +117,12 @@ func _next_active_spawn_point() -> SpawnPoint:
 
 func _on_zombie_died() -> void:
 	_zombies_alive -= 1
-	if _zombies_alive > 0 or _zombies_to_spawn > 0:
-		return
-	_start_break()
+	_end_round_if_clear()
+
+
+func _end_round_if_clear() -> void:
+	if state == State.ACTIVE and _zombies_alive == 0 and _zombies_to_spawn == 0:
+		_start_break()
 
 
 func _on_zombie_dropped() -> void:

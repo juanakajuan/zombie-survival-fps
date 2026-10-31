@@ -12,6 +12,7 @@ const LEVEL_SCENE: PackedScene = preload("res://levels/test_range.tscn")
 const ROUND_SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
 
 var failures: PackedStringArray = []
+var _downing_perk := PerkItem.new()
 
 
 func assert_true(condition: bool, message: String) -> void:
@@ -88,7 +89,6 @@ func spawn_pickup(item: BuyItem, at: Vector3, lifetime: float = 0.0) -> Pickup:
 	return pickup
 
 
-## The pickups that are children of `parent`.
 func pickups_in(parent: Node) -> Array[Pickup]:
 	var found: Array[Pickup] = []
 	for child: Node in parent.get_children():
@@ -128,7 +128,6 @@ func spawn_points_in(level: Level) -> Array[SpawnPoint]:
 	return found
 
 
-## Whether a buy station of the level sells an item of this class.
 func sells(level: Level, item_class: GDScript) -> bool:
 	for station: BuyStation in stations_in(level):
 		if is_instance_of(station.item, item_class):
@@ -136,16 +135,14 @@ func sells(level: Level, item_class: GDScript) -> bool:
 	return false
 
 
-## Whether a buy station of the level sells the weapon with this display name.
-func sells_weapon(level: Level, weapon_name: String) -> bool:
+func sells_weapon(level: Level, display_name: String) -> bool:
 	for station: BuyStation in stations_in(level):
 		var item := station.item as WeaponItem
-		if item != null and item.weapon.display_name == weapon_name:
+		if item != null and item.weapon.display_name == display_name:
 			return true
 	return false
 
 
-## Whether a path has a point on the inside of the barricade.
 func path_goes_inside(path: PackedVector3Array, barricade: Barricade) -> bool:
 	for point: Vector3 in path:
 		if barricade.is_inside(point):
@@ -153,9 +150,16 @@ func path_goes_inside(path: PackedVector3Array, barricade: Barricade) -> bool:
 	return false
 
 
-## Turns the player's view to `point` with one mouse motion.
 func look_at_point(player: Player, point: Vector3) -> void:
 	player.look(player.mouse_delta_to(point))
+
+
+## Downs the player. The downed state ends in death unless the test revives the player.
+func down_player(player: Player) -> void:
+	_downing_perk.self_revive_time = player.downed_time + 1.0
+	if player.perks.can_add(_downing_perk):
+		player.perks.add(_downing_perk)
+	player.health.damage(player.health.max_health)
 
 
 ## Adds a level (the test range by default) and returns when the navigation map answers queries from its baked navmesh.

@@ -5,7 +5,6 @@ extends Node
 ## fuse that is left. A grenade held past its fuse explodes in the hand. Each new round gives more grenades, up to a
 ## maximum.
 
-## Emitted after the count changes.
 signal changed(count: int)
 ## Emitted when a grenade leaves the hand: thrown, or dropped by a player who goes down. Not for one that explodes in the hand.
 signal thrown(grenade: Grenade)
@@ -13,7 +12,6 @@ signal thrown(grenade: Grenade)
 signal damaged(target: Node, killed: bool, headshot: bool)
 
 @export_range(0, 20) var starting_count: int = 2
-## The grenades that each new round adds.
 @export_range(0, 20) var per_round: int = 2
 ## The most grenades the player holds. A round never takes the count above it.
 @export_range(1, 20) var max_count: int = 4
@@ -73,7 +71,7 @@ func _physics_process(delta: float) -> void:
 	if _held != null:
 		_held.fuse_left -= delta
 		if _held.fuse_left <= 0.0:
-			_burst()
+			_explode_in_hand()
 			return
 	if _state == State.THROWING:
 		if _held != null and _swing_elapsed >= throw_wind_time:
@@ -180,8 +178,7 @@ func _throw() -> void:
 	_leave_hand(aim.origin - aim.basis.z * throw_offset, -aim.basis.z * throw_speed + Vector3.UP * throw_up_speed + wielder.velocity)
 
 
-## The fuse ran out in the hand.
-func _burst() -> void:
+func _explode_in_hand() -> void:
 	var aim := wielder.aim_transform()
 	var grenade := _held
 	grenade.freeze = true

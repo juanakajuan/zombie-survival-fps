@@ -102,7 +102,6 @@ var _toss_time := 0.0
 static var _unshadowed_copies: Dictionary[BaseMaterial3D, BaseMaterial3D] = {}
 var _player: Player
 var _lowered := false
-## The wielded weapon's view_materials.
 var _materials: Dictionary[String, Material] = {}
 
 var _bob_phase := 0.0
@@ -132,7 +131,8 @@ func _ready() -> void:
 		_player = weapon.wielder
 		weapon.fired.connect(_on_fired)
 		weapon.reload_started.connect(_on_reload_started.bind(weapon))
-		weapon.reload_finished.connect(_settle)
+		weapon.reload_finished.connect(_snap_to_rest)
+		weapon.reload_cancelled.connect(_snap_to_rest)
 	if _player != null:
 		_player.died.connect(_on_player_died)
 	draw()
@@ -195,12 +195,9 @@ func _process(delta: float) -> void:
 		.rotated_local(Vector3.FORWARD, -deg_to_rad(crouch_roll) * _crouch * steady + deg_to_rad(punch_dip_roll) * punch_dip)
 
 
-## Brings the gun up from low. It also puts a gun back in order when a reload cut its motion short while it was holstered.
+## Brings the gun up from low.
 func draw() -> void:
 	_restart_tween()
-	slide.position = _slide_rest
-	model.show()
-	_hold_hand_upright(false)
 	model.transform = _lowered_transform()
 	_tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	_tween.tween_property(model, "transform", _model_rest, raise_time)
@@ -264,8 +261,7 @@ func _take_out_new_gun() -> void:
 	model.show()
 
 
-## Puts every part at rest, so a reload always ends with the gun ready even if its motion was cut short.
-func _settle() -> void:
+func _snap_to_rest() -> void:
 	if _lowered:
 		return
 	if _tween != null:
@@ -292,7 +288,6 @@ func _hold_hand_upright(upright: bool) -> void:
 		hand_anchor.update_rotation = not upright
 
 
-## Swaps each surface material under root whose name is a key of materials for the value.
 static func _swap_materials(root: Node, materials: Dictionary[String, Material]) -> void:
 	if materials.is_empty():
 		return
@@ -328,7 +323,6 @@ func _restart_tween() -> void:
 	_tween = create_tween()
 
 
-## Yaw and pitch of this node's view, in radians.
 func _view_angles() -> Vector2:
 	var forward := -global_basis.z
 	return Vector2(atan2(-forward.x, -forward.z), asin(clampf(forward.y, -1.0, 1.0)))

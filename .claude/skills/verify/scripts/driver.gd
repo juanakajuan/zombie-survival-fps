@@ -1,7 +1,6 @@
 extends SceneTree
 ## Verification driver. drive.sh runs it as the main loop: it loads the level, then plays a steps file line by line.
 ## Input goes through Input.parse_input_event with the events from the Input Map, so the game sees it as player input.
-## Parsed events are flushed on the next frame, so every input command waits at least one frame after it sends.
 ## Args after `--`: --steps=<abs path> --out=<abs dir> [--scene=res://...]
 
 const DEFAULT_SCENE := "res://levels/test_range.tscn"
@@ -38,9 +37,8 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	# Ready means playable: the player is in the tree and the round panel shows a round. Only then do steps start.
 	var waited := 0
-	while _state().get("hud.round_visible", "false") != "true":
+	while not _is_playable():
 		if waited >= 600:
 			printerr("driver: the level was not ready after 600 frames: %s" % str(_state()))
 			quit(1)
@@ -130,12 +128,10 @@ func _step(line: String) -> bool:
 	return true
 
 
-## Gives the player SECOND WIND without the power switch and the points, to show the downed state quickly.
 func _give_self_revive() -> void:
 	(get_first_node_in_group(Player.GROUP) as Player).perks.add(SECOND_WIND)
 
 
-## Runs a debug menu command by its button label, as a click on the button does.
 func _run_debug_command(label: String) -> bool:
 	var menu := (get_first_node_in_group(Player.GROUP) as Player).debug_menu
 	if not menu.command_labels().has(label):
@@ -210,7 +206,6 @@ func _until(key: String, want: String, max_frames: int) -> bool:
 	return false
 
 
-## Turns the view to the nearest zombie's chest with one mouse-motion event, as a player would flick the mouse.
 func _aim_nearest_zombie(head: bool = false) -> bool:
 	var player := get_first_node_in_group(Player.GROUP) as Player
 	if player == null:
@@ -227,7 +222,6 @@ func _aim_nearest_zombie(head: bool = false) -> bool:
 	return true
 
 
-## Turns the view to an absolute yaw and pitch with one mouse-motion event.
 func _face(yaw: float, pitch: float) -> bool:
 	var player := get_first_node_in_group(Player.GROUP) as Player
 	if player == null:
@@ -237,8 +231,6 @@ func _face(yaw: float, pitch: float) -> bool:
 	return true
 
 
-## Walks to a point on the ground, as a player does: it turns the view level toward the point with the mouse and holds
-## move_forward, and turns again every few frames. It stops within 0.4 m. It does not path around walls.
 func _walk_to(target: Vector2, max_frames: int) -> bool:
 	var player := get_first_node_in_group(Player.GROUP) as Player
 	if player == null:
@@ -273,7 +265,6 @@ func _dist(a: Node3D, b: Node3D) -> float:
 	return a.global_position.distance_to(b.global_position)
 
 
-## Aims at the nearest zombie and fires, about 6 shots a second, until the state key has the value.
 func _fight_until(key: String, want: String, max_frames: int) -> bool:
 	var start := Engine.get_physics_frames()
 	while Engine.get_physics_frames() - start < max_frames:
@@ -292,7 +283,11 @@ func _fight_until(key: String, want: String, max_frames: int) -> bool:
 	return false
 
 
-## What the player can see or feel, as flat string values. `expect` and `until` compare against these.
+func _is_playable() -> bool:
+	var round_visible: String = _state().get("hud.round_visible", "false")
+	return round_visible == "true"
+
+
 func _state() -> Dictionary[String, String]:
 	var s: Dictionary[String, String] = {}
 	s["frame"] = str(Engine.get_physics_frames())

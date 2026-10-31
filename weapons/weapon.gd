@@ -8,6 +8,7 @@ signal reload_started
 ## Emitted when the trigger is pulled with no round in the magazine and none in the reserve.
 signal dry_fired
 signal reload_finished
+signal reload_cancelled
 signal hit(collider: Object, position: Vector3)
 ## Emitted when a ray of a shot damages a Health that is alive. `killed` is true when this ray took it to 0, and `headshot` is true when it hit a WeakSpot. A dead target takes no damage.
 signal damaged(target: Node, killed: bool, headshot: bool)
@@ -42,8 +43,8 @@ var view_model: ViewModel
 var wielder: Player
 
 var _state: State = State.READY
-## Seconds until the next shot while READY, or until the reload ends while RELOADING.
-var _cooldown: float = 0.0
+var _shot_cooldown: float = 0.0
+var _reload_left: float = 0.0
 
 
 func _ready() -> void:
@@ -56,8 +57,9 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	_cooldown = maxf(_cooldown - delta, 0.0)
-	if _state == State.RELOADING and _cooldown == 0.0:
+	_shot_cooldown = maxf(_shot_cooldown - delta, 0.0)
+	_reload_left = maxf(_reload_left - delta, 0.0)
+	if _state == State.RELOADING and _reload_left == 0.0:
 		_state = State.READY
 		var taken := mini(data.magazine_size - ammo, reserve)
 		reserve -= taken
@@ -83,15 +85,15 @@ func try_fire() -> bool:
 	if ammo == 0:
 		if reserve > 0:
 			start_reload()
-		elif _cooldown == 0.0:
-			_cooldown = fire_interval()
+		elif _shot_cooldown == 0.0:
+			_shot_cooldown = fire_interval()
 			dry_fired.emit()
 			dry_sound.play()
 		return false
-	if _cooldown > 0.0:
+	if _shot_cooldown > 0.0:
 		return false
 	ammo -= 1
-	_cooldown = fire_interval()
+	_shot_cooldown = fire_interval()
 	fired.emit()
 	shot_sound.play()
 	_shoot()
@@ -105,15 +107,19 @@ func start_reload() -> void:
 	if _state == State.RELOADING or ammo == data.magazine_size or reserve == 0:
 		return
 	_state = State.RELOADING
-	_cooldown = reload_time()
+	_reload_left = reload_time()
 	reload_started.emit()
 	reload_sound.play()
 
 
 ## Stops a reload and gives back nothing: the magazine and the reserve stay as they were.
 func cancel_reload() -> void:
+	var was_reloading := _state == State.RELOADING
 	_state = State.READY
-	_cooldown = 0.0
+	_reload_left = 0.0
+	_shot_cooldown = 0.0
+	if was_reloading:
+		reload_cancelled.emit()
 
 
 ## Fills the reserve. Returns false when it was already full.
@@ -142,9 +148,13 @@ func _shoot() -> void:
 	var aim := wielder.aim_transform() if wielder != null else global_transform
 	var spread := deg_to_rad(data.spread)
 	for _pellet: int in data.pellets:
-		# The square root spreads the rays evenly over the cone, not packed at its centre.
-		var direction := (-aim.basis.z).rotated(aim.basis.x, spread * sqrt(randf())).rotated(-aim.basis.z, randf() * TAU)
+		var direction := _uniform_cone_direction(aim.basis, spread)
 		_shoot_ray(aim.origin, direction)
+
+
+func _uniform_cone_direction(aim: Basis, half_angle: float) -> Vector3:
+	var forward := -aim.z
+	return forward.rotated(aim.x, half_angle * sqrt(randf())).rotated(forward, randf() * TAU)
 
 
 func _shoot_ray(from: Vector3, direction: Vector3) -> void:
@@ -163,13 +173,12 @@ func _shoot_ray(from: Vector3, direction: Vector3) -> void:
 	_spawn_tracer(_muzzle(), point)
 	hit.emit(collider, point)
 	var weak_spot := WeakSpot.find_hit(collider, shape_index)
-	if _damage(collider, data.damage * (weak_spot.damage_multiplier if weak_spot != null else 1.0), weak_spot != null) \
+	if _try_damage(collider, data.damage * (weak_spot.damage_multiplier if weak_spot != null else 1.0), weak_spot != null) \
 			and data.chain_targets > 0:
 		_chain(collider as CollisionObject3D, point)
 
 
-## Damages the Health of the collider, when it has one that is alive. Returns whether it did.
-func _damage(collider: Object, amount: float, headshot: bool) -> bool:
+func _try_damage(collider: Object, amount: float, headshot: bool) -> bool:
 	if not collider is Node:
 		return false
 	var health := Health.find_on(collider as Node)
@@ -182,7 +191,6 @@ func _damage(collider: Object, amount: float, headshot: bool) -> bool:
 	return true
 
 
-## Sends the arc from the first target hit at `from` to up to `data.chain_targets` more, each one a hit.
 func _chain(first: CollisionObject3D, from: Vector3) -> void:
 	var struck: Array[RID] = [first.get_rid()]
 	if wielder != null:
@@ -196,13 +204,11 @@ func _chain(first: CollisionObject3D, from: Vector3) -> void:
 		amount *= data.chain_damage_scale
 		_spawn_tracer(from, to)
 		hit.emit(next, to)
-		_damage(next, amount, false)
+		_try_damage(next, amount, false)
 		struck.append(next.get_rid())
 		from = to
 
 
-## The nearest body with a living Health within `data.chain_range` of `from` that `from` can see, and that is not in
-## `struck`, or null.
 func _next_chain_target(from: Vector3, struck: Array[RID]) -> CollisionObject3D:
 	var sphere := SphereShape3D.new()
 	sphere.radius = data.chain_range

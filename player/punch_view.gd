@@ -14,7 +14,6 @@ extends Node3D
 ## The fist pulled back, ready to jab.
 @export var cocked_position: Vector3 = Vector3(-0.13, -0.24, -0.18)
 @export var cocked_angles: Vector3 = Vector3(10.0, -5.0, -20.0)
-## Where the jab ends.
 @export var strike_position: Vector3 = Vector3(-0.04, -0.1, -0.5)
 @export var strike_angles: Vector3 = Vector3(0.0, -8.0, 0.0)
 @export var exit_position: Vector3 = Vector3(-0.14, -0.45, -0.15)

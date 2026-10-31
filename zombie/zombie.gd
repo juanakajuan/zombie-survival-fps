@@ -17,7 +17,6 @@ const GROUP := &"zombie"
 @export_range(0.0, 2.0, 0.05, "suffix:m") var attack_exit_margin: float = 0.3
 
 @export_group("Barricade")
-## The seconds that the zombie takes to pull off one board.
 @export_range(0.1, 10.0, 0.1, "suffix:s") var board_pull_interval: float = 1.5
 
 @export_group("Sound")
@@ -43,7 +42,6 @@ var entry: Barricade
 ## Set by the barricade zone that the zombie stands in. The zombie pulls its boards while it has any.
 var blocker: Barricade
 
-## Drawn over the model. HitFlash makes it opaque red during a hit.
 var _tint := StandardMaterial3D.new()
 var _attack_cooldown: float = 0.0
 var _pull_cooldown: float = 0.0
@@ -167,19 +165,20 @@ func _physics_process(delta: float) -> void:
 	animator.advance(delta, Vector2(real_velocity.x, real_velocity.z).length(), attack_progress)
 
 
-## ATTACK when the target is in reach (the exit margin keeps it from flickering at the edge), else BREACH while a
-## barricade with boards blocks the zombie, else CHASE. At a barricade the reach is the barricade's repair range, so a
-## player who repairs it always takes hits, and the zombie pulls no board while it hits.
 func _next_state(live_target: Node3D, distance: float) -> State:
 	var at_window := blocker != null and blocker.has_boards()
-	if live_target != null:
-		var margin := attack_exit_margin if state == State.ATTACK else 0.0
-		var in_reach := blocker.in_reach(live_target.global_position, margin) if at_window else distance <= attack_range + margin
-		if in_reach:
-			return State.ATTACK
+	if live_target != null and _target_in_reach(live_target, distance, at_window):
+		return State.ATTACK
 	if at_window:
 		return State.BREACH
 	return State.CHASE
+
+
+func _target_in_reach(live_target: Node3D, distance: float, at_window: bool) -> bool:
+	var margin := attack_exit_margin if state == State.ATTACK else 0.0
+	if at_window:
+		return blocker.in_reach(live_target.global_position, margin)
+	return distance <= attack_range + margin
 
 
 func _enter(next: State) -> void:
@@ -193,7 +192,6 @@ func _enter(next: State) -> void:
 			_pull_cooldown = board_pull_interval
 
 
-## The point that the path leads to: the entry barricade's inside point until the zombie is inside, then the target.
 func _chase_goal(live_target: Node3D) -> Vector3:
 	if entry != null and entry.is_inside(global_position):
 		entry = null
