@@ -4,6 +4,7 @@ const POWER_SWITCH_SCENE := preload("res://perks/power_switch.tscn")
 const IRON_GUT := preload("res://perks/iron_gut.tres")
 const QUICK_HANDS := preload("res://perks/quick_hands.tres")
 const HAIR_TRIGGER := preload("res://perks/hair_trigger.tres")
+const SECOND_WIND: PerkItem = preload("res://perks/second_wind.tres")
 const ROOM := Rect2(12.0, 12.0, 8.0, 8.0)
 
 
@@ -131,4 +132,43 @@ func _spawn_machine(item: PerkItem, power: PowerSwitch) -> BuyStation:
 
 func _buy(player: Player, item: PerkItem) -> void:
 	player.wallet.add(item.cost)
+	assert_true(_spawn_machine(item, null).buy(player), "bought %s" % item.display_name)
+
+
+func test_each_buy_raises_the_price_until_the_perk_is_sold_out() -> void:
+	var player := await spawn_player()
+	var perk := PerkItem.new()
+	perk.display_name = "REVIVE"
+	perk.cost = 100
+	perk.price_increase = 50
+	perk.max_buys = 2
+	var machine := _spawn_machine(perk, null)
+	player.wallet.add(1000)
+	assert_eq(machine.prompt_text(player), "E  BUY REVIVE  100", "first price")
+	assert_true(machine.buy(player), "first buy")
+	player.perks.lose_all()
+	assert_eq(machine.prompt_text(player), "E  BUY REVIVE  150", "price after one buy")
+	assert_eq(machine.label_text(), "REVIVE\n150", "label after one buy")
+	assert_true(machine.buy(player), "second buy")
+	assert_eq(player.wallet.points, 1000 - 100 - 150, "points spent")
+	player.perks.lose_all()
+	assert_eq(machine.prompt_text(player), "SOLD OUT", "prompt after the last buy")
+	assert_eq(machine.label_text(), "REVIVE\nSOLD OUT", "label after the last buy")
+	assert_true(not machine.buy(player), "no third buy")
+	assert_eq(player.wallet.points, 750, "no points spent on a sold out perk")
+
+
+func test_second_wind_rises_in_price_and_sells_three_times() -> void:
+	var player := await spawn_player()
+	var prices: Array[int] = []
+	for _i: int in 3:
+		prices.append(SECOND_WIND.price(player))
+		_buy_at_price(player, SECOND_WIND)
+		player.perks.lose_all()
+	assert_eq(prices, [1500, 3000, 4500] as Array[int], "prices")
+	assert_true(SECOND_WIND.sold_out(player), "sold out after three buys")
+
+
+func _buy_at_price(player: Player, item: PerkItem) -> void:
+	player.wallet.add(item.price(player))
 	assert_true(_spawn_machine(item, null).buy(player), "bought %s" % item.display_name)

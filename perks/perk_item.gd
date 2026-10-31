@@ -17,6 +17,18 @@ extends BuyItem
 @export_range(0.0, 30.0, 0.5, "suffix:s") var self_revive_time: float = 0.0
 ## The fraction of max health that the self-revive stands the player up with.
 @export_range(0.05, 1.0, 0.05) var self_revive_health: float = 0.5
+## Added to the price for each time the player took this perk in the run.
+@export_range(0, 100000) var price_increase: int = 0
+## The most times the player can take this perk in a run. 0 means no limit.
+@export_range(0, 100) var max_buys: int = 0
+
+
+func price(player: Player) -> int:
+	return cost + price_increase * player.perks.times_taken(self)
+
+
+func sold_out(player: Player) -> bool:
+	return player.perks.sold_out(self)
 
 
 func can_apply(player: Player) -> bool:

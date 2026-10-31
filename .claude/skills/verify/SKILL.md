@@ -62,6 +62,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 |---|---|
 | `hud.health`, `hud.ammo`, `hud.weapon` | The HUD text, for example `100`, `11 / 48` (rounds in the magazine, then in the reserve), and `PISTOL` (the weapon in hand). |
 | `hud.points`, `hud.prompt_visible`, `hud.prompt` | The points on the HUD, whether the buy prompt shows, and its text with each run of spaces made one space, for example `E BUY AMMO 250` (empty when hidden). |
+| `hud.boost` | The double points label under the points, for example `2X POINTS  23` (empty when no boost runs). |
 | `hud.reloading`, `hud.break`, `hud.round_visible` | Whether the RELOADING label, the BREAK label, and the round panel show. |
 | `hud.round`, `hud.objective` | The round number on the HUD, and the line under it: `4 LEFT` during a round (zombies alive plus zombies still to spawn), `NEXT ROUND IN 10` during the break. |
 | `hud.crosshair`, `hud.hit_marker`, `hud.headshot_marker` | Whether the crosshair shows (hidden while aiming), whether the hit marker shows (0.2 s after a shot hits a zombie or a dummy), and whether it shows in the headshot color (0.2 s after a shot hits a zombie's head). |
@@ -73,6 +74,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `zombies.alive`, `zombies.bars`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, and target dummies that show. |
 | `doors.open`, `pickups` | Doors that are open, and pickups on the ground in the level (a placed one counts too). |
 | `power.on`, `hud.perks`, `hud.max_health`, `hud.downed` | The downed timer text on the HUD (for example `DOWNED  7`, empty when hidden), whether the power switch is on, the text of each perk icon on the HUD in order, with one space between them (empty with no perk), and the max health under the health number. |
+| `hud.revive` | The self-revive line under the downed timer, for example `SECOND WIND  GETTING UP IN 3` (empty when hidden). |
 | `barricades.boards` | The boards left on all barricades in the level, added up. The test range has one barricade with 5 boards, so it starts at `5`. |
 | `tracers` | Shot tracers in flight. A tracer into the sky lives about 50 frames; one to the dummy ahead lives about 4. |
 | `frame` | The physics frame counter. |

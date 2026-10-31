@@ -272,6 +272,7 @@ func _state() -> Dictionary[String, String]:
 		s["hud.ammo"] = hud.ammo_text
 		s["hud.weapon"] = hud.weapon_name
 		s["hud.points"] = hud.points_text
+		s["hud.boost"] = hud.boost_text if hud.boost_visible else ""
 		s["hud.prompt_visible"] = str(hud.prompt_visible)
 		s["hud.prompt"] = " ".join(hud.prompt_text.split(" ", false)) if hud.prompt_visible else ""
 		s["hud.reloading"] = str(hud.reloading)
@@ -283,6 +284,7 @@ func _state() -> Dictionary[String, String]:
 		s["hud.hit_marker"] = str(hud.hit_marker)
 		s["hud.headshot_marker"] = str(hud.headshot_marker)
 		s["hud.downed"] = hud.downed_text if hud.downed_visible else ""
+		s["hud.revive"] = hud.revive_text if hud.revive_visible else ""
 		s["hud.perks"] = " ".join(hud.perk_icons)
 		s["hud.max_health"] = str(ceili(player.health.max_health))
 	var zombies := 0

@@ -16,6 +16,11 @@ func label(_player: Player) -> String:
 	return display_name
 
 
+## Whether the player can never buy the item again in this run. The station then shows SOLD OUT.
+func sold_out(_player: Player) -> bool:
+	return false
+
+
 ## Whether buying now would do anything. A station never charges for an item that returns false.
 func can_apply(_player: Player) -> bool:
 	return false

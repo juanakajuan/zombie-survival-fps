@@ -162,6 +162,15 @@ func test_points_show_the_balance_and_follow_it() -> void:
 	assert_eq(player.hud.readout().points_text, "50", "after spending")
 
 
+func test_the_boost_label_shows_only_while_a_boost_runs() -> void:
+	var player := await spawn_player()
+	assert_true(not player.hud.readout().boost_visible, "hidden with no boost")
+	player.wallet.boost(2, 1.0)
+	assert_eq(player.hud.readout().boost_text, "2X POINTS  1", "text while the boost runs")
+	await run_seconds(1.2)
+	assert_true(not player.hud.readout().boost_visible, "hidden after the boost")
+
+
 func test_ammo_text_shows_the_reserve_and_follows_a_refill() -> void:
 	var player := await spawn_player()
 	player.weapon.reserve = 7
