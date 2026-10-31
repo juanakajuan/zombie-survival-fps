@@ -69,6 +69,23 @@ func test_round_does_not_end_while_zombies_wait_to_spawn() -> void:
 	assert_eq(_ended, [] as Array[int], "round_ended signals")
 
 
+func test_round_waits_at_the_alive_limit_and_spawns_the_rest_when_zombies_die() -> void:
+	var settings := _settings()
+	settings.max_alive = 2
+	var manager := _spawn_manager(settings)
+	await _spawn_all(manager, settings)
+	assert_eq(_zombies(manager).size(), settings.max_alive, "zombies alive at the limit")
+	assert_eq(manager.zombies_left(), settings.zombie_count(1), "zombies left at the limit")
+	Health.find_on(_zombies(manager)[0]).damage(1.0e6)
+	await run_seconds(settings.spawn_interval + FRAME_MARGIN / 60.0)
+	assert_eq(_zombies(manager).size(), settings.max_alive, "zombies alive after one dies")
+	assert_eq(manager.zombies_left(), settings.zombie_count(1) - 1, "zombies left after one dies")
+	for zombie: Zombie in _zombies(manager):
+		Health.find_on(zombie).damage(1.0e6)
+	await physics_frames(2)
+	assert_eq(manager.state, RoundManager.State.BREAK, "state after the rest die")
+
+
 func test_next_round_has_more_zombies_with_more_health_and_speed() -> void:
 	var settings := _settings()
 	var manager := _spawn_manager(settings)
