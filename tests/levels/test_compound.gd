@@ -77,14 +77,15 @@ func test_round_1_starts_and_the_level_runs_for_5_seconds() -> void:
 	await run_seconds(5.0)
 
 
-func test_the_level_has_an_ammo_station_and_a_weapon_station_near_the_player_start() -> void:
+func test_the_level_has_an_ammo_station_and_a_weapon_station_near_the_player_start_and_wall_buys() -> void:
 	var level := await spawn_level(null, COMPOUND_SCENE)
 	var player := level.get_node("Player") as Player
 	assert_true(sells(level, AmmoItem), "an ammo station")
 	assert_true(sells_weapon(level, "SMG"), "a weapon station that sells the SMG")
 	assert_true(sells_weapon(level, "SHOTGUN"), "a wall buy that sells the shotgun")
 	assert_true(sells_weapon(level, "RIFLE"), "a wall buy that sells the rifle")
-	for station: BuyStation in _shops(level):
+	assert_true(sells_weapon(level, "MACHINE GUN"), "a wall buy that sells the machine gun")
+	for station: BuyStation in _shops(level).filter(func(station: BuyStation) -> bool: return not station is WallBuy):
 		assert_true(station.global_position.distance_to(player.global_position) < 10.0, "%s is in the yard near the start" % station.name)
 
 

@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://weapons/magazine_view_model.gd" id="1_view"]
+[ext_resource type="PackedScene" path="res://weapons/machine_gun.glb" id="2_model"]
+[ext_resource type="PackedScene" path="res://weapons/machine_gun_magazine_thrown.tscn" id="3_thrown"]
+[ext_resource type="PackedScene" path="res://player/player_hand.glb" id="4_hand"]
+[ext_resource type="PackedScene" path="res://player/player_fist.glb" id="5_fist"]
+
+[node name="MachineGunView" type="Node3D" node_paths=PackedStringArray("motion", "model", "slide", "hand", "hand_anchor", "muzzle", "magazine", "left_hand")]
+script = ExtResource("1_view")
+motion = NodePath("Motion")
+model = NodePath("Motion/Model")
+slide = NodePath("Motion/Model/Slide")
+hand = NodePath("Motion/Hand")
+hand_anchor = NodePath("Motion/Model/HandAnchor")
+muzzle = NodePath("Motion/Model/Muzzle")
+magazine = NodePath("Motion/Model/Magazine")
+left_hand = NodePath("Motion/Model/LeftHand")
+dropped_magazine_scene = ExtResource("3_thrown")
+kick_distance = 0.03
+kick_angle = 5.0
+slide_travel = 0.02
+recoil_time = 0.09
+magazine_insert_offset = Vector3(0, -0.36, 0.05)
+left_hand_offset = Vector3(0, -0.15, 0)
+aim_offset = Vector3(-0.17, 0.039, 0.2)
+
+[node name="Motion" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.17, -0.22, -0.42)
+
+[node name="Model" parent="Motion" instance=ExtResource("2_model")]
+
+[node name="Hand" parent="Motion" instance=ExtResource("4_hand")]
+
+[node name="HandAnchor" type="RemoteTransform3D" parent="Motion/Model"]
+remote_path = NodePath("../../Hand")
+
+[node name="Muzzle" type="Marker3D" parent="Motion/Model"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, -0.775)
+
+[node name="LeftHand" parent="Motion/Model" instance=ExtResource("5_fist")]
+visible = false
