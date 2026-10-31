@@ -1,6 +1,6 @@
 # Doors and pickups
 
-A door is a brown panel that closes a gap in a wall. It has a yellow label: DOOR, and 750 under it. When the player looks at it within 2.5 m, the prompt shows `E  BUY DOOR  750`. E spends 750 points, and the door vanishes for good: the gap is open, and zombies walk through it. A spawn point in the area behind the door spawns zombies only after that door is open. A pickup is a small spinning, bobbing cyan cube with the item name over it. Walking over it gives the item for free, and the pickup goes. A pickup that would do nothing stays on the ground. A dying zombie drops one by chance (10%): MAX AMMO, which fills the reserve of every held weapon. A dropped pickup goes after 20 s.
+A door is a brown panel that closes a gap in a wall. It has a yellow label: DOOR, and 750 under it. When the player looks at it within 2.5 m, the prompt shows `E  BUY DOOR  750`. E spends 750 points, and the door vanishes for good: the gap is open, and zombies walk through it. A spawn point in the area behind the door spawns zombies only after that door is open. A pickup is a small spinning, bobbing cyan cube with the item name over it. Walking over it gives the item for free, and the pickup goes. A pickup that would do nothing stays on the ground. A dying zombie drops one by chance (10%): MAX AMMO fills the reserve of every held weapon, and DOUBLE POINTS doubles the points from hits, kills, and boards for 30 s. While it runs, the HUD shows `2X POINTS` and the seconds left under the points (`hud.boost`). A dropped pickup goes after 20 s.
 
 ## Sub-features
 
@@ -8,6 +8,7 @@ A door is a brown panel that closes a gap in a wall. It has a yellow label: DOOR
 - `door-navmesh` makes zombies path through the open gap. A zombie in a closed room cannot reach the player.
 - `spawn-area` keeps the spawn point of a closed room silent until its door is open.
 - `pickup-ammo` fills the reserve of every held weapon on a walk over it, when one of them is below its maximum.
+- `pickup-double-points` doubles earned points for 30 s on a walk over it. Tests cover it: no double points pickup is placed in the test range.
 - `pickup-drop` is the zombie drop and its expiry. Tests cover it: the 10% chance is not a thing to drive.
 
 ## How to get to it (user POV)

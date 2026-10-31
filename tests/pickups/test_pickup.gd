@@ -1,6 +1,7 @@
 extends TestCase
 
 const MAX_AMMO: BuyItem = preload("res://pickups/max_ammo.tres")
+const DOUBLE_POINTS: BuyItem = preload("res://pickups/double_points.tres")
 const SMG_ITEM: WeaponItem = preload("res://economy/smg_item.tres")
 const FAR := Vector3(10.0, 0.0, 0.0)
 
@@ -15,6 +16,17 @@ func test_walking_over_max_ammo_fills_the_reserve_of_every_held_weapon() -> void
 	for held: Weapon in player.weapons:
 		assert_eq(held.reserve, held.data.max_reserve, "%s reserve" % held.data.display_name)
 	assert_true(not is_instance_valid(pickup), "the pickup is gone")
+
+
+func test_walking_over_double_points_doubles_the_points_for_its_duration() -> void:
+	var player := await spawn_player()
+	var pickup := spawn_pickup(DOUBLE_POINTS, Vector3.ZERO)
+	await physics_frames(3)
+	assert_true(not is_instance_valid(pickup), "the pickup is gone")
+	player.wallet.reward_hit(false, false)
+	assert_eq(player.wallet.points, player.wallet.points_per_hit * 2, "a hit pays double")
+	assert_true(player.hud.readout().boost_visible, "the HUD shows the boost")
+	assert_eq(player.hud.readout().boost_text, "2X POINTS  30", "boost text")
 
 
 func test_a_pickup_that_would_do_nothing_stays_on_the_ground() -> void:
@@ -48,6 +60,6 @@ func test_a_pickup_with_a_lifetime_expires_and_one_without_stays() -> void:
 
 
 func test_the_pickup_shows_the_item_name() -> void:
-	var pickup := spawn_pickup(MAX_AMMO, FAR)
+	var pickup := spawn_pickup(DOUBLE_POINTS, FAR)
 	await physics_frames(1)
-	assert_eq(pickup.label_text(), "MAX AMMO", "label")
+	assert_eq(pickup.label_text(), "DOUBLE POINTS", "label")
