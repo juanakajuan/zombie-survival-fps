@@ -1,0 +1,40 @@
+# Weapon box: earn 1060 points in rounds 1 and 2, walk to the box behind the start, use it, see the weapon over it, take it with E.
+expect box.position 0.0 0.0 9.5
+expect box.offer
+until zombies.alive 4 300
+fight_until hud.break true 3600
+until hud.break false 700
+until zombies.alive 6 400
+fight_until hud.break true 5400
+expect hud.points 1060
+state 01-earned
+face 180 0
+hold move_forward
+wait 25
+release move_forward
+wait 30
+look 0 260
+until hud.prompt_visible true 60
+expect hud.prompt E WEAPON BOX 950
+state 02-prompt
+shot 02-prompt
+tap interact
+wait 5
+expect hud.points 110
+expect box.offer SMG
+expect hud.prompt E TAKE SMG
+look 0 -200
+wait 5
+state 03-offer
+shot 03-offer
+look 0 200
+wait 5
+tap interact
+wait 5
+expect hud.weapon SMG
+expect hud.ammo 30 / 150
+expect box.offer
+expect hud.prompt NO NEW WEAPONS
+wait 40
+state 04-taken
+shot 04-taken

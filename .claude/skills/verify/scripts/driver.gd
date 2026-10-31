@@ -359,6 +359,10 @@ func _state() -> Dictionary[String, String]:
 	var power := level.get_node_or_null("PowerSwitch") as PowerSwitch
 	if power != null:
 		s["power.on"] = str(power.is_on())
+	var box := get_first_node_in_group(WeaponBox.GROUP) as WeaponBox
+	if box != null:
+		s["box.position"] = "%.1f %.1f %.1f" % [box.global_position.x, box.global_position.y, box.global_position.z]
+		s["box.offer"] = box.offer_text()
 	var game_over := level.get_node_or_null("GameOver") as GameOver
 	if game_over != null:
 		s["game_over.visible"] = str(game_over.visible)

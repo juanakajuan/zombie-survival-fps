@@ -34,6 +34,7 @@ Each feature file starts with an H1 title and one paragraph about the behavior t
 - [Melee](./melee.md) covers the punch on V: the left hand animation, the damage at short reach, and the points from a punch.
 - [Economy](./economy.md) covers points from zombie hits and kills, the reserve ammo, and the buy station that sells ammo with E.
 - [Wall buys](./wall-buys.md) covers the wall buys and the weapons they sell: the shotgun and its pellets, the rifle, and the machine gun.
+- [Weapon box](./weapon-box.md) covers the box that gives a random weapon for points, the weapon over the box that E takes, and the move that refunds the points.
 - [Doors and pickups](./doors-and-pickups.md) covers the door that points buy, the spawn point that waits for it, and the max ammo and double points pickups that a walk over them give.
 - [Barricades](./barricades.md) covers the boarded window that a zombie breaks and the player repairs with a hold on E, and the points that each board gives.
 - [Power and perks](./power-and-perks.md) covers the power switch in the room behind the door, the perk machines that sell only with power, and the perk icons on the HUD.
