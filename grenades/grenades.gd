@@ -17,7 +17,9 @@ signal damaged(target: Node, killed: bool, headshot: bool)
 @export_range(1, 20) var max_count: int = 4
 @export var grenade_scene: PackedScene
 
-enum State { READY, COOKING, THROWING }
+## COOKING runs from the pin pull to the release. WINDING runs from the release until the grenade leaves the hand, and
+## RECOVERING until the next grenade can be started.
+enum State { READY, COOKING, WINDING, RECOVERING }
 
 @export_group("Throw")
 @export_range(1.0, 40.0, 0.5, "suffix:m/s") var throw_speed: float = 14.0
@@ -73,11 +75,11 @@ func _physics_process(delta: float) -> void:
 		if _held.fuse_left <= 0.0:
 			_explode_in_hand()
 			return
-	if _state == State.THROWING:
-		if _held != null and _swing_elapsed >= throw_wind_time:
-			_throw()
-		if _swing_elapsed >= throw_wind_time + throw_recover_time:
-			_state = State.READY
+	if _state == State.WINDING and _swing_elapsed >= throw_wind_time:
+		_throw()
+		_state = State.RECOVERING
+	if _state == State.RECOVERING and _swing_elapsed >= throw_wind_time + throw_recover_time:
+		_state = State.READY
 
 
 ## Pulls the pin: takes one grenade and starts its fuse. Returns false with no grenades, during a cook or a throw,
@@ -99,9 +101,9 @@ func start_cook() -> bool:
 func release() -> void:
 	if _state != State.COOKING:
 		return
-	_raise_at_release = minf(_cook_elapsed / cook_raise_time, 1.0)
+	_raise_at_release = _raise_at(_cook_elapsed)
 	_swing_elapsed = 0.0
-	_state = State.THROWING
+	_state = State.WINDING
 
 
 ## Lets the grenade in the hand fall at the wielder's feet with the fuse that it has left, and clears the cook or the
@@ -132,19 +134,28 @@ func fuse_left() -> float:
 	return maxf(_held.fuse_left, 0.0) if _held != null else 0.0
 
 
-## Where the hand is in the cook and the swing, for a pose. -1 while ready. From 0 to 1 the hand rises, and it stays at
-## 1 while the grenade cooks. A release moves it on from where it was to 2 at the moment the grenade leaves the
-## hand, and to 3 at the end of the recovery.
-func progress() -> float:
-	return _progress_at(_cook_elapsed, _swing_elapsed)
+func state() -> State:
+	return _state
 
 
-## progress() between physics ticks, for a pose drawn every frame. Call it from _process.
-func visual_progress() -> float:
+## How far the current state has gone, from 0 to 1, between physics ticks, for a pose drawn every frame. Call it from
+## _process. While COOKING it is how far the hand has risen, and it stays at 1 while the grenade is held. It is 0 while
+## READY.
+func visual_fraction() -> float:
 	var step := Engine.get_physics_interpolation_fraction() / Engine.physics_ticks_per_second
-	if _state == State.COOKING:
-		return _progress_at(_cook_elapsed + step, 0.0)
-	return _progress_at(0.0, minf(_swing_elapsed + step, throw_wind_time + throw_recover_time))
+	match _state:
+		State.COOKING:
+			return _raise_at(_cook_elapsed + step)
+		State.WINDING:
+			return minf((_swing_elapsed + step) / throw_wind_time, 1.0)
+		State.RECOVERING:
+			return minf((_swing_elapsed + step - throw_wind_time) / throw_recover_time, 1.0)
+	return 0.0
+
+
+## How far the hand had risen, from 0 to 1, when the cook was released.
+func raise_at_release() -> float:
+	return _raise_at_release
 
 
 ## Makes the grenade this wielder's: it does not collide with the wielder, and its damage reports reach `damaged`.
@@ -162,15 +173,8 @@ func start_round() -> void:
 	changed.emit(count)
 
 
-func _progress_at(cook_elapsed: float, swing_elapsed: float) -> float:
-	match _state:
-		State.COOKING:
-			return minf(cook_elapsed / cook_raise_time, 1.0)
-		State.THROWING:
-			if swing_elapsed < throw_wind_time:
-				return lerpf(_raise_at_release, 2.0, swing_elapsed / throw_wind_time)
-			return 2.0 + (swing_elapsed - throw_wind_time) / throw_recover_time
-	return -1.0
+func _raise_at(cook_elapsed: float) -> float:
+	return minf(cook_elapsed / cook_raise_time, 1.0)
 
 
 func _throw() -> void:

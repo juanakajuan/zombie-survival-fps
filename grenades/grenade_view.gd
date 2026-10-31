@@ -40,29 +40,30 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	if grenades == null:
 		return
-	var progress := grenades.visual_progress()
-	hand.visible = progress >= 0.0
+	var state := grenades.state()
+	hand.visible = state != Grenades.State.READY
 	grenade.visible = grenades.has_grenade_in_hand()
-	if progress < 0.0:
-		return
+	var fraction := grenades.visual_fraction()
 	var place: Vector3
 	var angles: Vector3
-	if progress < 1.0:
-		var t := 1.0 - (1.0 - progress) * (1.0 - progress)
-		place = low_position.lerp(cocked_position, t)
-		angles = low_angles.lerp(cocked_angles, t)
-	elif progress < 2.0:
-		var s := progress - 1.0
-		var t := s * s
-		place = cocked_position.lerp(throw_position, t) + throw_arc * sin(PI * s)
-		angles = cocked_angles.lerp(throw_angles, t)
-	else:
-		var t := smoothstep(0.0, 1.0, progress - 2.0)
-		place = throw_position.lerp(low_position, t)
-		angles = throw_angles.lerp(low_angles, t)
-	if grenades.is_cooking():
-		var time := Time.get_ticks_msec() / 1000.0
-		place += Vector3(sin(time * tremble_speed), cos(time * tremble_speed * 1.3), 0.0) * tremble_amount * minf(progress, 1.0)
+	match state:
+		Grenades.State.COOKING:
+			var t := _ease_out(fraction)
+			place = low_position.lerp(cocked_position, t)
+			angles = low_angles.lerp(cocked_angles, t)
+			var time := Time.get_ticks_msec() / 1000.0
+			place += Vector3(sin(time * tremble_speed), cos(time * tremble_speed * 1.3), 0.0) * tremble_amount * fraction
+		Grenades.State.WINDING:
+			var r := _ease_out(grenades.raise_at_release())
+			var t := fraction * fraction
+			place = low_position.lerp(cocked_position, r).lerp(throw_position, t) + throw_arc * sin(PI * fraction)
+			angles = low_angles.lerp(cocked_angles, r).lerp(throw_angles, t)
+		Grenades.State.RECOVERING:
+			var t := smoothstep(0.0, 1.0, fraction)
+			place = throw_position.lerp(low_position, t)
+			angles = throw_angles.lerp(low_angles, t)
+		_:
+			return
 	hand.transform = Transform3D(Basis.from_euler(angles * (PI / 180.0)), place)
 
 
@@ -73,3 +74,7 @@ func is_hand_visible() -> bool:
 
 func is_grenade_visible() -> bool:
 	return grenade.is_visible_in_tree()
+
+
+func _ease_out(t: float) -> float:
+	return 1.0 - (1.0 - t) * (1.0 - t)
