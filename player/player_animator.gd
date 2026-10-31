@@ -55,8 +55,8 @@ extends Node
 ## How fast the pose blends between walking, standing, in the air, crouched, and aiming.
 @export_range(0.1, 40.0, 0.1) var blend_sharpness: float = 12.0
 
-## The part of the punch that the wind-up takes. Player sets it from the melee timings.
-var punch_wind_share: float = 0.28
+## The melee that drives the punch. Player sets it.
+var melee: Melee
 var _leg_l: Node3D
 var _leg_r: Node3D
 var _shin_l: Node3D
@@ -169,11 +169,12 @@ func _punch_arm(free_arm: Vector3, progress: float, look_pitch: float) -> Vector
 		return free_arm
 	var cocked := Vector3(deg_to_rad(punch_cock), 0.0, 0.0)
 	var jab := Vector3(deg_to_rad(punch_lift) + look_pitch, deg_to_rad(-punch_aim), 0.0)
-	var hold_end := punch_wind_share + (1.0 - punch_wind_share) * punch_hold_share
-	if progress < punch_wind_share:
-		return free_arm.lerp(cocked, _ease_out(progress / punch_wind_share))
+	var wind_share := melee.wind_up_time / (melee.wind_up_time + melee.recover_time)
+	var hold_end := wind_share + (1.0 - wind_share) * punch_hold_share
+	if progress < wind_share:
+		return free_arm.lerp(cocked, _ease_out(progress / wind_share))
 	if progress < hold_end:
-		return cocked.lerp(jab, _ease_out((progress - punch_wind_share) / (hold_end - punch_wind_share) * 3.0))
+		return cocked.lerp(jab, _ease_out((progress - wind_share) / (hold_end - wind_share) * 3.0))
 	return jab.lerp(free_arm, (progress - hold_end) / (1.0 - hold_end))
 
 

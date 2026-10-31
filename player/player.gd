@@ -99,7 +99,7 @@ const GROUP := &"player"
 @onready var health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
-## The weapon in hand. It is one of `weapons`.
+## The weapon in hand: one of `weapons`, or the loaner pistol of a downed player who holds no pistol.
 var weapon: Weapon
 ## The weapons the player holds, in slot order. Only `weapon` fires; the others are holstered.
 var weapons: Array[Weapon] = []
@@ -116,11 +116,9 @@ var _stance := Stance.STANDING
 var _life := Life.ALIVE
 var _downed_left := 0.0
 var _self_revive_left := 0.0
-## The perk that downed the player. It is set only while downed.
 var _self_revive: PerkItem
 var _weapon_before_down: Weapon
-## The pistol of a downed player who holds none. It is not in `weapons`, and a revive frees it.
-var _temporary_weapon: Weapon
+var _loaner_pistol: Weapon
 var _slide_cooldown_left := 0.0
 var _aim_blend := 0.0
 var _shape: CapsuleShape3D
@@ -163,7 +161,7 @@ func _ready() -> void:
 	_shape = _collision.shape.duplicate() as CapsuleShape3D
 	_collision.shape = _shape
 	animator.attach(body)
-	animator.punch_wind_share = melee.wind_up_time / (melee.wind_up_time + melee.recover_time)
+	animator.melee = melee
 	_set_third_person(false)
 	_stand_height = _shape.height
 	_stand_head_height = head.position.y
@@ -416,7 +414,7 @@ func _go_down(self_revive: PerkItem) -> void:
 	var pistol := weapon_holding(downed_weapon)
 	if pistol == null:
 		pistol = _make_weapon(downed_weapon)
-		_temporary_weapon = pistol
+		_loaner_pistol = pistol
 	if pistol != weapon:
 		_holster(weapon)
 		_equip(pistol)
@@ -431,9 +429,10 @@ func _stand_up() -> void:
 	if weapon != _weapon_before_down:
 		_holster(weapon)
 		_equip(_weapon_before_down)
-	if _temporary_weapon != null:
-		_temporary_weapon.queue_free()
-		_temporary_weapon = null
+	if _loaner_pistol != null:
+		_loaner_pistol.queue_free()
+		_loaner_pistol = null
+	_self_revive = null
 
 
 func _die() -> void:
@@ -526,8 +525,8 @@ func _set_third_person(on: bool) -> void:
 	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false):
 		mesh.cast_shadow = casting
 	var shown: Array[Weapon] = weapons.duplicate()
-	if _temporary_weapon != null:
-		shown.append(_temporary_weapon)
+	if _loaner_pistol != null:
+		shown.append(_loaner_pistol)
 	for held: Weapon in shown:
 		if held.view_model != null:
 			held.view_model.visible = not on
