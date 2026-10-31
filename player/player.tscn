@@ -45,12 +45,15 @@ position = Vector3(0, 1.6, 0)
 fov = 80.0
 current = true
 
-[node name="Weapon" parent="Head/Camera3D" instance=ExtResource("3_weapon")]
+[node name="Weapon" parent="Head/Camera3D" node_paths=PackedStringArray("wielder") instance=ExtResource("3_weapon")]
 data = ExtResource("4_pistol")
+wielder = NodePath("../../..")
 
-[node name="PunchView" parent="Head/Camera3D" instance=ExtResource("11_punch_view")]
+[node name="PunchView" parent="Head/Camera3D" node_paths=PackedStringArray("melee") instance=ExtResource("11_punch_view")]
+melee = NodePath("../../../Melee")
 
-[node name="GrenadeView" parent="Head/Camera3D" instance=ExtResource("18_grenade_view")]
+[node name="GrenadeView" parent="Head/Camera3D" node_paths=PackedStringArray("grenades") instance=ExtResource("18_grenade_view")]
+grenades = NodePath("../../../Grenades")
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("2_health")
@@ -68,12 +71,14 @@ health = NodePath("../Health")
 [node name="Powerups" type="Node" parent="."]
 script = ExtResource("15_powerups")
 
-[node name="Melee" type="Node" parent="."]
+[node name="Melee" type="Node" parent="." node_paths=PackedStringArray("wielder")]
 script = ExtResource("10_melee")
+wielder = NodePath("..")
 
-[node name="Grenades" type="Node" parent="."]
+[node name="Grenades" type="Node" parent="." node_paths=PackedStringArray("wielder")]
 script = ExtResource("16_grenades")
 grenade_scene = ExtResource("17_grenade")
+wielder = NodePath("..")
 
 [node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "melee", "grenades", "wallet", "perks", "powerups") instance=ExtResource("5_hud")]
 health = NodePath("../Health")

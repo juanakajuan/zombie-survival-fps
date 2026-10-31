@@ -28,8 +28,8 @@ extends Node3D
 @export_range(0.0, 0.02, 0.0005, "suffix:m") var tremble_amount: float = 0.003
 @export_range(1.0, 100.0, 1.0, "suffix:rad/s") var tremble_speed: float = 45.0
 
-## The grenades that drive the pose. Player sets it.
-var grenades: Grenades
+## The grenades that drive the pose.
+@export var grenades: Grenades
 
 
 func _ready() -> void:

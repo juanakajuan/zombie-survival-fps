@@ -20,6 +20,8 @@ enum State { READY, RELOADING }
 @export var data: WeaponData
 ## Physics layers that a shot can hit. Debris, such as thrown guns, is not on them.
 @export_flags_3d_physics var hit_mask: int = 1
+## The player who holds the weapon. Shots never hit the wielder.
+@export var wielder: Player
 
 @export_group("Sounds")
 @export var shot_sound: AudioStreamPlayer
@@ -39,8 +41,6 @@ var reserve: int:
 var trigger_enabled: bool = true
 ## The instance of data.view_model, or null when the data has none or its root is not a ViewModel.
 var view_model: ViewModel
-## The player who holds the weapon. Shots never hit the wielder. Player sets it.
-var wielder: Player
 
 var _state: State = State.READY
 var _shot_cooldown: float = 0.0

@@ -82,7 +82,7 @@ func _init() -> void:
 			"^(?!tests/|tools/|debug/|\\.claude/).*\\.gd$",
 			"\\b(\\w+)\\s*=\\s*\\1\\.get_parent\\(\\)",
 			"loop up the tree to find an owner",
-			"Have the owner set a typed reference in code, as Player sets weapon.wielder.",
+			"Give the node a typed @export reference that its scene sets, as player.tscn sets weapon.wielder.",
 		),
 		Rule.new(
 			"magic_const",
