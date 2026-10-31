@@ -1,6 +1,8 @@
-# Shotgun and wall buys
+# Wall buys
 
 A wall buy is a dark board on a wall with a pale silhouette of a weapon on it and a yellow label: SHOTGUN, and 1200 under it. In the test range it is on the outer (west) wall of the room behind the door, at `11.75 0 15`. When the player looks at the board within 2.5 m, the prompt shows `E  BUY SHOTGUN  1200`. E spends 1200 points and puts the shotgun in hand, with `6 / 36` on the HUD. Then the board sells shotgun ammo for 500. The shotgun is semi-automatic, and each shot sends 8 pellets in a cone of 5 degrees, so one press shows a spray of tracers. A reload throws the shotgun away and draws a new one, as the pistol does.
+
+A second wall buy, on the north wall of the same room at `13.4 0 11.75`, sells the RIFLE for 1500 (ammo 600). The rifle is semi-automatic, with 10 rounds and 70 damage a shot, so two body shots kill a round 1 zombie. Its reload keeps the gun in the hand and swaps the magazine, as the SMG does.
 
 ## Sub-features
 
@@ -9,7 +11,10 @@ A wall buy is a dark board on a wall with a pale silhouette of a weapon on it an
 - `pellets` fires 8 rays for one shell: one press shows many tracers and `hud.ammo` drops by 1. Each pellet that hits a living zombie pays 10 points.
 - `aim` puts the red bead in the notch of the rear sight at the screen centre.
 - `reload` throws the gun away and takes the missing shells from the reserve.
-- `upgrade` at the upgrade machine (with power) turns it into SHOTGUN+: a blue body, 10 pellets of 32 damage, and `10 / 60` ammo.
+- `buy-rifle` takes 1500 points and equips the rifle: `hud.weapon` is `RIFLE`, `hud.ammo` is `10 / 60`. A held fire button fires one shot.
+- `rifle-aim` puts the red dot of the front post in the notch of the rear sight.
+- `rifle-upgrade` turns the rifle into RIFLE+: an orange body, 150 damage a shot, and `15 / 90` ammo.
+- `upgrade` at the upgrade machine (with power) turns the shotgun into SHOTGUN+: a blue body, 10 pellets of 32 damage, and `10 / 60` ammo.
 
 ## How to get to it (user POV)
 
@@ -27,10 +32,12 @@ Preconditions:
 - **Buy.** Run `tap interact`, `wait 5`. `expect hud.points 3800`, `expect hud.weapon SHOTGUN`, and `expect hud.ammo 6 / 36` pass.
 - **Fire.** Run `face 0 0`, `wait 10`, `tap fire`, then `shot` at once. The screenshot shows a spray of tracers. `expect hud.ammo 5 / 36` passes.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/shotgun.steps`.
-- **Upgrade.** `journeys/shotgun_upgrade.steps` buys the shotgun, the room door, and the power with `walk_to`, then upgrades the shotgun: `expect hud.weapon SHOTGUN+` and `expect hud.ammo 10 / 60` pass.
+- **Rifle.** Run `debug +5000 POINTS`, `face -113 -5`, `hold move_forward`, `until hud.prompt_visible true 900`, `release move_forward`. `expect hud.prompt E BUY RIFLE 1500` passes. `tap interact`, then `expect hud.weapon RIFLE` and `expect hud.ammo 10 / 60` pass. Hold fire for 30 frames: `expect hud.ammo 9 / 60` passes. The proof is `journeys/rifle.steps`.
+- **Shotgun upgrade.** `journeys/shotgun_upgrade.steps` buys the shotgun, the room door, and the power with `walk_to`, then upgrades the shotgun: `expect hud.weapon SHOTGUN+` and `expect hud.ammo 10 / 60` pass.
+- **Rifle upgrade.** `journeys/rifle_upgrade.steps` does the same with the rifle: `expect hud.weapon RIFLE+` and `expect hud.ammo 15 / 90` pass.
 
 ## Gotchas
 
 - The `debug` command runs a debug menu button. It skips the earning of points, so this journey proves the wall buy and the shotgun, not the points from kills. `journeys/weapons.steps` proves the points.
 - The pellet spread is random, so the tracers are in a different place on each run.
-- In the Compound, the shotgun wall buy is on the east end of the container south of the start, at `0 0 18.75`.
+- In the Compound, the shotgun wall buy is on the east end of the container south of the start, at `0 0 18.75`, and the rifle wall buy is on the north side of the same container, at `-4 0 17.5`.
