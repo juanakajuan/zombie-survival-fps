@@ -7,5 +7,7 @@ script = ExtResource("1_item")
 icon_text = "S"
 icon_color = Color(0.25, 0.55, 1, 1)
 self_revive_time = 4.0
+price_increase = 1500
+max_buys = 3
 display_name = "SECOND WIND"
 cost = 1500
