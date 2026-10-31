@@ -20,7 +20,7 @@ height = 1.38
 [sub_resource type="SphereShape3D" id="head"]
 radius = 0.3
 
-[node name="Zombie" type="CharacterBody3D"]
+[node name="Zombie" type="CharacterBody3D" groups=["zombie"]]
 script = ExtResource("1_zombie")
 drops = ExtResource("10_drops")
 pickup_scene = ExtResource("11_pickup")

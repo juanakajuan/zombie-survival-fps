@@ -89,5 +89,5 @@ func _strike() -> void:
 		if health == null or health.is_dead() or health in struck:
 			continue
 		struck.append(health)
-		health.damage(damage)
+		health.damage(wielder.powerups.hit_damage(collider, health, damage))
 		damaged.emit(collider, health.is_dead(), false)

@@ -144,13 +144,22 @@ func _tap(action: StringName) -> void:
 func test_give_commands_put_each_weapon_in_hand() -> void:
 	var player := await spawn_player()
 	var menu := player.debug_menu
-	assert_true(not menu.gifts.is_empty(), "the menu has weapons to give")
+	var weapon_gifts: Array[WeaponItem] = []
 	for gift: BuyItem in menu.gifts:
-		var item := gift as WeaponItem
+		if gift is WeaponItem:
+			weapon_gifts.append(gift as WeaponItem)
+	assert_true(not weapon_gifts.is_empty(), "the menu has weapons to give")
+	for item: WeaponItem in weapon_gifts:
 		menu.run_command("GIVE %s" % item.display_name)
 		assert_true(player.weapon.data == item.weapon, "%s is in hand" % item.display_name)
 	assert_eq(player.wallet.points, 0, "the gifts cost nothing")
 	var held := player.weapons.size()
-	var last: BuyItem = menu.gifts.back()
+	var last: WeaponItem = weapon_gifts.back()
 	menu.run_command("GIVE %s" % last.display_name)
 	assert_eq(player.weapons.size(), held, "giving a held weapon adds no copy")
+
+
+func test_give_insta_kill_starts_it_on_the_hud() -> void:
+	var player := await spawn_player()
+	player.debug_menu.run_command("GIVE INSTA-KILL")
+	assert_eq(player.hud.readout().powerups, PackedStringArray(["INSTA-KILL  30"]), "the HUD lists the effect")

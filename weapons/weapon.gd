@@ -175,6 +175,8 @@ func _damage(collider: Object, amount: float, headshot: bool) -> bool:
 	var health := Health.find_on(collider as Node)
 	if health == null or health.is_dead():
 		return false
+	if wielder != null:
+		amount = wielder.powerups.hit_damage(collider as Node, health, amount)
 	health.damage(amount)
 	damaged.emit(collider, health.is_dead(), headshot)
 	return true

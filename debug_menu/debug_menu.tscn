@@ -8,6 +8,10 @@
 [ext_resource type="Resource" path="res://economy/rifle_item.tres" id="6_rifle"]
 [ext_resource type="Resource" path="res://economy/machine_gun_item.tres" id="7_machine_gun"]
 [ext_resource type="Resource" path="res://weapon_box/arc_gun_item.tres" id="8_arc_gun"]
+[ext_resource type="Resource" path="res://pickups/double_points.tres" id="9_double_points"]
+[ext_resource type="Resource" path="res://pickups/insta_kill.tres" id="10_insta_kill"]
+[ext_resource type="Resource" path="res://pickups/nuke.tres" id="11_nuke"]
+[ext_resource type="Resource" path="res://pickups/repair_all.tres" id="12_repair_all"]
 
 [sub_resource type="StyleBoxFlat" id="panel"]
 bg_color = Color(0.06, 0.06, 0.07, 0.92)
@@ -22,7 +26,7 @@ content_margin_bottom = 24.0
 process_mode = 3
 layer = 21
 script = ExtResource("1_debug_menu")
-gifts = Array[ExtResource("3_buy_item")]([ExtResource("4_smg"), ExtResource("5_shotgun"), ExtResource("6_rifle"), ExtResource("7_machine_gun"), ExtResource("8_arc_gun")])
+gifts = Array[ExtResource("3_buy_item")]([ExtResource("4_smg"), ExtResource("5_shotgun"), ExtResource("6_rifle"), ExtResource("7_machine_gun"), ExtResource("8_arc_gun"), ExtResource("9_double_points"), ExtResource("10_insta_kill"), ExtResource("11_nuke"), ExtResource("12_repair_all")])
 
 [node name="Dim" type="ColorRect" parent="."]
 anchors_preset = 15

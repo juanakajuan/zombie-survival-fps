@@ -52,7 +52,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | `fight_until <key> <value> <frames>` | Repeat `aim` and `tap fire` (about 6 shots a second) until the state key has the value. Fails at the frame limit. |
 | `until <key> <value> <frames>` | Wait until the state key has the value. Fails at the frame limit. |
 | `walk_to <x> <z> <frames>` | Turn the view level toward the ground point and hold `move_forward` until the feet are within 0.4 m of it, turning again every 5 frames. It does not path around walls, so give it a point in a straight line. Fails at the frame limit. |
-| `debug <label>` | Run the debug menu command with this button label, as a click on it does, for example `debug +5000 POINTS`. The labels are `+500 POINTS`, `+5000 POINTS`, `REFILL AMMO`, `FULL HEALTH`, `GOD MODE`, `KILL ALL ZOMBIES`, `SKIP BREAK`, and a `GIVE <weapon>` for each weapon that can be bought or rolled: `GIVE SMG`, `GIVE SHOTGUN`, `GIVE RIFLE`, `GIVE MACHINE GUN`, and `GIVE ARC GUN`. |
+| `debug <label>` | Run the debug menu command with this button label, as a click on it does, for example `debug +5000 POINTS`. The labels are `+500 POINTS`, `+5000 POINTS`, `REFILL AMMO`, `FULL HEALTH`, `GOD MODE`, `KILL ALL ZOMBIES`, `SKIP BREAK`, a `GIVE <weapon>` for each weapon that can be bought or rolled: `GIVE SMG`, `GIVE SHOTGUN`, `GIVE RIFLE`, `GIVE MACHINE GUN`, and `GIVE ARC GUN`, and a `GIVE <drop>` that applies a zombie drop as its pickup does: `GIVE DOUBLE POINTS`, `GIVE INSTA-KILL`, `GIVE NUKE`, and `GIVE REPAIR ALL`. |
 | `self_revive` | Give the player SECOND WIND (HUD icon `S`) without the power and the points, so that 0 health downs the player. |
 | `expect <key> <value>` / `expect_not <key> <value>` | Compare a state value now. A failed expect is recorded and the run continues. Any other failed command stops the run. |
 | `state <name>` | Write the state to `<name>.json`. |
@@ -64,7 +64,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 |---|---|
 | `hud.health`, `hud.ammo`, `hud.weapon` | The HUD text, for example `100`, `11 / 48` (rounds in the magazine, then in the reserve), and `PISTOL` (the weapon in hand). |
 | `hud.points`, `hud.prompt_visible`, `hud.prompt` | The points on the HUD, whether the buy prompt shows, and its text with each run of spaces made one space, for example `E BUY AMMO 250` (empty when hidden). |
-| `hud.boost` | The double points label under the points, for example `2X POINTS  23` (empty when no boost runs). |
+| `hud.powerups` | The timed effects under the points, one entry for each in the order they started, each with its runs of spaces made one space and joined with ` \| `, for example `DOUBLE POINTS 23 \| INSTA-KILL 30` (empty when none runs). |
 | `hud.reloading`, `hud.break`, `hud.round_visible` | Whether the RELOADING label, the BREAK label, and the round panel show. |
 | `hud.round`, `hud.objective` | The round number on the HUD, and the line under it: `4 LEFT` during a round (zombies alive plus zombies still to spawn), `NEXT ROUND IN 10` during the break. |
 | `hud.crosshair`, `hud.hit_marker`, `hud.headshot_marker` | Whether the crosshair shows (hidden while aiming), whether the hit marker shows (0.2 s after a shot hits a zombie or a dummy), and whether it shows in the headshot color (0.2 s after a shot hits a zombie's head). |

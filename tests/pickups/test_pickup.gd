@@ -25,8 +25,7 @@ func test_walking_over_double_points_doubles_the_points_for_its_duration() -> vo
 	assert_true(not is_instance_valid(pickup), "the pickup is gone")
 	player.wallet.reward_hit(false, false)
 	assert_eq(player.wallet.points, player.wallet.points_per_hit * 2, "a hit pays double")
-	assert_true(player.hud.readout().boost_visible, "the HUD shows the boost")
-	assert_eq(player.hud.readout().boost_text, "2X POINTS  30", "boost text")
+	assert_eq(player.hud.readout().powerups, PackedStringArray(["DOUBLE POINTS  30"]), "the HUD shows the effect")
 
 
 func test_a_pickup_that_would_do_nothing_stays_on_the_ground() -> void:

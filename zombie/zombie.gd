@@ -2,7 +2,12 @@ class_name Zombie
 extends CharacterBody3D
 ## Melee zombie with the cartoon Shambler model (art_source/zombie.blend). It follows the navigation mesh to its target and hits it when close. The origin is at the feet.
 
+## Emitted when the zombie leaves a pickup at its death.
+signal dropped
+
 enum State { CHASE, BREACH, ATTACK, DEAD }
+
+const GROUP := &"zombie"
 
 @export_group("Attack")
 @export_range(0.5, 5.0, 0.05, "suffix:m") var attack_range: float = 1.3
@@ -93,6 +98,12 @@ func configure(speed: float, max_health: float, chase: Node3D, through: Barricad
 	entry = through
 	Health.find_on(self).max_health = max_health
 	_configured = true
+
+
+## Kills the zombie with no drop. Nothing gives points for it: no shot or punch dealt the blow.
+func kill_quietly() -> void:
+	drops = null
+	_health.damage(_health.current)
 
 
 func _physics_process(delta: float) -> void:
@@ -221,3 +232,4 @@ func _drop_pickup() -> void:
 	pickup.lifetime = drops.lifetime
 	pickup.position = position
 	get_parent().add_child.call_deferred(pickup)
+	dropped.emit()

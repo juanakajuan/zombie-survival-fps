@@ -60,6 +60,12 @@ func remove_board() -> void:
 		_set_boards(boards - 1)
 
 
+## Puts all the boards back at once. It pays nothing.
+func fill() -> void:
+	_set_boards(max_boards)
+	_repair_progress = 0.0
+
+
 ## Whether the point is on the -Z side of the opening, the side of the play area.
 func is_inside(point: Vector3) -> bool:
 	return (point - global_position).dot(-global_basis.z) > 0.0

@@ -183,7 +183,7 @@ theme_override_font_sizes/font_size = 36
 text = "0"
 horizontal_alignment = 2
 
-[node name="BoostLabel" type="Label" parent="Root"]
+[node name="PowerupLabel" type="Label" parent="Root"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -198,7 +198,7 @@ grow_horizontal = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.9, 0, 1)
 theme_override_font_sizes/font_size = 22
-text = "2X POINTS  30"
+text = "DOUBLE POINTS  30"
 horizontal_alignment = 2
 
 [node name="RoundPanel" type="VBoxContainer" parent="Root"]

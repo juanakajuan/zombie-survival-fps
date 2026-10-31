@@ -1,6 +1,6 @@
 # Doors and pickups
 
-A door is a brown panel that closes a gap in a wall. It has a yellow label: DOOR, and 750 under it. When the player looks at it within 2.5 m, the prompt shows `E  BUY DOOR  750`. E spends 750 points, and the door vanishes for good: the gap is open, and zombies walk through it. A spawn point in the area behind the door spawns zombies only after that door is open. A pickup is a small spinning, bobbing cyan cube with the item name over it. Walking over it gives the item for free, and the pickup goes. A pickup that would do nothing stays on the ground. A dying zombie drops one by chance (10%): MAX AMMO fills the reserve of every held weapon, and DOUBLE POINTS doubles the points from hits, kills, and boards for 30 s. While it runs, the HUD shows `2X POINTS` and the seconds left under the points (`hud.boost`). A dropped pickup goes after 20 s.
+A door is a brown panel that closes a gap in a wall. It has a yellow label: DOOR, and 750 under it. When the player looks at it within 2.5 m, the prompt shows `E  BUY DOOR  750`. E spends 750 points, and the door vanishes for good: the gap is open, and zombies walk through it. A spawn point in the area behind the door spawns zombies only after that door is open. A pickup is a small spinning, bobbing cyan cube with the item name over it. Walking over it gives the item for free, and the pickup goes. A pickup that would do nothing stays on the ground. A dying zombie drops one by chance (10%), and at most 4 pickups drop in a round (`RoundSettings.max_drops`). There are five drops. MAX AMMO fills the reserve of every held weapon. DOUBLE POINTS doubles the points from hits, kills, and boards for 30 s. INSTA-KILL makes each shot, arc, or punch that hits a zombie kill it for 30 s, and the hit pays as usual. NUKE kills every living zombie with no points for the kills and no drops, and pays 400 points. REPAIR ALL puts the boards back on every barricade and pays 200 points. While a timed effect runs, the HUD lists it with the seconds left under the points, one line for each effect in the order they started (`hud.powerups`, for example `DOUBLE POINTS  23`). A second pickup of the same effect starts its time again. A dropped pickup goes after 20 s.
 
 ## Sub-features
 
@@ -9,6 +9,8 @@ A door is a brown panel that closes a gap in a wall. It has a yellow label: DOOR
 - `spawn-area` keeps the spawn point of a closed room silent until its door is open.
 - `pickup-ammo` fills the reserve of every held weapon on a walk over it, when one of them is below its maximum.
 - `pickup-double-points` doubles earned points for 30 s on a walk over it. Tests cover it: no double points pickup is placed in the test range.
+- `pickup-insta-kill` makes one pistol shot kill a round 1 zombie for 30 s, and the HUD lists `INSTA-KILL` with the seconds left. The debug menu's `GIVE INSTA-KILL` applies it as its pickup does. Proof: `.claude/skills/verify/journeys/insta_kill.steps`.
+- `pickup-nuke`, `pickup-repair-all`, the timer restart, and the drop limit for each round. Tests cover them (`tests/pickups/test_powerups.gd`, `tests/pickups/test_drop_table.gd`). The debug menu gives `NUKE` and `REPAIR ALL` for a manual look.
 - `pickup-drop` is the zombie drop and its expiry. Tests cover it: the 10% chance is not a thing to drive.
 
 ## How to get to it (user POV)
