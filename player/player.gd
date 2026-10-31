@@ -114,7 +114,8 @@ var _stance := Stance.STANDING
 var _life := Life.ALIVE
 var _downed_left := 0.0
 var _self_revive_left := 0.0
-var _self_revive_health := 0.0
+## The perk that downed the player. It is set only while downed.
+var _self_revive: PerkItem
 ## The weapon in hand before the player went down.
 var _weapon_before_down: Weapon
 ## The pistol of a downed player who holds none. It is not in `weapons`, and a revive frees it.
@@ -204,9 +205,9 @@ func _physics_process(delta: float) -> void:
 	if is_downed():
 		_downed_left -= delta
 		_self_revive_left -= delta
-		hud.show_downed(_downed_left)
+		hud.show_downed(_downed_left, _self_revive.display_name, _self_revive_left)
 		if _self_revive_left <= 0.0:
-			revive(_self_revive_health)
+			revive(_self_revive.self_revive_health)
 		elif _downed_left <= 0.0:
 			_die()
 	_update_focus()
@@ -383,7 +384,7 @@ func _go_down(self_revive: PerkItem) -> void:
 	_life = Life.DOWNED
 	_downed_left = downed_time
 	_self_revive_left = self_revive.self_revive_time
-	_self_revive_health = self_revive.self_revive_health
+	_self_revive = self_revive
 	_weapon_before_down = weapon
 	_set_stance(Stance.CROUCHED)
 	var pistol := weapon_holding(downed_weapon)
@@ -399,7 +400,7 @@ func _go_down(self_revive: PerkItem) -> void:
 		_holster(weapon)
 		_equip(pistol)
 	pistol.ammo = pistol.data.magazine_size
-	hud.show_downed(_downed_left)
+	hud.show_downed(_downed_left, _self_revive.display_name, _self_revive_left)
 	downed.emit()
 
 

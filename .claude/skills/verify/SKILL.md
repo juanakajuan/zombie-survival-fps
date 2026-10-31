@@ -74,6 +74,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `zombies.alive`, `zombies.bars`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, and target dummies that show. |
 | `doors.open`, `pickups` | Doors that are open, and pickups on the ground in the level (a placed one counts too). |
 | `power.on`, `hud.perks`, `hud.max_health`, `hud.downed` | The downed timer text on the HUD (for example `DOWNED  7`, empty when hidden), whether the power switch is on, the text of each perk icon on the HUD in order, with one space between them (empty with no perk), and the max health under the health number. |
+| `hud.revive` | The self-revive line under the downed timer, for example `SECOND WIND  GETTING UP IN 3` (empty when hidden). |
 | `barricades.boards` | The boards left on all barricades in the level, added up. The test range has one barricade with 5 boards, so it starts at `5`. |
 | `tracers` | Shot tracers in flight. A tracer into the sky lives about 50 frames; one to the dummy ahead lives about 4. |
 | `frame` | The physics frame counter. |

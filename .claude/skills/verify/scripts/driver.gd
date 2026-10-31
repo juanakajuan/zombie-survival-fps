@@ -284,6 +284,7 @@ func _state() -> Dictionary[String, String]:
 		s["hud.hit_marker"] = str(hud.hit_marker)
 		s["hud.headshot_marker"] = str(hud.headshot_marker)
 		s["hud.downed"] = hud.downed_text if hud.downed_visible else ""
+		s["hud.revive"] = hud.revive_text if hud.revive_visible else ""
 		s["hud.perks"] = " ".join(hud.perk_icons)
 		s["hud.max_health"] = str(ceili(player.health.max_health))
 	var zombies := 0
