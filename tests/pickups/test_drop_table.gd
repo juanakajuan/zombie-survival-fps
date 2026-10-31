@@ -64,3 +64,43 @@ func test_the_zombies_that_kill_all_kills_drop_nothing() -> void:
 	manager.kill_all()
 	await physics_frames(2)
 	assert_eq(pickups_in(manager).size(), 0, "pickups after kill_all")
+
+
+func test_zombies_drop_at_most_max_drops_pickups_in_a_round_and_again_in_the_next() -> void:
+	await spawn_player()
+	var settings := RoundSettings.new()
+	settings.first_round_zombies = 4
+	settings.zombies_per_round = 0
+	settings.first_round_speed = 0.0
+	settings.break_time = 0.5
+	settings.spawn_interval = 0.1
+	settings.max_drops = 2
+	var manager := RoundManager.new()
+	manager.settings = settings
+	manager.zombie_scene = _scene_dropping(_table(1.0, [MAX_AMMO]))
+	manager.add_child(SpawnPoint.new())
+	add_child(manager)
+	await _kill_each_zombie_as_it_spawns(manager)
+	assert_eq(manager.round_number, 1, "round 1 ended")
+	assert_eq(pickups_in(manager).size(), 2, "pickups dropped in round 1")
+	await run_seconds(settings.break_time + 0.2)
+	assert_eq(manager.round_number, 2, "round 2 started")
+	await _kill_each_zombie_as_it_spawns(manager)
+	assert_eq(pickups_in(manager).size(), 4, "pickups dropped in rounds 1 and 2")
+
+
+func _scene_dropping(table: DropTable) -> PackedScene:
+	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
+	zombie.drops = table
+	var scene := PackedScene.new()
+	scene.pack(zombie)
+	zombie.free()
+	return scene
+
+
+func _kill_each_zombie_as_it_spawns(manager: RoundManager) -> void:
+	while manager.state == RoundManager.State.ACTIVE:
+		await physics_frames(1)
+		for child: Node in manager.get_children():
+			if child is Zombie and not (child as Zombie).is_dead():
+				Health.find_on(child).damage(1.0e6)

@@ -23,6 +23,7 @@ var _zombies_to_spawn: int = 0
 var _zombies_alive: int = 0
 var _spawn_cooldown: float = 0.0
 var _break_left: float = 0.0
+var _drops_this_round: int = 0
 
 
 func _ready() -> void:
@@ -85,6 +86,7 @@ func _start_round(number: int) -> void:
 	round_number = number
 	state = State.ACTIVE
 	_zombies_to_spawn = settings.zombie_count(number)
+	_drops_this_round = 0
 	round_started.emit(number)
 	_spawn_zombie()
 
@@ -94,6 +96,9 @@ func _spawn_zombie() -> void:
 	var point := _next_active_spawn_point()
 	zombie.configure(settings.zombie_speed(round_number), settings.zombie_health(round_number), player, point.barricade)
 	Health.find_on(zombie).died.connect(_on_zombie_died)
+	zombie.dropped.connect(_on_zombie_dropped)
+	if _drops_this_round >= settings.max_drops:
+		zombie.drops = null
 	zombie.transform = point.global_transform
 	_zombies_to_spawn -= 1
 	_zombies_alive += 1
@@ -117,6 +122,15 @@ func _on_zombie_died() -> void:
 	if _zombies_alive > 0 or _zombies_to_spawn > 0:
 		return
 	_start_break()
+
+
+func _on_zombie_dropped() -> void:
+	_drops_this_round += 1
+	if _drops_this_round < settings.max_drops:
+		return
+	for child: Node in get_children():
+		if child is Zombie:
+			(child as Zombie).drops = null
 
 
 func _start_break() -> void:

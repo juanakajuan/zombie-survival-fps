@@ -2,9 +2,12 @@ class_name Zombie
 extends CharacterBody3D
 ## Melee zombie with the cartoon Shambler model (art_source/zombie.blend). It follows the navigation mesh to its target and hits it when close. The origin is at the feet.
 
-const GROUP := &"zombie"
+## Emitted when the zombie leaves a pickup at its death.
+signal dropped
 
 enum State { CHASE, BREACH, ATTACK, DEAD }
+
+const GROUP := &"zombie"
 
 @export_group("Attack")
 @export_range(0.5, 5.0, 0.05, "suffix:m") var attack_range: float = 1.3
@@ -229,3 +232,4 @@ func _drop_pickup() -> void:
 	pickup.lifetime = drops.lifetime
 	pickup.position = position
 	get_parent().add_child.call_deferred(pickup)
+	dropped.emit()
