@@ -30,3 +30,16 @@ func test_the_rifle_kills_a_round_1_zombie_in_fewer_body_shots_than_the_pistol()
 		assert_true(weapon.try_fire(), "the shot fires")
 		await run_seconds(RIFLE.fire_interval + 2.0 / Engine.physics_ticks_per_second)
 	assert_true(zombie.is_dead(), "the zombie is dead after %d rifle shots" % shots)
+
+
+func test_the_upgraded_rifle_has_more_damage_and_ammo() -> void:
+	var player := await spawn_player()
+	player.give_weapon(RIFLE)
+	player.upgrade_weapon()
+	var upgraded := player.weapon.data
+	assert_true(upgraded == RIFLE.upgrade, "the upgraded rifle is in hand")
+	assert_true(upgraded.damage > RIFLE.damage, "more damage")
+	assert_true(not upgraded.automatic, "still one shot for each press")
+	assert_true(upgraded.magazine_size > RIFLE.magazine_size, "a larger magazine")
+	assert_true(upgraded.max_reserve > RIFLE.max_reserve, "a larger reserve")
+	assert_true(upgraded.upgrade == null, "the upgraded rifle cannot be upgraded again")
