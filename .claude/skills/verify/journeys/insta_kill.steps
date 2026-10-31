@@ -1,0 +1,19 @@
+# Insta-kill: start it from the debug menu, see its timer on the HUD, kill a round 1 zombie with one pistol shot, and see the timer count down.
+# Without insta-kill a round 1 zombie takes 4 body shots (10, 20, 30, then 100 points), so 70 points means one shot killed it.
+expect hud.powerups
+expect hud.points 0
+debug GIVE INSTA-KILL
+expect hud.powerups INSTA-KILL 30
+state 01-started
+shot 01-started
+until zombies.alive 4 300
+fight_until hud.points 70 600
+expect zombies.alive 3
+expect_not hud.powerups 
+state 02-one-shot-kill
+shot 02-one-shot-kill
+wait 120
+expect_not hud.powerups INSTA-KILL 30
+expect_not hud.powerups
+state 03-counting-down
+shot 03-counting-down

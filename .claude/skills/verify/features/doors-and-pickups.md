@@ -9,6 +9,8 @@ A door is a brown panel that closes a gap in a wall. It has a yellow label: DOOR
 - `spawn-area` keeps the spawn point of a closed room silent until its door is open.
 - `pickup-ammo` fills the reserve of every held weapon on a walk over it, when one of them is below its maximum.
 - `pickup-double-points` doubles earned points for 30 s on a walk over it. Tests cover it: no double points pickup is placed in the test range.
+- `pickup-insta-kill` makes one pistol shot kill a round 1 zombie for 30 s, and the HUD lists `INSTA-KILL` with the seconds left. The debug menu's `GIVE INSTA-KILL` applies it as its pickup does. Proof: `.claude/skills/verify/journeys/insta_kill.steps`.
+- `pickup-nuke`, `pickup-repair-all`, the timer restart, and the drop limit for each round. Tests cover them (`tests/pickups/test_powerups.gd`, `tests/pickups/test_drop_table.gd`). The debug menu gives `NUKE` and `REPAIR ALL` for a manual look.
 - `pickup-drop` is the zombie drop and its expiry. Tests cover it: the 10% chance is not a thing to drive.
 
 ## How to get to it (user POV)

@@ -315,7 +315,10 @@ func _state() -> Dictionary[String, String]:
 		s["hud.ammo"] = hud.ammo_text
 		s["hud.weapon"] = hud.weapon_name
 		s["hud.points"] = hud.points_text
-		s["hud.powerups"] = "  |  ".join(hud.powerups)
+		var powerups := PackedStringArray()
+		for line: String in hud.powerups:
+			powerups.append(" ".join(line.split(" ", false)))
+		s["hud.powerups"] = " | ".join(powerups)
 		s["hud.prompt_visible"] = str(hud.prompt_visible)
 		s["hud.prompt"] = " ".join(hud.prompt_text.split(" ", false)) if hud.prompt_visible else ""
 		s["hud.reloading"] = str(hud.reloading)
