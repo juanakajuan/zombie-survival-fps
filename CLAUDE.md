@@ -5,6 +5,8 @@ An agent writes most of the code. The human uses the Godot editor at the same ti
 
 [DESIGN.md](DESIGN.md) has the core loop and the decided game rules. Read it before gameplay work. Update it in the same commit only when the change alters the core loop or a decided rule.
 
+Invoke the `pstack:poteto-mode` skill at the start of each task, and follow it. The human does not type it.
+
 ## Commands
 
 | Command | Use |
