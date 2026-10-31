@@ -83,14 +83,14 @@ func try_fire() -> bool:
 		if reserve > 0:
 			start_reload()
 		elif _cooldown == 0.0:
-			_cooldown = data.fire_interval
+			_cooldown = fire_interval()
 			dry_fired.emit()
 			dry_sound.play()
 		return false
 	if _cooldown > 0.0:
 		return false
 	ammo -= 1
-	_cooldown = data.fire_interval
+	_cooldown = fire_interval()
 	fired.emit()
 	shot_sound.play()
 	_shoot()
@@ -104,7 +104,7 @@ func start_reload() -> void:
 	if _state == State.RELOADING or ammo == data.magazine_size or reserve == 0:
 		return
 	_state = State.RELOADING
-	_cooldown = data.reload_time
+	_cooldown = reload_time()
 	reload_started.emit()
 	reload_sound.play()
 
@@ -121,6 +121,16 @@ func refill_reserve() -> bool:
 		return false
 	reserve = data.max_reserve
 	return true
+
+
+## The reload time of the data, changed by the wielder's perks.
+func reload_time() -> float:
+	return data.reload_time * (wielder.perks.reload_time_scale() if wielder != null else 1.0)
+
+
+## The time between shots of the data, changed by the wielder's perks.
+func fire_interval() -> float:
+	return data.fire_interval * (wielder.perks.fire_interval_scale() if wielder != null else 1.0)
 
 
 func is_reloading() -> bool:

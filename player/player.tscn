@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" path="res://player/punch_view.tscn" id="11_punch_view"]
 [ext_resource type="AudioStream" path="res://audio/player_hurt.tres" id="12_hurt"]
 [ext_resource type="PackedScene" path="res://debug_menu/debug_menu.tscn" id="13_debug_menu"]
+[ext_resource type="Script" path="res://perks/perks.gd" id="14_perks"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -50,14 +51,19 @@ script = ExtResource("2_health")
 [node name="Wallet" type="Node" parent="."]
 script = ExtResource("9_wallet")
 
+[node name="Perks" type="Node" parent="." node_paths=PackedStringArray("health")]
+script = ExtResource("14_perks")
+health = NodePath("../Health")
+
 [node name="Melee" type="Node" parent="."]
 script = ExtResource("10_melee")
 
-[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "melee", "wallet") instance=ExtResource("5_hud")]
+[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "melee", "wallet", "perks") instance=ExtResource("5_hud")]
 health = NodePath("../Health")
 weapon = NodePath("../Head/Camera3D/Weapon")
 melee = NodePath("../Melee")
 wallet = NodePath("../Wallet")
+perks = NodePath("../Perks")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
 

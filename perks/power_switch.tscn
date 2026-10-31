@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://perks/power_switch.gd" id="1_switch"]
+
+[sub_resource type="StandardMaterial3D" id="cabinet_material"]
+albedo_color = Color(0.3, 0.32, 0.34, 1)
+
+[sub_resource type="BoxMesh" id="cabinet_mesh"]
+material = SubResource("cabinet_material")
+size = Vector3(1, 1.8, 0.5)
+
+[sub_resource type="BoxShape3D" id="cabinet_shape"]
+size = Vector3(1, 1.8, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="lever_material"]
+albedo_color = Color(0.9, 0.75, 0.1, 1)
+
+[sub_resource type="BoxMesh" id="lever_mesh"]
+material = SubResource("lever_material")
+size = Vector3(0.12, 0.5, 0.12)
+
+[sub_resource type="SphereMesh" id="lamp_mesh"]
+radius = 0.1
+height = 0.2
+
+[node name="PowerSwitch" type="StaticBody3D"]
+script = ExtResource("1_switch")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.9, 0)
+mesh = SubResource("cabinet_mesh")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.9, 0)
+shape = SubResource("cabinet_shape")
+
+[node name="Lever" type="Node3D" parent="."]
+position = Vector3(0.2, 1.0, 0.31)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Lever"]
+position = Vector3(0, 0.25, 0)
+mesh = SubResource("lever_mesh")
+
+[node name="Lamp" type="MeshInstance3D" parent="."]
+position = Vector3(-0.25, 1.5, 0.25)
+mesh = SubResource("lamp_mesh")
+
+[node name="Label" type="Label3D" parent="."]
+position = Vector3(0, 2.1, 0)
+billboard = 1
+modulate = Color(1, 0.9, 0, 1)
+outline_modulate = Color(0.08, 0.08, 0.08, 1)
+text = "POWER"
+pixel_size = 0.0025
+font_size = 48
+outline_size = 12

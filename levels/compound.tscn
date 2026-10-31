@@ -13,6 +13,11 @@
 [ext_resource type="Script" path="res://rounds/spawn_point.gd" id="20_spawn_point"]
 [ext_resource type="PackedScene" path="res://doors/door.tscn" id="21_door"]
 [ext_resource type="PackedScene" path="res://barricades/barricade.tscn" id="22_barricade"]
+[ext_resource type="PackedScene" path="res://perks/power_switch.tscn" id="23_power_switch"]
+[ext_resource type="PackedScene" path="res://perks/perk_machine.tscn" id="24_perk_machine"]
+[ext_resource type="Resource" path="res://perks/iron_gut.tres" id="25_iron_gut"]
+[ext_resource type="Resource" path="res://perks/quick_hands.tres" id="26_quick_hands"]
+[ext_resource type="Resource" path="res://perks/hair_trigger.tres" id="27_hair_trigger"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -352,19 +357,6 @@ use_collision = true
 size = Vector3(1, 3, 11)
 material = SubResource("prop_material")
 
-[node name="LoadingDock" type="CSGBox3D" parent="Geometry"]
-position = Vector3(7, 0.6, 6.625)
-use_collision = true
-size = Vector3(14, 1.2, 4.75)
-material = SubResource("platform_material")
-
-[node name="LoadingDockRamp" type="CSGBox3D" parent="Geometry"]
-position = Vector3(19, 0.3986, 6.5)
-rotation = Vector3(0, 0, -0.1194)
-use_collision = true
-size = Vector3(10.0717, 0.4, 4)
-material = SubResource("ramp_material")
-
 [node name="OfficeWallNorth" type="CSGBox3D" parent="Geometry"]
 position = Vector3(-30, 1.75, 22)
 use_collision = true
@@ -590,3 +582,21 @@ position = Vector3(24.5, 0, 36)
 [node name="BarricadeWest" parent="." instance=ExtResource("22_barricade")]
 position = Vector3(-36, 0, -2)
 rotation = Vector3(0, -1.5707964, 0)
+
+[node name="PowerSwitch" parent="." instance=ExtResource("23_power_switch")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -33.5, 0, 25)
+
+[node name="IronGutMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 4.7)
+item = ExtResource("25_iron_gut")
+power = NodePath("../PowerSwitch")
+
+[node name="QuickHandsMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 2.5, 0, 4.7)
+item = ExtResource("26_quick_hands")
+power = NodePath("../PowerSwitch")
+
+[node name="HairTriggerMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5, 0, 4.7)
+item = ExtResource("27_hair_trigger")
+power = NodePath("../PowerSwitch")

@@ -16,6 +16,11 @@
 [ext_resource type="PackedScene" path="res://pickups/pickup.tscn" id="14_pickup"]
 [ext_resource type="Resource" path="res://pickups/max_ammo.tres" id="15_max_ammo"]
 [ext_resource type="PackedScene" path="res://barricades/barricade.tscn" id="16_barricade"]
+[ext_resource type="PackedScene" path="res://perks/power_switch.tscn" id="17_power_switch"]
+[ext_resource type="PackedScene" path="res://perks/perk_machine.tscn" id="18_perk_machine"]
+[ext_resource type="Resource" path="res://perks/iron_gut.tres" id="19_iron_gut"]
+[ext_resource type="Resource" path="res://perks/quick_hands.tres" id="20_quick_hands"]
+[ext_resource type="Resource" path="res://perks/hair_trigger.tres" id="21_hair_trigger"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -252,3 +257,21 @@ item = ExtResource("15_max_ammo")
 [node name="YardBarricade" parent="." instance=ExtResource("16_barricade")]
 position = Vector3(-15, 0, 17)
 rotation = Vector3(0, -1.5707964, 0)
+
+[node name="PowerSwitch" parent="." instance=ExtResource("17_power_switch")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 18, 0, 18.6)
+
+[node name="IronGutMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("18_perk_machine")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, 0)
+item = ExtResource("19_iron_gut")
+power = NodePath("../PowerSwitch")
+
+[node name="QuickHandsMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("18_perk_machine")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, -2.5)
+item = ExtResource("20_quick_hands")
+power = NodePath("../PowerSwitch")
+
+[node name="HairTriggerMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("18_perk_machine")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, -5)
+item = ExtResource("21_hair_trigger")
+power = NodePath("../PowerSwitch")

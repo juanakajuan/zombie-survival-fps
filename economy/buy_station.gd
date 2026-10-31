@@ -5,18 +5,26 @@ extends Interactable
 signal purchased
 
 @export var item: BuyItem
+## With a switch, the station sells only while the switch is on. Without one, it always sells.
+@export var power: PowerSwitch
 
 @onready var _label: Label3D = $Label
 
 
 func _ready() -> void:
-	_label.text = "%s\n%d" % [item.display_name, item.cost]
+	if power != null:
+		power.turned_on.connect(_update_label)
+	_update_label()
 
 
-## Sells the item to the player. Returns false, and takes no points, when the item would do nothing or the
-## player cannot pay.
+func has_power() -> bool:
+	return power == null or power.is_on()
+
+
+## Sells the item to the player. Returns false, and takes no points, when the station has no power, the item would do
+## nothing, or the player cannot pay.
 func buy(player: Player) -> bool:
-	if not item.can_apply(player) or not player.wallet.spend(item.price(player)):
+	if not has_power() or not item.can_apply(player) or not player.wallet.spend(item.price(player)):
 		return false
 	item.apply(player)
 	purchased.emit()
@@ -24,8 +32,14 @@ func buy(player: Player) -> bool:
 
 
 func prompt_text(player: Player) -> String:
+	if not has_power():
+		return "NEEDS POWER"
 	return "E  BUY %s  %d" % [item.label(player), item.price(player)]
 
 
 func press(player: Player) -> void:
 	buy(player)
+
+
+func _update_label() -> void:
+	_label.text = "%s\n%s" % [item.display_name, str(item.cost) if has_power() else "NO POWER"]

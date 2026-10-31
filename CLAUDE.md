@@ -12,6 +12,7 @@ An agent writes most of the code. The human uses the Godot editor at the same ti
 | `tools/check.sh [filter]` | The gate. It imports the project, lints the scripts, checks `project.godot`, loads every script and scene, and runs the tests. Run it after each change. |
 | `tools/smoke.sh [scene] [frames] [out.png]` | Runs the game off-screen with gamescope and saves a screenshot (default `.smoke/smoke.png`). Read the PNG to see the result. |
 | `godot --path . -e` | Opens the editor. This is for the human. |
+| `tools/editor.sh start\|stop\|status` | Runs an editor for this checkout off-screen, so the godot-ai tools can work on a worktree. Stop it when the work is done. |
 | `godot --headless --path . --import` | Imports new or changed assets. Run it in the main checkout after a pull that adds assets (a `.glb`, an image, a font). Without it, `tools/smoke.sh` and the verify skill's `drive.sh` load an old import, or none. |
 
 A change is done only when `tools/check.sh` passes. For a visual change, also run `tools/smoke.sh` and look at the screenshot.
@@ -73,6 +74,7 @@ A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes o
 ## Godot AI MCP server
 
 - `.mcp.json` registers the `godot-ai` server (hi-godot/godot-ai 4.3.1). Its addon is in `addons/godot_ai/`. It works only while the human has the editor open.
+- The human's editor is on the main checkout. In a worktree, run `tools/editor.sh start`. Its editor joins the same godot-ai server as a second session. Pass its `session_id` (from `session_manage` op `list`) to each tool call, or select it with `session_activate` and the worktree folder name. Edit a `.tscn` with the godot-ai tools while this editor runs, or stop the editor first. A file edit under a running editor goes stale in the editor's copy.
 - Use it to see the live editor: the scene tree, editor errors, and screenshots of and input to the game that runs from the editor.
 - To change a scene that is open in the editor, use the godot-ai tools. They edit the editor's copy, so the human's next save does not overwrite the change.
 - `tools/check.sh` is still the gate. A godot-ai result does not replace it.

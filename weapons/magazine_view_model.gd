@@ -55,7 +55,7 @@ func _on_reload_started(weapon: Weapon) -> void:
 	_restart_tween()
 	var phases := tilt_fraction + empty_well_fraction + insert_fraction + slap_fraction + untilt_fraction \
 		+ slide_pull_fraction + slide_release_fraction
-	var time := weapon.data.reload_time / maxf(phases, 1.0)
+	var time := weapon.reload_time() / maxf(phases, 1.0)
 	var tilt := tilt_angles * (PI / 180.0)
 	_tilted = _model_rest.translated_local(tilt_offset) * Transform3D(Basis.from_euler(tilt), Vector3.ZERO)
 	slide.position = _slide_rest
