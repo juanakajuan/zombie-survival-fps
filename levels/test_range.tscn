@@ -21,6 +21,7 @@
 [ext_resource type="Resource" path="res://perks/iron_gut.tres" id="19_iron_gut"]
 [ext_resource type="Resource" path="res://perks/quick_hands.tres" id="20_quick_hands"]
 [ext_resource type="Resource" path="res://perks/hair_trigger.tres" id="21_hair_trigger"]
+[ext_resource type="Resource" path="res://perks/second_wind.tres" id="22_second_wind"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -274,4 +275,9 @@ power = NodePath("../PowerSwitch")
 [node name="HairTriggerMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("18_perk_machine")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, -5)
 item = ExtResource("21_hair_trigger")
+power = NodePath("../PowerSwitch")
+
+[node name="SecondWindMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("18_perk_machine")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, 2.5)
+item = ExtResource("22_second_wind")
 power = NodePath("../PowerSwitch")

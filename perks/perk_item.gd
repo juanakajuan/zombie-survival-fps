@@ -1,6 +1,6 @@
 class_name PerkItem
 extends BuyItem
-## A perk that a perk machine sells. The player keeps it until death. Each value changes one stat while the perk is
+## A perk that a perk machine sells. The player keeps it until 0 health. Each value changes one stat while the perk is
 ## held, and a value at its default changes nothing.
 
 ## The short text on the perk's HUD icon.
@@ -12,8 +12,11 @@ extends BuyItem
 @export_range(0.1, 1.0, 0.05) var reload_time_scale: float = 1.0
 ## Multiplies the time between shots of every weapon.
 @export_range(0.1, 1.0, 0.05) var fire_interval_scale: float = 1.0
-## At 0 health the player is downed instead of dead. Without such a perk, the player dies at once.
-@export var self_revive: bool = false
+## Above 0, the player is downed at 0 health instead of dead, and stands up after this many seconds. Without such a
+## perk, the player dies at once.
+@export_range(0.0, 30.0, 0.5, "suffix:s") var self_revive_time: float = 0.0
+## The fraction of max health that the self-revive stands the player up with.
+@export_range(0.05, 1.0, 0.05) var self_revive_health: float = 0.5
 
 
 func can_apply(player: Player) -> bool:

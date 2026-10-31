@@ -1,6 +1,6 @@
 # Power and perks
 
-The power switch is a dark cabinet with a red lamp and a yellow lever up, labeled POWER, in the room behind the door. When the player looks at it within 2.5 m, the prompt shows `E  TURN ON POWER`. E turns the power on for good: the lamp goes green, the lever swings down, and the switch shows no prompt after. The three perk machines are tall purple boxes in a row at `x -5`. Without power, each one shows `NO POWER` under its name, and its prompt is `NEEDS POWER`. With power, it shows its cost, and E buys the perk: IRON GUT (2500) adds 50 max health, QUICK HANDS (3000) halves the reload time, and HAIR TRIGGER (2000) makes the time between shots 0.65 times as long. Each held perk shows a colored icon over the health bar: `H` red, `R` green, `F` orange. The player holds one of each, at most 4.
+The power switch is a dark cabinet with a red lamp and a yellow lever up, labeled POWER, in the room behind the door. When the player looks at it within 2.5 m, the prompt shows `E  TURN ON POWER`. E turns the power on for good: the lamp goes green, the lever swings down, and the switch shows no prompt after. The four perk machines are tall purple boxes in a row at `x -5`. Without power, each one shows `NO POWER` under its name, and its prompt is `NEEDS POWER`. With power, it shows its cost, and E buys the perk: IRON GUT (2500) adds 50 max health, QUICK HANDS (3000) halves the reload time, HAIR TRIGGER (2000) makes the time between shots 0.65 times as long, and SECOND WIND (1500) downs the player at 0 health and stands the player up after 4 s. Each held perk shows a colored icon over the health bar: `H` red, `R` green, `F` orange, `S` blue. The player holds one of each, at most 4, and loses all of them at 0 health.
 
 ## Sub-features
 
@@ -13,7 +13,7 @@ The power switch is a dark cabinet with a red lamp and a yellow lever up, labele
 ## How to get to it (user POV)
 
 - Start the test range. The switch is at `18 0 18.6` in the room (`x 12..20`, `z 12..20`). The room door is at `16.5 0 12` and costs 750.
-- The machines face east: IRON GUT at `-5 0 0`, QUICK HANDS at `-5 0 -2.5`, HAIR TRIGGER at `-5 0 -5`.
+- The machines face east: IRON GUT at `-5 0 0`, QUICK HANDS at `-5 0 -2.5`, HAIR TRIGGER at `-5 0 -5`, SECOND WIND at `-5 0 2.5`.
 - Get points from the debug menu (F1, `+5000 POINTS`), buy the door, turn on the switch, walk to a machine, and press E.
 
 ## Driving it with drive.sh

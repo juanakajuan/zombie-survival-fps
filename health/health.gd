@@ -4,7 +4,7 @@ extends Node
 
 signal damaged(amount: float)
 signal died
-## Emitted after `current` changes, from damage, heal(), raise_max(), or reset().
+## Emitted after `current` changes, from damage, heal(), raise_max(), lower_max(), or reset().
 signal changed(current: float)
 
 @export_range(1.0, 10000.0, 1.0) var max_health: float = 100.0
@@ -46,6 +46,15 @@ func raise_max(amount: float) -> void:
 		return
 	max_health += amount
 	current += amount
+	changed.emit(current)
+
+
+## Lowers max_health by `amount`, and `current` to the new max_health if it is above it.
+func lower_max(amount: float) -> void:
+	if amount == 0.0:
+		return
+	max_health -= amount
+	current = minf(current, max_health)
 	changed.emit(current)
 
 

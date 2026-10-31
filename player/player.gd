@@ -50,7 +50,8 @@ const GROUP := &"player"
 @export_range(0.0, 10.0, 0.05) var slide_friction: float = 0.6
 
 @export_group("Downed")
-## With a self-revive perk, the player is downed at 0 health for this long, then dies.
+## With a self-revive perk, the player is downed at 0 health. The perk stands the player up after its time, and if
+## this time ends first, the player dies.
 @export_range(0.5, 60.0, 0.5, "suffix:s") var downed_time: float = 10.0
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var downed_speed: float = 1.0
 ## The height of the head above the feet while downed.
@@ -112,6 +113,8 @@ enum Life { ALIVE, DOWNED, DEAD }
 var _stance := Stance.STANDING
 var _life := Life.ALIVE
 var _downed_left := 0.0
+var _self_revive_left := 0.0
+var _self_revive_health := 0.0
 ## The weapon in hand before the player went down.
 var _weapon_before_down: Weapon
 ## The pistol of a downed player who holds none. It is not in `weapons`, and a revive frees it.
@@ -200,8 +203,11 @@ func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
 	if is_downed():
 		_downed_left -= delta
+		_self_revive_left -= delta
 		hud.show_downed(_downed_left)
-		if _downed_left <= 0.0:
+		if _self_revive_left <= 0.0:
+			revive(_self_revive_health)
+		elif _downed_left <= 0.0:
 			_die()
 	_update_focus()
 	if _focused != null and weapon.trigger_enabled:
@@ -360,8 +366,10 @@ func _update_focus() -> void:
 
 
 func _on_health_died() -> void:
-	if perks.has_self_revive():
-		_go_down()
+	var self_revive := perks.self_revive()
+	perks.lose_all()
+	if self_revive != null:
+		_go_down(self_revive)
 	else:
 		_die()
 
@@ -371,9 +379,11 @@ func _on_health_changed(current: float) -> void:
 		_stand_up()
 
 
-func _go_down() -> void:
+func _go_down(self_revive: PerkItem) -> void:
 	_life = Life.DOWNED
 	_downed_left = downed_time
+	_self_revive_left = self_revive.self_revive_time
+	_self_revive_health = self_revive.self_revive_health
 	_weapon_before_down = weapon
 	_set_stance(Stance.CROUCHED)
 	var pistol := weapon_holding(downed_weapon)
