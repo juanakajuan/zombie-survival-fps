@@ -17,7 +17,7 @@ signal damaged(target: Node, killed: bool, headshot: bool)
 ## The damage at the edge of the blast. The damage falls off in a line between the two.
 @export_range(0.0, 10000.0, 1.0) var min_damage: float = 20.0
 ## What the blast does to the thrower, as a fraction of the damage a zombie takes. 0 never hurts the thrower.
-@export_range(0.0, 1.0, 0.05) var player_damage_scale: float = 0.5
+@export_range(0.0, 1.0, 0.05) var player_damage_scale: float = 0.25
 @export_flags_3d_physics var hit_mask: int = 1
 
 @export_group("Flash")
