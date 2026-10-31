@@ -88,6 +88,7 @@ func test_next_round_has_more_zombies_with_more_health_and_speed() -> void:
 		assert_almost_eq(Health.find_on(zombie).max_health, settings.zombie_health(2), 0.001, "round 2 health")
 		assert_almost_eq(Health.find_on(zombie).current, settings.zombie_health(2), 0.001, "round 2 zombie starts at full health")
 		assert_almost_eq(zombie.move_speed, settings.zombie_speed(2), 0.001, "round 2 speed")
+		assert_almost_eq(zombie.crawl_speed, settings.crawl_speed, 0.001, "crawl speed")
 	assert_true(Health.find_on(zombies[0]).max_health > first_health, "round 2 zombies have more health")
 	assert_true(zombies[0].move_speed > first_speed, "round 2 zombies are faster")
 

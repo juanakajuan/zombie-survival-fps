@@ -97,7 +97,7 @@ func _spawn_zombie() -> void:
 	var point := _next_active_spawn_point()
 	var gait := _next_gait()
 	var speed := settings.runner_speed if gait == Zombie.Gait.RUN else settings.zombie_speed(round_number)
-	zombie.configure(speed, settings.zombie_health(round_number), player, point.barricade, gait)
+	zombie.configure(speed, settings.crawl_speed, settings.zombie_health(round_number), player, point.barricade, gait)
 	Health.find_on(zombie).died.connect(_on_zombie_died)
 	zombie.dropped.connect(_on_zombie_dropped)
 	if _drops_this_round >= settings.max_drops:

@@ -2,6 +2,7 @@ extends TestCase
 
 const WEAPON_SCENE: PackedScene = preload("res://weapons/weapon.tscn")
 const PISTOL: WeaponData = preload("res://weapons/pistol.tres")
+const RIFLE: WeaponData = preload("res://weapons/rifle.tres")
 const FRAME_MARGIN := 3
 
 
@@ -132,6 +133,71 @@ func test_runner_wears_a_red_shirt_and_grey_pants_and_a_walker_does_not() -> voi
 	assert_true(runner.body_material("ShamblerSkin").albedo_color.is_equal_approx(walker.body_material("ShamblerSkin").albedo_color), "the skin is the same")
 
 
+func test_a_strong_shot_to_the_legs_makes_the_zombie_crawl_slowly() -> void:
+	await spawn_nav_world()
+	var player := await spawn_player(Vector3.ZERO, 3)
+	var zombie := spawn_zombie(Vector3(0.0, 0.0, -10.0), player)
+	var weapon := _spawn_weapon(Vector3(3.0, 1.0, -10.0), RIFLE)
+	await physics_frames(FRAME_MARGIN)
+	assert_true(RIFLE.damage >= zombie.leg_loss_damage, "the rifle is strong enough to take the legs")
+	_aim_at(weapon, zombie.global_position + Vector3(0.0, 0.3, 0.0))
+	assert_true(weapon.try_fire(), "leg shot fires")
+	assert_true(not zombie.is_dead(), "a round 1 zombie lives through one rifle shot")
+	assert_eq(zombie.gait, Zombie.Gait.CRAWL, "gait after the leg shot")
+	await physics_frames(FRAME_MARGIN)
+	assert_true(not zombie.animator.has_legs(), "the legs are gone")
+	var start := _flat_distance(zombie, player)
+	var seconds := 2.0
+	await run_seconds(seconds)
+	var speed := (start - _flat_distance(zombie, player)) / seconds
+	assert_true(speed > ROUND_SETTINGS.crawl_speed * 0.7 and speed < ROUND_SETTINGS.crawl_speed * 1.05,
+		"crawler moves at %s m/s, settings say %s m/s" % [speed, ROUND_SETTINGS.crawl_speed])
+
+
+func test_a_shot_at_chest_height_goes_over_a_crawler() -> void:
+	var zombie := _tall_zombie()
+	var health := Health.find_on(zombie)
+	var weapon := _spawn_weapon(Vector3(0.0, 1.2, 5.0))
+	await physics_frames(FRAME_MARGIN)
+	_aim_at(weapon, zombie.global_position + Vector3(0.0, 1.2, 0.0))
+	assert_true(weapon.try_fire(), "chest shot at a standing zombie fires")
+	assert_almost_eq(health.current, health.max_health - PISTOL.damage, 0.001, "the chest shot hits a standing zombie")
+	health.damage_at(zombie.leg_loss_damage, zombie.global_position)
+	await run_seconds(1.0)
+	var before := health.current
+	await run_seconds(PISTOL.fire_interval)
+	assert_true(weapon.try_fire(), "chest shot at the crawler fires")
+	assert_almost_eq(health.current, before, 0.001, "the chest shot goes over the crawler")
+
+
+func test_a_weak_shot_to_the_legs_or_a_strong_shot_to_the_body_leaves_the_legs() -> void:
+	var zombie := _tall_zombie()
+	var pistol := _spawn_weapon(Vector3(0.0, 1.0, 5.0))
+	var rifle := _spawn_weapon(Vector3(2.0, 1.0, 5.0), RIFLE)
+	await physics_frames(FRAME_MARGIN)
+	assert_true(PISTOL.damage < zombie.leg_loss_damage, "the pistol is too weak to take the legs")
+	_aim_at(pistol, zombie.global_position + Vector3(0.0, 0.3, 0.0))
+	assert_true(pistol.try_fire(), "pistol leg shot fires")
+	_aim_at(rifle, zombie.global_position + Vector3(0.0, 1.0, 0.0))
+	assert_true(rifle.try_fire(), "rifle body shot fires")
+	await physics_frames(FRAME_MARGIN)
+	assert_eq(zombie.gait, Zombie.Gait.WALK, "gait")
+	assert_true(zombie.animator.has_legs(), "the legs are on")
+
+
+func test_a_crawler_dies_on_its_front_and_goes() -> void:
+	var zombie := spawn_zombie(Vector3.ZERO)
+	var health := Health.find_on(zombie)
+	health.damage_at(zombie.leg_loss_damage, zombie.global_position)
+	await run_seconds(1.0)
+	health.damage(health.current)
+	await run_seconds(zombie.animator.fall_time + zombie.animator.bounce_time)
+	assert_almost_eq(zombie.animator.fall_tilt(), 0.0, 0.01, "the crawler does not fall back")
+	assert_true(not zombie.animator.has_legs(), "the dead crawler has no legs")
+	await run_seconds(zombie.animator.death_length() + FRAME_MARGIN / 60.0)
+	assert_true(not is_instance_valid(zombie) or not zombie.is_inside_tree(), "the crawler left the tree after its death")
+
+
 func test_the_head_shape_follows_the_animated_head() -> void:
 	await spawn_nav_world()
 	var player := await spawn_player(Vector3(0.0, 0.0, 0.0), 3)
@@ -183,9 +249,9 @@ func test_zombie_ignores_a_dead_player() -> void:
 	assert_almost_eq(zombie.global_position.distance_to(start), 0.0, 0.05, "zombie stays where it is")
 
 
-func _spawn_weapon(at: Vector3) -> Weapon:
+func _spawn_weapon(at: Vector3, data: WeaponData = PISTOL) -> Weapon:
 	var weapon := WEAPON_SCENE.instantiate() as Weapon
-	weapon.data = PISTOL
+	weapon.data = data
 	weapon.position = at
 	add_child(weapon)
 	return weapon

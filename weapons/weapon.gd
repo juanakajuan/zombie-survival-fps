@@ -173,12 +173,12 @@ func _shoot_ray(from: Vector3, direction: Vector3) -> void:
 	_spawn_tracer(_muzzle(), point)
 	hit.emit(collider, point)
 	var weak_spot := WeakSpot.find_hit(collider, shape_index)
-	if _try_damage(collider, data.damage * (weak_spot.damage_multiplier if weak_spot != null else 1.0), weak_spot != null) \
+	if _try_damage(collider, data.damage * (weak_spot.damage_multiplier if weak_spot != null else 1.0), weak_spot != null, point) \
 			and data.chain_targets > 0:
 		_chain(collider as CollisionObject3D, point)
 
 
-func _try_damage(collider: Object, amount: float, headshot: bool) -> bool:
+func _try_damage(collider: Object, amount: float, headshot: bool, point: Vector3) -> bool:
 	if not collider is Node:
 		return false
 	var health := Health.find_on(collider as Node)
@@ -186,7 +186,7 @@ func _try_damage(collider: Object, amount: float, headshot: bool) -> bool:
 		return false
 	if wielder != null:
 		amount = wielder.powerups.hit_damage(collider as Node, health, amount)
-	health.damage(amount)
+	health.damage_at(amount, point)
 	damaged.emit(collider, health.is_dead(), headshot)
 	return true
 
@@ -204,7 +204,7 @@ func _chain(first: CollisionObject3D, from: Vector3) -> void:
 		amount *= data.chain_damage_scale
 		_spawn_tracer(from, to)
 		hit.emit(next, to)
-		_try_damage(next, amount, false)
+		_try_damage(next, amount, false, to)
 		struck.append(next.get_rid())
 		from = to
 

@@ -91,7 +91,7 @@ func _explode() -> void:
 			continue
 		if thrower != null:
 			amount = thrower.powerups.hit_damage(collider, health, amount)
-		health.damage(amount)
+		health.damage_at(amount, global_position)
 		damaged.emit(collider, health.is_dead(), false)
 	exploded.emit()
 
