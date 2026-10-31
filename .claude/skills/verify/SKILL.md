@@ -64,7 +64,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 |---|---|
 | `hud.health`, `hud.ammo`, `hud.weapon` | The HUD text, for example `100`, `11 / 48` (rounds in the magazine, then in the reserve), and `PISTOL` (the weapon in hand). |
 | `hud.points`, `hud.prompt_visible`, `hud.prompt` | The points on the HUD, whether the buy prompt shows, and its text with each run of spaces made one space, for example `E BUY AMMO 250` (empty when hidden). |
-| `hud.boost` | The double points label under the points, for example `2X POINTS  23` (empty when no boost runs). |
+| `hud.powerups` | The timed effects under the points, one `NAME  seconds` entry for each, joined with `  |  `, for example `DOUBLE POINTS  23` (empty when none runs). |
 | `hud.reloading`, `hud.break`, `hud.round_visible` | Whether the RELOADING label, the BREAK label, and the round panel show. |
 | `hud.round`, `hud.objective` | The round number on the HUD, and the line under it: `4 LEFT` during a round (zombies alive plus zombies still to spawn), `NEXT ROUND IN 10` during the break. |
 | `hud.crosshair`, `hud.hit_marker`, `hud.headshot_marker` | Whether the crosshair shows (hidden while aiming), whether the hit marker shows (0.2 s after a shot hits a zombie or a dummy), and whether it shows in the headshot color (0.2 s after a shot hits a zombie's head). |

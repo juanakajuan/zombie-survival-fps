@@ -95,6 +95,7 @@ const GROUP := &"player"
 @onready var animator: PlayerAnimator = $Animator
 @onready var wallet: Wallet = $Wallet
 @onready var perks: Perks = $Perks
+@onready var powerups: Powerups = $Powerups
 @onready var hurt_sound: AudioStreamPlayer = $HurtSound
 @onready var health: Health = $Health
 @onready var _collision: CollisionShape3D = $CollisionShape3D

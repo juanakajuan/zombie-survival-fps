@@ -14,6 +14,7 @@
 [ext_resource type="AudioStream" path="res://audio/player_hurt.tres" id="12_hurt"]
 [ext_resource type="PackedScene" path="res://debug_menu/debug_menu.tscn" id="13_debug_menu"]
 [ext_resource type="Script" path="res://perks/perks.gd" id="14_perks"]
+[ext_resource type="Script" path="res://pickups/powerups.gd" id="15_powerups"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -51,22 +52,27 @@ script = ExtResource("2_health")
 regen_rate = 40.0
 regen_delay = 5.0
 
-[node name="Wallet" type="Node" parent="."]
+[node name="Wallet" type="Node" parent="." node_paths=PackedStringArray("powerups")]
 script = ExtResource("9_wallet")
+powerups = NodePath("../Powerups")
 
 [node name="Perks" type="Node" parent="." node_paths=PackedStringArray("health")]
 script = ExtResource("14_perks")
 health = NodePath("../Health")
 
+[node name="Powerups" type="Node" parent="."]
+script = ExtResource("15_powerups")
+
 [node name="Melee" type="Node" parent="."]
 script = ExtResource("10_melee")
 
-[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "melee", "wallet", "perks") instance=ExtResource("5_hud")]
+[node name="Hud" parent="." node_paths=PackedStringArray("health", "weapon", "melee", "wallet", "perks", "powerups") instance=ExtResource("5_hud")]
 health = NodePath("../Health")
 weapon = NodePath("../Head/Camera3D/Weapon")
 melee = NodePath("../Melee")
 wallet = NodePath("../Wallet")
 perks = NodePath("../Perks")
+powerups = NodePath("../Powerups")
 
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
 
