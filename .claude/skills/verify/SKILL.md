@@ -52,7 +52,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | `fight_until <key> <value> <frames>` | Repeat `aim` and `tap fire` (about 6 shots a second) until the state key has the value. Fails at the frame limit. |
 | `until <key> <value> <frames>` | Wait until the state key has the value. Fails at the frame limit. |
 | `walk_to <x> <z> <frames>` | Turn the view level toward the ground point and hold `move_forward` until the feet are within 0.4 m of it, turning again every 5 frames. It does not path around walls, so give it a point in a straight line. Fails at the frame limit. |
-| `debug <label>` | Run the debug menu command with this button label, as a click on it does, for example `debug +5000 POINTS`. The labels are `+500 POINTS`, `+5000 POINTS`, `REFILL AMMO`, `FULL HEALTH`, `GOD MODE`, `KILL ALL ZOMBIES`, and `SKIP BREAK`. |
+| `debug <label>` | Run the debug menu command with this button label, as a click on it does, for example `debug +5000 POINTS`. The labels are `+500 POINTS`, `+5000 POINTS`, `REFILL AMMO`, `FULL HEALTH`, `GOD MODE`, `KILL ALL ZOMBIES`, `SKIP BREAK`, and a `GIVE <weapon>` for each weapon that can be bought or rolled: `GIVE SMG`, `GIVE SHOTGUN`, `GIVE RIFLE`, `GIVE MACHINE GUN`, and `GIVE ARC GUN`. |
 | `self_revive` | Give the player SECOND WIND (HUD icon `S`) without the power and the points, so that 0 health downs the player. |
 | `expect <key> <value>` / `expect_not <key> <value>` | Compare a state value now. A failed expect is recorded and the run continues. Any other failed command stops the run. |
 | `state <name>` | Write the state to `<name>.json`. |

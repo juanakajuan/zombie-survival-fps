@@ -1,0 +1,26 @@
+# Arc gun: take it with the debug menu GIVE button, let round 1 zombies come close, fire into them, and clear the round.
+debug GOD MODE
+debug GIVE ARC GUN
+wait 5
+expect hud.weapon ARC GUN
+expect hud.ammo 8 / 48
+wait 40
+shot 01-arc-gun
+hold aim
+wait 30
+shot 02-aimed
+release aim
+until zombies.alive 4 300
+wait 420
+aim
+tap fire
+shot 03-arcs
+expect hud.ammo 7 / 48
+state 03-fired
+fight_until hud.break true 3600
+expect zombies.alive 0
+state 04-cleared
+shot 04-cleared
+tap reload
+wait 40
+shot 05-reload

@@ -1,6 +1,6 @@
 # Weapon box
 
-A purple box with a yellow lid stands 3.5 m behind the start, with the label WEAPON BOX and 950 over it. Looking at it shows `E  WEAPON BOX  950`. E takes 950 points and shows a random weapon name over the box, from `weapon_box/weapon_box_table.tres`, never one that the player holds. The prompt then shows `E  TAKE SMG`, and E puts the weapon in hand (with two held, it replaces the weapon in hand). An offer that the player does not take goes away after 8 s, with no refund. After 3 uses at a place, each use has a 15 % chance to give no weapon: the points come back and the box moves to another place.
+A purple box with a yellow lid stands 3.5 m behind the start, with the label WEAPON BOX and 950 over it. Looking at it shows `E  WEAPON BOX  950`. E takes 950 points and shows a random weapon name over the box, from `weapon_box/weapon_box_table.tres`, never one that the player holds. The prompt then shows `E  TAKE <weapon>`, for example `E  TAKE SHOTGUN`, and E puts the weapon in hand (with two held, it replaces the weapon in hand). An offer that the player does not take goes away after 8 s, with no refund. After 3 uses at a place, each use has a 15 % chance to give no weapon: the points come back and the box moves to another place.
 
 ## Sub-features
 
@@ -22,8 +22,8 @@ Preconditions:
 
 - **Earn points.** Clear rounds 1 and 2 as in `journeys/weapons.steps`. `expect hud.points 1060` passes.
 - **Face the box.** Run `face 180 0`, `hold move_forward`, `wait 25`, `release move_forward`, `wait 30`, `look 0 260`. `expect hud.prompt E WEAPON BOX 950` passes.
-- **Use.** Run `tap interact`, `wait 5`. `expect hud.points 110` and `expect box.offer SMG` pass, because the player holds the pistol. The screenshot shows SMG over the box.
-- **Take.** Run `tap interact`, `wait 5`. `expect hud.weapon SMG` and `expect box.offer` (empty) pass, and the prompt is `NO NEW WEAPONS`.
+- **Use.** Run `tap interact`, `wait 5`. `expect hud.points 110` passes, and `expect_not box.offer` (empty) passes because a weapon name is over the box. The roll is random: any weapon in the table except the pistol, which the player holds. The screenshot shows the name over the box.
+- **Take.** Run `tap interact`, `wait 5`. `expect_not hud.weapon PISTOL` and `expect box.offer` (empty) pass, and the prompt is `E  WEAPON BOX  950` again. `tests/weapon_box/test_weapon_box.gd` proves `NO NEW WEAPONS` with a table of two weapons.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/weapon_box.steps`.
 
 ## Gotchas

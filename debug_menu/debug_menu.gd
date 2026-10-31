@@ -6,6 +6,8 @@ extends CanvasLayer
 signal close_requested
 
 @export var point_grants: Array[int] = [500, 5000]
+## Each item gets a GIVE button that applies it to the player for free, as a station does after it takes the points.
+@export var gifts: Array[BuyItem] = []
 @export var button_size: Vector2 = Vector2(220.0, 40.0)
 
 ## Player sets it. Every command acts on it.
@@ -30,6 +32,8 @@ func _ready() -> void:
 	_god_button = _add_command("GOD MODE", _toggle_god_mode)
 	_add_command("KILL ALL ZOMBIES", _kill_zombies)
 	_add_command("SKIP BREAK", _skip_break)
+	for gift: BuyItem in gifts:
+		_add_command("GIVE %s" % gift.display_name, _give.bind(gift))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -85,6 +89,11 @@ func _add_command(label: String, run: Callable) -> Button:
 
 func _give_points(amount: int) -> void:
 	player.wallet.add(amount)
+
+
+func _give(gift: BuyItem) -> void:
+	if gift.can_apply(player):
+		gift.apply(player)
 
 
 func _refill_ammo() -> void:

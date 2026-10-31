@@ -16,6 +16,18 @@ extends Resource
 ## The largest angle between a ray and the aim. The rays spread evenly over the cone.
 @export_range(0.0, 45.0, 0.1, "suffix:°") var spread: float = 0.0
 @export var automatic: bool = false
+
+@export_group("Chain")
+## After a ray damages a living target, an arc jumps to this many more, one after the other. Each jump goes to the
+## nearest living target that the last one can see within `chain_range`, and that the shot did not hit yet.
+@export_range(0, 16) var chain_targets: int = 0
+@export_range(0.5, 30.0, 0.5, "suffix:m") var chain_range: float = 6.0
+## Each jump deals the damage of the one before it times this.
+@export_range(0.0, 1.0, 0.01) var chain_damage_scale: float = 0.75
+## The arc aims this far above a target's origin, at the chest of a zombie.
+@export_range(0.0, 3.0, 0.05, "suffix:m") var chain_aim_height: float = 1.1
+@export_group("")
+
 ## The model the player sees in first person. The Weapon node adds it as a child.
 @export var view_model: PackedScene
 ## The gun alone, for the world. A wall buy draws its silhouette.

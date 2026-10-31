@@ -2,6 +2,7 @@ extends TestCase
 
 const BOX_SCENE: PackedScene = preload("res://weapon_box/weapon_box.tscn")
 const SMG_ITEM: WeaponItem = preload("res://economy/smg_item.tres")
+const PISTOL_ITEM: WeaponItem = preload("res://weapon_box/pistol_item.tres")
 
 
 func test_a_use_costs_the_price_and_offers_a_weapon_from_the_table() -> void:
@@ -32,6 +33,7 @@ func test_the_player_takes_the_offered_weapon_with_interact() -> void:
 func test_the_box_never_gives_a_weapon_the_player_holds() -> void:
 	var player := await spawn_player()
 	var box := _spawn_box(0.0)
+	box.table = _pistol_and_smg_table()
 	box.offer_time = 1.0
 	for _i: int in 10:
 		player.wallet.add(box.cost)
@@ -43,6 +45,7 @@ func test_the_box_never_gives_a_weapon_the_player_holds() -> void:
 func test_a_box_with_no_new_weapon_takes_no_points() -> void:
 	var player := await spawn_player()
 	var box := _spawn_box(0.0)
+	box.table = _pistol_and_smg_table()
 	player.give_weapon(SMG_ITEM.weapon)
 	player.wallet.add(box.cost)
 	assert_eq(box.prompt_text(player), "NO NEW WEAPONS", "prompt")
@@ -106,6 +109,16 @@ func _spawn_box(move_chance: float) -> WeaponBox:
 	box.position = Vector3(0.0, 0.0, -2.0)
 	add_child(box)
 	return box
+
+
+## A table with only the pistol and the SMG, so a player who holds both can get nothing new.
+func _pistol_and_smg_table() -> WeaponBoxTable:
+	var table := WeaponBoxTable.new()
+	for item: WeaponItem in [PISTOL_ITEM, SMG_ITEM]:
+		var entry := WeaponBoxEntry.new()
+		entry.item = item
+		table.entries.append(entry)
+	return table
 
 
 func _place(at: Vector3) -> Marker3D:

@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://weapons/thrown_gun.gd" id="1_thrown"]
+
+[sub_resource type="BoxShape3D" id="shape"]
+size = Vector3(0.042, 0.09, 0.042)
+
+[sub_resource type="PhysicsMaterial" id="bounce"]
+bounce = 0.35
+
+[node name="ArcGunCellThrown" type="RigidBody3D"]
+collision_layer = 2
+mass = 0.2
+physics_material_override = SubResource("bounce")
+script = ExtResource("1_thrown")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.045, 0)
+shape = SubResource("shape")

@@ -155,29 +155,90 @@ func _shoot_ray(from: Vector3, direction: Vector3) -> void:
 	query.hit_from_inside = true
 	var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
 	if result.is_empty():
-		_spawn_tracer(query.to)
+		_spawn_tracer(_muzzle(), query.to)
 		return
 	var collider: Object = result["collider"]
 	var point: Vector3 = result["position"]
 	var shape_index: int = result["shape"]
-	_spawn_tracer(point)
+	_spawn_tracer(_muzzle(), point)
 	hit.emit(collider, point)
-	if collider is Node:
-		var health := Health.find_on(collider as Node)
-		if health != null:
-			if health.is_dead():
-				return
-			var weak_spot := WeakSpot.find_hit(collider, shape_index)
-			health.damage(data.damage * (weak_spot.damage_multiplier if weak_spot != null else 1.0))
-			damaged.emit(collider, health.is_dead(), weak_spot != null)
+	var weak_spot := WeakSpot.find_hit(collider, shape_index)
+	if _damage(collider, data.damage * (weak_spot.damage_multiplier if weak_spot != null else 1.0), weak_spot != null) \
+			and data.chain_targets > 0:
+		_chain(collider as CollisionObject3D, point)
 
 
-func _spawn_tracer(to: Vector3) -> void:
+## Damages the Health of the collider, when it has one that is alive. Returns whether it did.
+func _damage(collider: Object, amount: float, headshot: bool) -> bool:
+	if not collider is Node:
+		return false
+	var health := Health.find_on(collider as Node)
+	if health == null or health.is_dead():
+		return false
+	health.damage(amount)
+	damaged.emit(collider, health.is_dead(), headshot)
+	return true
+
+
+## Sends the arc from the first target hit at `from` to up to `data.chain_targets` more, each one a hit.
+func _chain(first: CollisionObject3D, from: Vector3) -> void:
+	var struck: Array[RID] = [first.get_rid()]
+	if wielder != null:
+		struck.append(wielder.get_rid())
+	var amount := data.damage
+	for _jump: int in data.chain_targets:
+		var next := _next_chain_target(from, struck)
+		if next == null:
+			return
+		var to := next.global_position + Vector3.UP * data.chain_aim_height
+		amount *= data.chain_damage_scale
+		_spawn_tracer(from, to)
+		hit.emit(next, to)
+		_damage(next, amount, false)
+		struck.append(next.get_rid())
+		from = to
+
+
+## The nearest body with a living Health within `data.chain_range` of `from` that `from` can see, and that is not in
+## `struck`, or null.
+func _next_chain_target(from: Vector3, struck: Array[RID]) -> CollisionObject3D:
+	var sphere := SphereShape3D.new()
+	sphere.radius = data.chain_range
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = sphere
+	query.transform = Transform3D(Basis.IDENTITY, from)
+	query.collision_mask = hit_mask
+	query.exclude = struck
+	var space := get_world_3d().direct_space_state
+	var nearest: CollisionObject3D = null
+	for found: Dictionary in space.intersect_shape(query, 64):
+		var collider: Object = found["collider"]
+		var body := collider as CollisionObject3D
+		if body == null:
+			continue
+		var health := Health.find_on(body)
+		if health == null or health.is_dead():
+			continue
+		var to := body.global_position + Vector3.UP * data.chain_aim_height
+		if nearest != null and from.distance_to(to) >= from.distance_to(nearest.global_position + Vector3.UP * data.chain_aim_height):
+			continue
+		var sight := PhysicsRayQueryParameters3D.create(from, to, hit_mask, struck)
+		var blocker: Dictionary = space.intersect_ray(sight)
+		var seen: Object = blocker.get("collider")
+		if seen == null or seen == body:
+			nearest = body
+	return nearest
+
+
+func _spawn_tracer(from: Vector3, to: Vector3) -> void:
 	if data.tracer == null:
 		return
 	var tracer := data.tracer.instantiate() as Tracer
 	add_child(tracer)
-	var from := global_position
-	if view_model != null and view_model.muzzle != null:
-		from = view_model.muzzle.global_position
 	tracer.launch(from, to)
+
+
+func _muzzle() -> Vector3:
+	if view_model != null and view_model.muzzle != null:
+		return view_model.muzzle.global_position
+	return global_position

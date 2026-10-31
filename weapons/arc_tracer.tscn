@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://weapons/tracer.gd" id="1_tracer"]
+
+[sub_resource type="StandardMaterial3D" id="glow"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.45, 0.95, 1, 0.9)
+disable_receive_shadows = true
+
+[sub_resource type="BoxMesh" id="streak"]
+material = SubResource("glow")
+size = Vector3(0.06, 0.06, 1)
+
+[node name="ArcTracer" type="MeshInstance3D"]
+cast_shadow = 0
+mesh = SubResource("streak")
+script = ExtResource("1_tracer")
+speed = 60.0
+length = 4.0

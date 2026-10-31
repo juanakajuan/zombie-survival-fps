@@ -21,8 +21,8 @@ shot 02-prompt
 tap interact
 wait 5
 expect hud.points 110
-expect box.offer SMG
-expect hud.prompt E TAKE SMG
+expect_not box.offer
+expect_not hud.prompt E WEAPON BOX 950
 look 0 -200
 wait 5
 state 03-offer
@@ -31,10 +31,9 @@ look 0 200
 wait 5
 tap interact
 wait 5
-expect hud.weapon SMG
-expect hud.ammo 30 / 150
+expect_not hud.weapon PISTOL
 expect box.offer
-expect hud.prompt NO NEW WEAPONS
+expect hud.prompt E WEAPON BOX 950
 wait 40
 state 04-taken
 shot 04-taken
