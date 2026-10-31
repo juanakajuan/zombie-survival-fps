@@ -213,7 +213,7 @@ func _physics_process(delta: float) -> void:
 		melee.try_swing()
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_update_stance(on_floor, delta)
-	var jumping := on_floor and Input.is_action_just_pressed("jump") and _life == Life.ALIVE
+	var jumping := on_floor and Input.is_action_just_pressed("jump") and not is_dead() and not is_downed()
 	if jumping:
 		velocity.y = jump_velocity
 	elif on_floor:
@@ -349,7 +349,7 @@ func revive(health_fraction: float) -> void:
 
 func _update_focus() -> void:
 	_focused = null
-	if _life != Life.ALIVE:
+	if is_dead() or is_downed():
 		return
 	var aim := aim_transform()
 	var query := PhysicsRayQueryParameters3D.create(aim.origin, aim.origin - aim.basis.z * interact_range, collision_mask, [get_rid()])
@@ -536,9 +536,9 @@ func _air_accelerate(wish_dir: Vector3, target_speed: float, delta: float) -> vo
 
 
 func _update_stance(on_floor: bool, delta: float) -> void:
-	if _life == Life.ALIVE:
+	if not is_dead() and not is_downed():
 		_choose_stance(on_floor)
-	var head_height := downed_head_height if _life != Life.ALIVE else _stand_head_height - (_stand_height - crouch_height if is_crouching() else 0.0)
+	var head_height := downed_head_height if is_dead() or is_downed() else _stand_head_height - (_stand_height - crouch_height if is_crouching() else 0.0)
 	head.position.y = move_toward(head.position.y, head_height, crouch_camera_speed * delta)
 
 
