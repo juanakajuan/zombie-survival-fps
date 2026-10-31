@@ -120,12 +120,6 @@ func test_downed_time_ends_in_death() -> void:
 	assert_almost_eq(player.camera.global_position.y, low, 0.01, "the dead player stays on the ground")
 
 
-func test_health_pickup_does_not_revive_a_downed_player() -> void:
-	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	_down(player)
-	assert_true(not HealthItem.new().can_apply(player), "a downed player cannot take health")
-
-
 func test_revive_stands_the_player_up() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	player.downed_time = 0.5

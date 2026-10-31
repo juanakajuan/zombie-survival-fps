@@ -1,10 +1,10 @@
 # Death, game over, and restart
 
-Zombies hit the player for 10 damage each second when they are close. At 0 health the player dies and cannot move, look, fire, or reload. A GAME OVER screen shows the round that the player reached and releases the mouse. Enter starts the level again from round 1.
+Zombies hit the player for 40 damage each second when they are close, so three hits kill. Health comes back by itself: 3.5 s after the last hit, it refills at 40 each second. At 0 health the player dies and cannot move, look, fire, or reload. A GAME OVER screen shows the round that the player reached and releases the mouse. Enter starts the level again from round 1.
 
 ## Sub-features
 
-- `zombie-attack` removes 10 health each second for each zombie within 1.3 m (flat distance). The first hit comes 1 s after the zombie gets close, and the zombie keeps hitting until the player is more than 1.6 m away.
+- `zombie-attack` removes 40 health each second for each zombie within 1.3 m (flat distance). The first hit comes 1 s after the zombie gets close, and the zombie keeps hitting until the player is more than 1.6 m away.
 - `player-death` stops all player input at 0 health.
 - `game-over-screen` shows GAME OVER, `You reached round N`, and `Press Enter to restart`, and releases the mouse.
 - `restart` reloads the level on Enter: round 1, 100 health, `12 / 48`, the mouse captured.
@@ -22,7 +22,7 @@ Preconditions:
 
 - Baseline state. Do not fire, so that all 4 zombies of round 1 reach the player.
 
-- **Die.** Run `until zombies.alive 4 300`, then `until game_over.visible true 3600`. It passes after about 10 s. `expect player.dead true` and `expect hud.health 0` pass.
+- **Die.** Run `until zombies.alive 4 300`, then `until game_over.visible true 3600`. It passes after a few seconds. `expect player.dead true` and `expect hud.health 0` pass.
 - **Read the screen.** `expect game_over.text You reached round 1` and `expect mouse.mode visible` pass. The screenshot shows GAME OVER over a dim screen.
 - **Dead input.** Run `tap move_forward` and `tap fire`. `expect hud.ammo 12 / 48` passes.
 - **Restart.** Run `tap restart`, `wait 10`. `expect game_over.visible false`, `expect player.dead false`, `expect hud.health 100`, `expect hud.ammo 12 / 48`, `expect hud.round 1`, `expect player.position 0.0 0.0 6.0`, and `expect mouse.mode captured` pass.

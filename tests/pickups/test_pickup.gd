@@ -1,7 +1,6 @@
 extends TestCase
 
 const MAX_AMMO: BuyItem = preload("res://pickups/max_ammo.tres")
-const HEALTH: BuyItem = preload("res://pickups/health.tres")
 const SMG_ITEM: WeaponItem = preload("res://economy/smg_item.tres")
 const FAR := Vector3(10.0, 0.0, 0.0)
 
@@ -18,26 +17,14 @@ func test_walking_over_max_ammo_fills_the_reserve_of_every_held_weapon() -> void
 	assert_true(not is_instance_valid(pickup), "the pickup is gone")
 
 
-func test_walking_over_health_heals_the_player() -> void:
-	var player := await spawn_player()
-	player.health.damage(60.0)
-	var pickup := spawn_pickup(HEALTH, Vector3.ZERO)
-	await physics_frames(3)
-	assert_eq(player.health.current, player.health.max_health, "health")
-	assert_true(not is_instance_valid(pickup), "the pickup is gone")
-
-
 func test_a_pickup_that_would_do_nothing_stays_on_the_ground() -> void:
 	var player := await spawn_player()
 	var pickup := spawn_pickup(MAX_AMMO, Vector3.ZERO)
-	var heal := spawn_pickup(HEALTH, Vector3.ZERO)
 	await physics_frames(5)
 	assert_true(is_instance_valid(pickup), "the max ammo pickup stays with full reserves")
-	assert_true(is_instance_valid(heal), "the health pickup stays with full health")
 	player.weapon.reserve = 1
 	await physics_frames(3)
 	assert_true(not is_instance_valid(pickup), "the max ammo pickup is taken once the reserve is low")
-	assert_true(is_instance_valid(heal), "the health pickup still stays")
 
 
 func test_a_pickup_far_from_the_player_is_not_taken() -> void:
@@ -61,6 +48,6 @@ func test_a_pickup_with_a_lifetime_expires_and_one_without_stays() -> void:
 
 
 func test_the_pickup_shows_the_item_name() -> void:
-	var pickup := spawn_pickup(HEALTH, FAR)
+	var pickup := spawn_pickup(MAX_AMMO, FAR)
 	await physics_frames(1)
-	assert_eq(pickup.label_text(), "HEALTH", "label")
+	assert_eq(pickup.label_text(), "MAX AMMO", "label")

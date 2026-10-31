@@ -74,6 +74,46 @@ func test_changed_reports_current_after_damage_and_reset() -> void:
 	assert_eq(reported, [70.0, 100.0] as Array[float], "changed emitted with the new current")
 
 
+func test_health_without_regen_rate_does_not_come_back() -> void:
+	var health := _spawn_health(100.0)
+	health.damage(40.0)
+	await run_seconds(1.0)
+	assert_almost_eq(health.current, 60.0, 0.001, "current")
+
+
+func test_health_comes_back_after_the_delay_up_to_max_health() -> void:
+	var health := _spawn_health(100.0)
+	health.regen_rate = 20.0
+	health.regen_delay = 0.5
+	health.damage(40.0)
+	await run_seconds(0.4)
+	assert_almost_eq(health.current, 60.0, 0.001, "no change before the delay")
+	await run_seconds(1.1)
+	assert_almost_eq(health.current, 80.0, 1.0, "20 hp after one second of regeneration")
+	await run_seconds(2.0)
+	assert_almost_eq(health.current, 100.0, 0.001, "stops at max_health")
+
+
+func test_damage_starts_the_delay_again() -> void:
+	var health := _spawn_health(100.0)
+	health.regen_rate = 20.0
+	health.regen_delay = 0.5
+	health.damage(40.0)
+	await run_seconds(0.4)
+	health.damage(10.0)
+	await run_seconds(0.4)
+	assert_almost_eq(health.current, 50.0, 0.001, "no change in the new delay")
+
+
+func test_dead_health_does_not_come_back() -> void:
+	var health := _spawn_health(100.0)
+	health.regen_rate = 20.0
+	health.regen_delay = 0.1
+	health.damage(100.0)
+	await run_seconds(0.5)
+	assert_true(health.is_dead(), "still dead")
+
+
 func test_find_on_returns_direct_child_health_or_null() -> void:
 	var holder := Node.new()
 	add_child(holder)

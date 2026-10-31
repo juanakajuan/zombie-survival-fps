@@ -8,6 +8,8 @@ Zombies come in rounds. The HUD shows the round number at the top center, and un
 - `round-clear` starts the break when the last zombie dies, and shows BREAK.
 - `round-next` starts round 2 after 10 s, hides BREAK, and spawns 6 zombies.
 - `hud-health` shows health as a number and a segmented bar, red at 30 or less.
+- `hud-low-health` shows a red edge around the screen below 30 health. It gets stronger as health drops, and goes when health comes back.
+- `health-regen` refills the player's health at 40 each second, 3.5 s after the last hit. Proof: `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/health_regen.steps`. The `low` screenshot shows the red edge at `20 / 100`, and the `healed` screenshot shows `100 / 100` with no red edge.
 - `hud-round` shows the round number, and `N LEFT` under it (zombies alive plus zombies still to spawn). In the break it shows `NEXT ROUND IN s`.
 - `zombie-scaling` gives round n zombies `100 + 20 (n - 1)` health, so a round 2 zombie needs 5 pistol hits.
 - `zombie-health-bar` shows a red bar 2.2 m over a zombie after its first hit. It always faces the camera, empties as the zombie loses health, and hides at 0 health. An unhurt zombie has no bar.

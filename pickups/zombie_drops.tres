@@ -3,10 +3,9 @@
 [ext_resource type="Script" path="res://pickups/drop_table.gd" id="1_table"]
 [ext_resource type="Script" path="res://economy/buy_item.gd" id="2_buy_item"]
 [ext_resource type="Resource" path="res://pickups/max_ammo.tres" id="3_ammo"]
-[ext_resource type="Resource" path="res://pickups/health.tres" id="4_health"]
 
 [resource]
 script = ExtResource("1_table")
 chance = 0.1
-items = Array[ExtResource("2_buy_item")]([ExtResource("3_ammo"), ExtResource("4_health")])
+items = Array[ExtResource("2_buy_item")]([ExtResource("3_ammo")])
 lifetime = 20.0
