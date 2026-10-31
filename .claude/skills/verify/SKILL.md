@@ -97,7 +97,11 @@ Each run writes to `.smoke/verify/<run id>/` (git ignores `.smoke/`). The defaul
 
 Read the PNG files to look at the result. A proof has these properties:
 
-- It uses the player's path: Input Map actions, keys, and the mouse. It does not call game methods or set fields. The driver reads state but never writes it.
+- It uses the player's path: Input Map actions, keys, and the mouse. It does not call game methods or set fields. The driver reads state but never writes it, with two exceptions for setup:
+  - `debug <label>` calls `DebugMenu.run_command()`, the method that the button's `pressed` signal calls, so the result is the same as a click. The debug menu is a test tool, not a feature that a journey proves.
+  - `self_revive` calls `player.perks.add()`. The buy station needs the power on and the points, and the journeys that use it prove the downed state and the revive, not the buy.
+
+  Use these two only to set up a precondition. Do not use them for the action that the journey proves.
 - It captures the action and the state after it: a `state` or `shot` before and after, and an `expect` on the change, not only the last screen.
 - It checks the result in two views when it can: the HUD text (`expect`) and the screenshot.
 - It runs the full journey of the feature file. If a precondition is missing, report the failure. Do not make the journey weaker so that it passes.
