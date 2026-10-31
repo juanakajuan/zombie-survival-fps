@@ -1,0 +1,37 @@
+# Shotgun: get points from the debug menu, walk to the shotgun wall buy on the room's west wall, buy the shotgun, fire one shell of pellets.
+expect hud.weapon PISTOL
+debug +5000 POINTS
+expect hud.points 5000
+face -127.4 -5
+shot 01-wall-buy-far
+hold move_forward
+until hud.prompt_visible true 900
+release move_forward
+wait 10
+expect hud.prompt E BUY SHOTGUN 1200
+state 02-prompt
+shot 02-wall-buy
+tap interact
+wait 5
+expect hud.points 3800
+expect hud.weapon SHOTGUN
+expect hud.ammo 6 / 36
+wait 40
+shot 03-shotgun
+expect hud.prompt E BUY SHOTGUN AMMO 500
+face 0 0
+wait 10
+tap fire
+shot 04-pellets
+expect hud.ammo 5 / 36
+state 04-fired
+hold aim
+wait 30
+shot 05-aimed
+release aim
+tap reload
+wait 50
+shot 06-reload-throw
+until hud.reloading false 200
+expect hud.ammo 6 / 35
+state 06-reloaded

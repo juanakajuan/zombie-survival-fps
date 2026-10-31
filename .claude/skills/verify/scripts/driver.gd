@@ -117,6 +117,10 @@ func _step(line: String) -> bool:
 			return await _fight_until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
 		"self_revive":
 			_give_self_revive()
+		"walk_to":
+			return await _walk_to(Vector2(parts[1].to_float(), parts[2].to_float()), parts[3].to_int())
+		"debug":
+			return _run_debug_command(" ".join(parts.slice(1)))
 		"until":
 			return await _until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
 		_:
@@ -128,6 +132,16 @@ func _step(line: String) -> bool:
 ## Gives the player SECOND WIND without the power switch and the points, to show the downed state quickly.
 func _give_self_revive() -> void:
 	(get_first_node_in_group(Player.GROUP) as Player).perks.add(SECOND_WIND)
+
+
+## Runs a debug menu command by its button label, as a click on the button does.
+func _run_debug_command(label: String) -> bool:
+	var menu := (get_first_node_in_group(Player.GROUP) as Player).debug_menu
+	if not menu.command_labels().has(label):
+		printerr("driver: no debug command %s in %s" % [label, menu.command_labels()])
+		return false
+	menu.run_command(label)
+	return true
 
 
 func _wait_frames(count: int) -> void:
@@ -219,6 +233,30 @@ func _face(yaw: float, pitch: float) -> bool:
 		return false
 	await _turn(player.mouse_delta_to_angles(yaw, pitch))
 	return true
+
+
+## Walks to a point on the ground, as a player does: it turns the view level toward the point with the mouse and holds
+## move_forward, and turns again every few frames. It stops within 0.4 m. It does not path around walls.
+func _walk_to(target: Vector2, max_frames: int) -> bool:
+	var player := get_first_node_in_group(Player.GROUP) as Player
+	if player == null:
+		printerr("driver: walk_to found no player")
+		return false
+	_send_action(&"move_forward", true)
+	for i: int in max_frames:
+		var at := Vector2(player.global_position.x, player.global_position.z)
+		if at.distance_to(target) < 0.4:
+			_send_action(&"move_forward", false)
+			print("driver: ok walked to %s after %d frames" % [target, i])
+			return true
+		if i % 5 == 0:
+			var eye := player.aim_transform().origin
+			await _turn(player.mouse_delta_to(Vector3(target.x, eye.y, target.y)))
+		else:
+			await physics_frame
+	_send_action(&"move_forward", false)
+	printerr("driver: walk_to %s stopped at %s after %d frames" % [target, player.global_position, max_frames])
+	return false
 
 
 func _turn(relative: Vector2) -> void:

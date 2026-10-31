@@ -27,8 +27,8 @@ extends ViewModel
 @export var left_hand_exit_offset: Vector3 = Vector3(0.0, -0.3, 0.0)
 ## The slap pushes the gun up this far, and it comes back.
 @export_range(0.0, 0.1, 0.005, "suffix:m") var slap_bump: float = 0.02
-## Each phase lasts this fraction of the weapon's reload time. When the sum is above 1, every phase shrinks by
-## the same factor.
+## Each phase lasts this fraction of the weapon's reload time. Every phase is scaled by the same factor so that
+## the motion ends when the reload does.
 @export_range(0.0, 1.0, 0.01) var tilt_fraction: float = 0.12
 @export_range(0.0, 1.0, 0.01) var empty_well_fraction: float = 0.15
 @export_range(0.0, 1.0, 0.01) var insert_fraction: float = 0.25
@@ -55,7 +55,7 @@ func _on_reload_started(weapon: Weapon) -> void:
 	_restart_tween()
 	var phases := tilt_fraction + empty_well_fraction + insert_fraction + slap_fraction + untilt_fraction \
 		+ slide_pull_fraction + slide_release_fraction
-	var time := weapon.reload_time() / maxf(phases, 1.0)
+	var time := weapon.reload_time() / phases
 	var tilt := tilt_angles * (PI / 180.0)
 	_tilted = _model_rest.translated_local(tilt_offset) * Transform3D(Basis.from_euler(tilt), Vector3.ZERO)
 	slide.position = _slide_rest

@@ -19,6 +19,7 @@
 [ext_resource type="Resource" path="res://perks/quick_hands.tres" id="26_quick_hands"]
 [ext_resource type="Resource" path="res://perks/hair_trigger.tres" id="27_hair_trigger"]
 [ext_resource type="Resource" path="res://perks/second_wind.tres" id="28_second_wind"]
+[ext_resource type="PackedScene" path="res://economy/wall_buy.tscn" id="29_wall_buy"]
 [ext_resource type="PackedScene" path="res://upgrades/upgrade_machine.tscn" id="29_upgrade_machine"]
 [ext_resource type="PackedScene" path="res://weapon_box/weapon_box.tscn" id="30_weapon_box"]
 
@@ -608,6 +609,10 @@ power = NodePath("../PowerSwitch")
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.5, 0, 4.7)
 item = ExtResource("28_second_wind")
 power = NodePath("../PowerSwitch")
+
+[node name="ShotgunWallBuy" parent="." instance=ExtResource("29_wall_buy")]
+position = Vector3(0, 0, 18.75)
+rotation = Vector3(0, 1.5707964, 0)
 
 [node name="UpgradeMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("29_upgrade_machine")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 10, 0, 4.8)

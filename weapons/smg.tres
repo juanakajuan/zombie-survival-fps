@@ -3,7 +3,8 @@
 [ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_data"]
 [ext_resource type="PackedScene" path="res://weapons/smg_view.tscn" id="2_view"]
 [ext_resource type="PackedScene" path="res://weapons/tracer.tscn" id="3_tracer"]
-[ext_resource type="Resource" path="res://weapons/smg_upgraded.tres" id="4_upgrade"]
+[ext_resource type="PackedScene" path="res://weapons/smg.glb" id="4_model"]
+[ext_resource type="Resource" path="res://weapons/smg_upgraded.tres" id="5_upgrade"]
 
 [resource]
 script = ExtResource("1_data")
@@ -17,4 +18,5 @@ max_range = 100.0
 automatic = true
 view_model = ExtResource("2_view")
 tracer = ExtResource("3_tracer")
-upgrade = ExtResource("4_upgrade")
+world_model = ExtResource("4_model")
+upgrade = ExtResource("5_upgrade")

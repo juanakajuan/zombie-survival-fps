@@ -1,0 +1,43 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://economy/wall_buy.gd" id="1_wall_buy"]
+[ext_resource type="Resource" path="res://economy/shotgun_item.tres" id="2_item"]
+
+[sub_resource type="StandardMaterial3D" id="silhouette_material"]
+shading_mode = 0
+albedo_color = Color(0.95, 0.82, 0.45, 1)
+
+[sub_resource type="StandardMaterial3D" id="board_material"]
+albedo_color = Color(0.16, 0.17, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="board_mesh"]
+material = SubResource("board_material")
+size = Vector3(1.4, 0.6, 0.04)
+
+[sub_resource type="BoxShape3D" id="board_shape"]
+size = Vector3(1.4, 0.6, 0.1)
+
+[node name="WallBuy" type="StaticBody3D"]
+script = ExtResource("1_wall_buy")
+silhouette_material = SubResource("silhouette_material")
+item = ExtResource("2_item")
+
+[node name="Board" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0.02)
+mesh = SubResource("board_mesh")
+
+[node name="Silhouette" type="Node3D" parent="."]
+transform = Transform3D(0, 0, -1.3, 0, 1.3, 0, 0.065, 0, 0, -0.18, 1.36, 0.045)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0.05)
+shape = SubResource("board_shape")
+
+[node name="Label" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 0.05)
+modulate = Color(1, 0.9, 0, 1)
+outline_modulate = Color(0.08, 0.08, 0.08, 1)
+text = "SHOTGUN"
+pixel_size = 0.0025
+font_size = 48
+outline_size = 12
