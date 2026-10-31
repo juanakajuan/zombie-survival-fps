@@ -11,6 +11,7 @@ An agent writes most of the code. The human uses the Godot editor at the same ti
 |---|---|
 | `tools/check.sh [filter]` | The gate. It imports the project, lints the scripts, checks `project.godot`, loads every script and scene, and runs the tests. Run it after each change. |
 | `tools/smoke.sh [scene] [frames] [out.png]` | Runs the game off-screen with gamescope and saves a screenshot (default `.smoke/smoke.png`). Read the PNG to see the result. |
+| `tools/record_sfx.sh [name ...]` | Records sound effects from the microphone into `audio/sfx/`. It cuts the silence and sets the level. This is for the human: it needs a terminal. |
 | `godot --path . -e` | Opens the editor. This is for the human. |
 | `tools/editor.sh start\|stop\|status` | Runs an editor for this checkout off-screen, so the godot-ai tools can work on a worktree. Stop it when the work is done. |
 | `godot --headless --path . --import` | Imports new or changed assets. Run it in the main checkout after a pull that adds assets (a `.glb`, an image, a font). Without it, `tools/smoke.sh` and the verify skill's `drive.sh` load an old import, or none. |
