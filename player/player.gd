@@ -100,13 +100,13 @@ const GROUP := &"player"
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
 ## The weapon in hand: one of `weapons`, or the loaner pistol of a downed player who holds no pistol.
-var weapon: Weapon
+@onready var weapon: Weapon = $Head/Camera3D/Weapon
 ## The weapons the player holds, in slot order. Only `weapon` fires; the others are holstered.
-var weapons: Array[Weapon] = []
-var melee: Melee
-var grenades: Grenades
-var punch_view: PunchView
-var grenade_view: GrenadeView
+@onready var weapons: Array[Weapon] = [weapon]
+@onready var melee: Melee = $Melee
+@onready var grenades: Grenades = $Grenades
+@onready var punch_view: PunchView = $Head/Camera3D/PunchView
+@onready var grenade_view: GrenadeView = $Head/Camera3D/GrenadeView
 var settings: GameSettings
 
 enum Stance { STANDING, CROUCHED, SLIDING }
@@ -126,21 +126,6 @@ var _stand_height: float
 var _stand_head_height: float
 var _third_person := false
 var _focused: Interactable
-
-
-func _enter_tree() -> void:
-	# The weapon and its view model read the wielder in their _ready, which runs before this node's _ready.
-	weapon = $Head/Camera3D/Weapon
-	weapon.wielder = self
-	weapons.append(weapon)
-	melee = $Melee
-	melee.wielder = self
-	grenades = $Grenades
-	grenades.wielder = self
-	punch_view = $Head/Camera3D/PunchView
-	punch_view.melee = melee
-	grenade_view = $Head/Camera3D/GrenadeView
-	grenade_view.grenades = grenades
 
 
 func _ready() -> void:

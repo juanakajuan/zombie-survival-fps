@@ -16,6 +16,8 @@ signal damaged(target: Node, killed: bool, headshot: bool)
 ## The most grenades the player holds. A round never takes the count above it.
 @export_range(1, 20) var max_count: int = 4
 @export var grenade_scene: PackedScene
+## The player who throws.
+@export var wielder: Player
 
 ## COOKING runs from the pin pull to the release. WINDING runs from the release until the grenade leaves the hand, and
 ## RECOVERING until the next grenade can be started.
@@ -40,8 +42,6 @@ enum State { READY, COOKING, WINDING, RECOVERING }
 ## From the moment the grenade leaves the hand until the next grenade can be started.
 @export_range(0.01, 2.0, 0.01, "suffix:s") var throw_recover_time: float = 0.3
 
-## The player who throws. Player sets it.
-var wielder: Player
 var count: int
 
 var _state: State = State.READY

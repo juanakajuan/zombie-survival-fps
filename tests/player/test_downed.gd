@@ -213,3 +213,12 @@ func test_the_revive_uses_up_second_wind() -> void:
 	player.health.damage(player.health.max_health)
 	assert_true(player.is_dead(), "with the perk used up, 0 health kills")
 
+
+
+func test_death_lowers_the_first_person_gun() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var model := player.weapon.view_model.model
+	var rest := model.position
+	player.health.damage(player.health.max_health)
+	await run_seconds(player.weapon.view_model.raise_time + 0.1)
+	assert_true(model.position.distance_to(rest) > 0.01, "the gun moves to its lowered pose, got %s" % model.position)

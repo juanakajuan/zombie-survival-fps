@@ -18,8 +18,8 @@ enum State { READY, WIND_UP, RECOVER }
 @export_range(0.01, 2.0, 0.01, "suffix:s") var recover_time: float = 0.22
 @export_flags_3d_physics var hit_mask: int = 1
 
-## The player who punches. The strike never hits the wielder. Player sets it.
-var wielder: Player
+## The player who punches. The strike never hits the wielder.
+@export var wielder: Player
 
 var _state: State = State.READY
 var _time_left: float = 0.0

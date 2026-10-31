@@ -25,8 +25,8 @@ extends Node3D
 ## The jab takes this fraction of the wind-up, and ends when the strike lands. The pull back takes the rest.
 @export_range(0.05, 1.0, 0.01) var jab_lead: float = 0.6
 
-## The melee that drives the pose. Player sets it.
-var melee: Melee
+## The melee that drives the pose.
+@export var melee: Melee
 
 
 func _ready() -> void:
