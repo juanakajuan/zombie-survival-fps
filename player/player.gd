@@ -292,7 +292,7 @@ func weapon_holding(data: WeaponData) -> Weapon:
 ## Takes the weapon in this slot in hand. It does nothing for the slot in hand, a slot with no weapon, or a downed or dead player.
 ## The weapon that goes away loses its reload in progress.
 func switch_to(index: int) -> void:
-	if _life != Life.ALIVE or index < 0 or index >= weapons.size() or weapons[index] == weapon:
+	if is_dead() or is_downed() or index < 0 or index >= weapons.size() or weapons[index] == weapon:
 		return
 	_holster(weapon)
 	_equip(weapons[index])
