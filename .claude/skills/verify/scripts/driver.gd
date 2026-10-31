@@ -113,7 +113,9 @@ func _step(line: String) -> bool:
 		"face":
 			return await _face(deg_to_rad(parts[1].to_float()), deg_to_rad(parts[2].to_float()))
 		"fight_until":
-			return await _fight_until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
+			return await _attack_until(&"fire", 6, parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
+		"punch_until":
+			return await _attack_until(&"melee", 20, parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
 		"self_revive":
 			_give_self_revive()
 		"walk_to":
@@ -265,21 +267,21 @@ func _dist(a: Node3D, b: Node3D) -> float:
 	return a.global_position.distance_to(b.global_position)
 
 
-func _fight_until(key: String, want: String, max_frames: int) -> bool:
+func _attack_until(action: StringName, gap_frames: int, key: String, want: String, max_frames: int) -> bool:
 	var start := Engine.get_physics_frames()
 	while Engine.get_physics_frames() - start < max_frames:
 		if str(_state().get(key, "<missing>")) == want:
 			print("driver: ok %s == %s after %d frames" % [key, want, Engine.get_physics_frames() - start])
 			return true
 		await _aim_nearest_zombie()
-		if not _send_action(&"fire", true):
+		if not _send_action(action, true):
 			return false
 		await _wait_flush()
 		await _wait_frames(1)
-		_send_action(&"fire", false)
+		_send_action(action, false)
 		await _wait_flush()
-		await _wait_frames(6)
-	printerr("driver: fight: %s never became %s in %d frames, last %s" % [key, want, max_frames, str(_state().get(key))])
+		await _wait_frames(gap_frames)
+	printerr("driver: %s: %s never became %s in %d frames, last %s" % [action, key, want, max_frames, str(_state().get(key))])
 	return false
 
 
