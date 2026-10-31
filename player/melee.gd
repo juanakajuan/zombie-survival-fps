@@ -40,9 +40,9 @@ func _physics_process(delta: float) -> void:
 		_time_left = 0.0
 
 
-## Starts a swing. Returns false during a swing, and when the wielder is missing or dead.
+## Starts a swing. Returns false during a swing, and when the wielder is missing, downed, or dead.
 func try_swing() -> bool:
-	if _state != State.READY or wielder == null or wielder.is_dead():
+	if _state != State.READY or wielder == null or wielder.is_dead() or wielder.is_downed():
 		return false
 	_state = State.WIND_UP
 	_time_left = wind_up_time

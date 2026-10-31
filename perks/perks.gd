@@ -22,6 +22,11 @@ func add(perk: PerkItem) -> void:
 	changed.emit()
 
 
+## Whether a held perk downs the player at 0 health instead of killing them.
+func has_self_revive() -> bool:
+	return held.any(func(perk: PerkItem) -> bool: return perk.self_revive)
+
+
 func reload_time_scale() -> float:
 	var scale := 1.0
 	for perk: PerkItem in held:

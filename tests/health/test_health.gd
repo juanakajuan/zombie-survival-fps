@@ -90,3 +90,16 @@ func _spawn_health(max_health: float) -> Health:
 	health.died.connect(func() -> void: _died_count += 1)
 	add_child(health)
 	return health
+
+
+func test_heal_raises_health_up_to_max_and_ignores_zero_or_less() -> void:
+	var health := Health.new()
+	add_child(health)
+	health.damage(60.0)
+	health.heal(20.0)
+	assert_almost_eq(health.current, 60.0, 0.001, "healed by 20")
+	health.heal(0.0)
+	health.heal(-5.0)
+	assert_almost_eq(health.current, 60.0, 0.001, "zero or less heals nothing")
+	health.heal(1000.0)
+	assert_almost_eq(health.current, health.max_health, 0.001, "health stops at max")

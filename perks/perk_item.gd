@@ -12,6 +12,8 @@ extends BuyItem
 @export_range(0.1, 1.0, 0.05) var reload_time_scale: float = 1.0
 ## Multiplies the time between shots of every weapon.
 @export_range(0.1, 1.0, 0.05) var fire_interval_scale: float = 1.0
+## At 0 health the player is downed instead of dead. Without such a perk, the player dies at once.
+@export var self_revive: bool = false
 
 
 func can_apply(player: Player) -> bool:
