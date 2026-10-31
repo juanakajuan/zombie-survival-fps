@@ -51,3 +51,7 @@ func kills_on_hit() -> bool:
 			return true
 	return false
 
+
+## The damage that a hit on `target` deals: the whole health of a zombie while an effect kills on hit, else `amount`.
+func hit_damage(target: Node, health: Health, amount: float) -> float:
+	return health.current if target is Zombie and kills_on_hit() else amount

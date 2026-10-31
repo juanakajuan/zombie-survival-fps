@@ -42,6 +42,53 @@ func test_walking_over_a_pickup_does_nothing_for_a_dead_player() -> void:
 	assert_eq(player.powerups.running().size(), 0, "no effect runs")
 
 
+func test_insta_kill_makes_one_shot_kill_a_full_health_zombie_and_pays_as_usual() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var zombie := _still_zombie(Vector3(0.0, 0.0, -4.0), player)
+	await physics_frames(2)
+	player.powerups.start(_insta_kill(5.0))
+	assert_true(player.weapon.try_fire(), "shot fires")
+	assert_true(zombie.is_dead(), "one shot kills a full health zombie")
+	assert_eq(player.wallet.points, player.wallet.points_per_hit + player.wallet.kill_bonus, "hit and kill bonus")
+
+
+func test_insta_kill_makes_one_punch_kill_a_full_health_zombie() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var zombie := _still_zombie(Vector3(0.0, 0.0, -1.2), player)
+	player.powerups.start(_insta_kill(5.0))
+	Input.action_press("melee")
+	await physics_frames(2)
+	Input.action_release("melee")
+	await run_seconds(player.melee.wind_up_time + player.melee.recover_time + 0.1)
+	assert_true(zombie.is_dead(), "one punch kills a full health zombie")
+	assert_eq(player.wallet.points, player.wallet.points_per_hit + player.wallet.kill_bonus, "hit and kill bonus")
+
+
+func test_a_shot_does_not_kill_once_insta_kill_has_ended() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var zombie := _still_zombie(Vector3(0.0, 0.0, -4.0), player)
+	await physics_frames(2)
+	player.powerups.start(_insta_kill(0.5))
+	await run_seconds(0.7)
+	assert_true(player.weapon.try_fire(), "shot fires")
+	assert_true(not zombie.is_dead(), "the zombie survives a shot")
+
+
+func test_insta_kill_does_not_one_shot_a_target_dummy() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var dummy := await spawn_dummy(Vector3(0.0, 0.0, -4.0))
+	player.powerups.start(_insta_kill(5.0))
+	assert_true(player.weapon.try_fire(), "shot fires")
+	var health := Health.find_on(dummy)
+	assert_almost_eq(health.current, health.max_health - player.weapon.data.damage, 0.001, "the dummy takes the normal damage")
+
+
+func _still_zombie(at: Vector3, player: Player) -> Zombie:
+	var zombie := spawn_zombie(at, player)
+	zombie.move_speed = 0.0
+	return zombie
+
+
 func _insta_kill(duration: float) -> InstaKillItem:
 	var item := InstaKillItem.new()
 	item.display_name = "INSTA-KILL"
