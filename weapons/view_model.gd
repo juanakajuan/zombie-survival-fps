@@ -102,6 +102,8 @@ var _toss_time := 0.0
 static var _unshadowed_copies: Dictionary[BaseMaterial3D, BaseMaterial3D] = {}
 var _player: Player
 var _lowered := false
+## The wielded weapon's view_materials.
+var _materials: Dictionary[String, Material] = {}
 
 var _bob_phase := 0.0
 var _time := 0.0
@@ -117,12 +119,15 @@ var _last_view := Vector2.ZERO
 
 
 func _ready() -> void:
+	var weapon := get_parent() as Weapon
+	if weapon != null:
+		_materials = weapon.data.view_materials
+	_swap_materials(model, _materials)
 	detach_from_shadows(self)
 	_motion_rest = motion.transform
 	_model_rest = model.transform
 	_slide_rest = slide.position
 	_last_view = _view_angles()
-	var weapon := get_parent() as Weapon
 	if weapon != null:
 		_player = weapon.wielder
 		weapon.fired.connect(_on_fired)
@@ -245,6 +250,7 @@ func _throw() -> void:
 	_player.get_parent().add_child(gun)
 	gun.global_transform = model.global_transform
 	gun.add_collision_exception_with(_player)
+	_swap_materials(gun, _materials)
 	gun.linear_velocity = _player.velocity + global_basis * throw_velocity
 	gun.angular_velocity = global_basis * throw_spin
 
@@ -281,6 +287,17 @@ func _lowered_transform() -> Transform3D:
 func _hold_hand_upright(upright: bool) -> void:
 	if hand_anchor != null:
 		hand_anchor.update_rotation = not upright
+
+
+## Swaps each surface material under root whose name is a key of materials for the value.
+static func _swap_materials(root: Node, materials: Dictionary[String, Material]) -> void:
+	if materials.is_empty():
+		return
+	for mesh: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
+		for surface: int in mesh.mesh.get_surface_count():
+			var original := mesh.mesh.surface_get_material(surface)
+			if original != null and materials.has(original.resource_name):
+				mesh.set_surface_override_material(surface, materials[original.resource_name])
 
 
 ## A first-person model floats in front of the camera, so its shadow would fall where nothing is, and the player's

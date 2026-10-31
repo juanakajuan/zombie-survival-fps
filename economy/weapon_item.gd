@@ -16,7 +16,7 @@ func label(player: Player) -> String:
 
 func can_apply(player: Player) -> bool:
 	var held := player.weapon_holding(weapon)
-	return held == null or held.reserve < weapon.max_reserve
+	return held == null or held.reserve < held.data.max_reserve
 
 
 func apply(player: Player) -> void:
