@@ -271,12 +271,7 @@ func mouse_delta_to_angles(yaw: float, pitch: float) -> Vector2:
 ## Adds a weapon with this data and takes it in hand. When the player already holds `max_weapons`, it replaces
 ## the weapon in hand. Returns the new weapon.
 func give_weapon(data: WeaponData) -> Weapon:
-	var given := weapon_scene.instantiate() as Weapon
-	given.data = data
-	given.wielder = self
-	given.trigger_enabled = weapon.trigger_enabled
-	camera.add_child(given)
-	given.damaged.connect(_on_damaged)
+	var given := _make_weapon(data)
 	_holster(weapon)
 	if weapons.size() >= max_weapons:
 		var replaced := weapon
@@ -288,10 +283,24 @@ func give_weapon(data: WeaponData) -> Weapon:
 	return given
 
 
-## The held weapon that has this data, or null.
+## Replaces the weapon in hand with its `WeaponData.upgrade`, with a full magazine and reserve. Returns the new weapon,
+## or null when the weapon in hand has no upgrade.
+func upgrade_weapon() -> Weapon:
+	if weapon.data.upgrade == null:
+		return null
+	var upgraded := _make_weapon(weapon.data.upgrade)
+	var replaced := weapon
+	_holster(replaced)
+	weapons[weapons.find(replaced)] = upgraded
+	replaced.queue_free()
+	_equip(upgraded)
+	return upgraded
+
+
+## The held weapon that has this data or its upgrade, or null.
 func weapon_holding(data: WeaponData) -> Weapon:
 	for held: Weapon in weapons:
-		if held.data == data:
+		if held.data == data or (data.upgrade != null and held.data == data.upgrade):
 			return held
 	return null
 
@@ -389,12 +398,7 @@ func _go_down(self_revive: PerkItem) -> void:
 	_set_stance(Stance.CROUCHED)
 	var pistol := weapon_holding(downed_weapon)
 	if pistol == null:
-		pistol = weapon_scene.instantiate() as Weapon
-		pistol.data = downed_weapon
-		pistol.wielder = self
-		pistol.trigger_enabled = weapon.trigger_enabled
-		camera.add_child(pistol)
-		pistol.damaged.connect(_on_damaged)
+		pistol = _make_weapon(downed_weapon)
 		_temporary_weapon = pistol
 	if pistol != weapon:
 		_holster(weapon)
@@ -424,6 +428,16 @@ func _die() -> void:
 		held.trigger_enabled = false
 	weapon.trigger_enabled = false
 	died.emit()
+
+
+func _make_weapon(data: WeaponData) -> Weapon:
+	var made := weapon_scene.instantiate() as Weapon
+	made.data = data
+	made.wielder = self
+	made.trigger_enabled = weapon.trigger_enabled
+	camera.add_child(made)
+	made.damaged.connect(_on_damaged)
+	return made
 
 
 func _holster(held: Weapon) -> void:

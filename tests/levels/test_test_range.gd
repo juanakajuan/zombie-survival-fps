@@ -44,3 +44,10 @@ func test_the_level_has_an_ammo_station_and_a_weapon_station_that_sells_the_smg(
 	var level := await spawn_level()
 	assert_true(sells(level, AmmoItem), "an ammo station")
 	assert_true(sells_weapon(level, "SMG"), "a weapon station that sells the SMG")
+
+
+func test_the_level_has_an_upgrade_machine_on_the_power_switch() -> void:
+	var level := await spawn_level()
+	var machines: Array[BuyStation] = stations_in(level).filter(func(station: BuyStation) -> bool: return station.item is UpgradeItem)
+	assert_eq(machines.size(), 1, "one upgrade machine")
+	assert_true(machines[0].power == level.get_node("PowerSwitch"), "it needs the power switch")
