@@ -97,3 +97,40 @@ func test_shooting_a_dead_zombie_gives_no_points() -> void:
 	Health.find_on(zombie).damage(1.0e6)
 	assert_true(player.weapon.try_fire(), "shot fires")
 	assert_eq(player.wallet.points, 0, "a corpse gives no points")
+
+
+func test_a_boost_multiplies_hit_and_board_points_until_it_ends() -> void:
+	var player := await spawn_player()
+	var wallet := player.wallet
+	wallet.boost(2, 1.0)
+	wallet.reward_hit(true, true)
+	var kill := (wallet.points_per_hit + wallet.kill_bonus + wallet.headshot_bonus) * 2
+	assert_eq(wallet.points, kill, "a boosted headshot kill")
+	wallet.reward_board()
+	assert_eq(wallet.points, kill + wallet.points_per_board * 2, "a boosted board")
+	await run_seconds(1.2)
+	assert_eq(wallet.multiplier, 1, "the boost has ended")
+	wallet.reward_hit(false, false)
+	assert_eq(wallet.points, kill + wallet.points_per_board * 2 + wallet.points_per_hit, "a hit after the boost")
+
+
+func test_a_boost_does_not_multiply_added_points_or_the_board_limit() -> void:
+	var player := await spawn_player()
+	var wallet := player.wallet
+	wallet.boost(2, 30.0)
+	wallet.add(500)
+	assert_eq(wallet.points, 500, "add is not boosted")
+	for _i: int in 20:
+		wallet.reward_board()
+	assert_eq(wallet.points, 500 + wallet.board_points_per_round * 2, "the limit counts points before the boost")
+
+
+func test_a_new_boost_restarts_the_time() -> void:
+	var player := await spawn_player()
+	var wallet := player.wallet
+	wallet.boost(2, 1.0)
+	await run_seconds(0.8)
+	wallet.boost(2, 1.0)
+	await run_seconds(0.8)
+	assert_eq(wallet.multiplier, 2, "the boost still runs")
+	assert_almost_eq(wallet.boost_time_left(), 0.2, 0.05, "time left")

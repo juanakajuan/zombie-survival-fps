@@ -1,7 +1,7 @@
 extends TestCase
 
 const MAX_AMMO: BuyItem = preload("res://pickups/max_ammo.tres")
-const HEALTH: BuyItem = preload("res://pickups/health.tres")
+const DOUBLE_POINTS: BuyItem = preload("res://pickups/double_points.tres")
 
 
 func test_a_zombie_with_chance_1_drops_a_pickup_at_its_feet_when_it_dies() -> void:
@@ -29,7 +29,7 @@ func test_a_zombie_with_chance_0_or_no_table_drops_nothing() -> void:
 
 func test_the_drop_is_one_of_the_items_of_the_table() -> void:
 	var seen: Dictionary[BuyItem, bool] = {}
-	var table := _table(1.0, [MAX_AMMO, HEALTH])
+	var table := _table(1.0, [MAX_AMMO, DOUBLE_POINTS])
 	for _i: int in 60:
 		seen[table.roll()] = true
 	assert_eq(seen.size(), 2, "different items rolled")
@@ -39,7 +39,7 @@ func test_a_zombie_of_the_game_drops_by_the_table_of_its_scene() -> void:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
 	assert_true(zombie.drops != null, "the zombie scene has a drop table")
 	assert_almost_eq(zombie.drops.chance, 0.1, 0.001, "chance")
-	assert_eq(zombie.drops.items.size(), 2, "items")
+	assert_eq(zombie.drops.items, [MAX_AMMO, DOUBLE_POINTS] as Array[BuyItem], "items")
 	zombie.free()
 
 

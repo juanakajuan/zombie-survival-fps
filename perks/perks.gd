@@ -10,16 +10,30 @@ signal changed
 
 var held: Array[PerkItem] = []
 
+var _times_taken: Dictionary[PerkItem, int] = {}
 
-## Whether the player can take this perk now: it is not held, and fewer than max_held are.
+
+## Whether the player can take this perk now: it is not held, fewer than max_held are, and it is not sold out.
 func can_add(perk: PerkItem) -> bool:
-	return not held.has(perk) and held.size() < max_held
+	return not held.has(perk) and held.size() < max_held and not sold_out(perk)
 
 
 func add(perk: PerkItem) -> void:
 	held.append(perk)
+	_times_taken[perk] = times_taken(perk) + 1
 	health.raise_max(perk.max_health_bonus)
 	changed.emit()
+
+
+## How many times the player took this perk in the run. The scene reload on restart starts the count again.
+func times_taken(perk: PerkItem) -> int:
+	var count: int = _times_taken.get(perk, 0)
+	return count
+
+
+## Whether the player took this perk max_buys times in the run.
+func sold_out(perk: PerkItem) -> bool:
+	return perk.max_buys > 0 and times_taken(perk) >= perk.max_buys
 
 
 ## Removes every held perk and its max health bonus.

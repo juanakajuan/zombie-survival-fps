@@ -120,10 +120,17 @@ func test_downed_time_ends_in_death() -> void:
 	assert_almost_eq(player.camera.global_position.y, low, 0.01, "the dead player stays on the ground")
 
 
-func test_health_pickup_does_not_revive_a_downed_player() -> void:
+func test_the_hud_tells_a_downed_player_when_the_perk_stands_them_up() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	_down(player)
-	assert_true(not HealthItem.new().can_apply(player), "a downed player cannot take health")
+	player.perks.add(SECOND_WIND)
+	player.health.damage(player.health.max_health)
+	await run_seconds(0.5)
+	var readout := player.hud.readout()
+	assert_true(readout.revive_visible, "the HUD shows the self-revive line")
+	assert_eq(readout.revive_text, "SECOND WIND  GETTING UP IN %d" % ceili(SECOND_WIND.self_revive_time - 0.5), "self-revive text")
+	await run_seconds(SECOND_WIND.self_revive_time)
+	assert_true(not player.is_downed(), "the perk stood the player up")
+	assert_true(not player.hud.readout().revive_visible, "the self-revive line is hidden")
 
 
 func test_revive_stands_the_player_up() -> void:

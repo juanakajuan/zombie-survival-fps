@@ -43,6 +43,8 @@ class Readout extends RefCounted:
 	var health_text: String
 	var ammo_text: String
 	var points_text: String
+	var boost_visible: bool
+	var boost_text: String
 	var prompt_visible: bool
 	var prompt_text: String
 	var weapon_name: String
@@ -56,6 +58,8 @@ class Readout extends RefCounted:
 	var crosshair_visible: bool
 	var downed_visible: bool
 	var downed_text: String
+	var revive_visible: bool
+	var revive_text: String
 	## The icon text of each perk icon, in the order they show.
 	var perk_icons: PackedStringArray
 
@@ -71,6 +75,7 @@ class Readout extends RefCounted:
 @onready var _weapon_name: Label = %WeaponName
 @onready var _ammo_value: Label = %AmmoValue
 @onready var _points_value: Label = %PointsValue
+@onready var _boost_label: Label = %BoostLabel
 @onready var _prompt: Label = %Prompt
 @onready var _reload_label: Label = %ReloadLabel
 @onready var _round_panel: Control = %RoundPanel
@@ -78,6 +83,7 @@ class Readout extends RefCounted:
 @onready var _objective: Label = %Objective
 @onready var _break_label: Label = %BreakLabel
 @onready var _downed_label: Label = %DownedLabel
+@onready var _revive_label: Label = %ReviveLabel
 @onready var _perk_icons: HBoxContainer = %PerkIcons
 ## The hidden icon that each perk icon is a copy of.
 @onready var _perk_icon: PanelContainer = %PerkIcon
@@ -98,6 +104,7 @@ func _process(_delta: float) -> void:
 	_crosshair.visible = weapon.wielder == null or not weapon.wielder.is_aiming()
 	_update_objective()
 	_update_prompt()
+	_update_boost()
 
 
 func readout() -> Readout:
@@ -105,6 +112,9 @@ func readout() -> Readout:
 	r.health_text = _health_value.text
 	r.ammo_text = _ammo_value.text
 	r.points_text = _points_value.text
+	_update_boost()
+	r.boost_visible = _boost_label.is_visible_in_tree()
+	r.boost_text = _boost_label.text
 	_update_prompt()
 	r.prompt_visible = _prompt.visible
 	r.prompt_text = _prompt.text
@@ -120,20 +130,25 @@ func readout() -> Readout:
 	r.crosshair_visible = _crosshair.is_visible_in_tree()
 	r.downed_visible = _downed_label.is_visible_in_tree()
 	r.downed_text = _downed_label.text
+	r.revive_visible = _revive_label.is_visible_in_tree()
+	r.revive_text = _revive_label.text
 	for icon: Node in _perk_icons.get_children():
 		if icon != _perk_icon:
 			r.perk_icons.append((icon.get_child(0) as Label).text)
 	return r
 
 
-## Shows the seconds that a downed player has left.
-func show_downed(time_left: float) -> void:
+## Shows the seconds that a downed player has left, and the seconds until `revive_name` stands the player up.
+func show_downed(time_left: float, revive_name: String, revive_left: float) -> void:
 	_downed_label.text = "DOWNED  %d" % ceili(time_left)
 	_downed_label.visible = true
+	_revive_label.text = "%s  GETTING UP IN %d" % [revive_name, ceili(revive_left)]
+	_revive_label.visible = true
 
 
 func hide_downed() -> void:
 	_downed_label.visible = false
+	_revive_label.visible = false
 
 
 func _on_health_changed(current: float) -> void:
@@ -190,6 +205,12 @@ func _update_perks() -> void:
 
 func _update_points() -> void:
 	_points_value.text = str(wallet.points)
+
+
+func _update_boost() -> void:
+	_boost_label.visible = wallet.multiplier > 1
+	if _boost_label.visible:
+		_boost_label.text = "%dX POINTS  %d" % [wallet.multiplier, ceili(wallet.boost_time_left())]
 
 
 func _update_prompt() -> void:
