@@ -40,7 +40,7 @@ extends Node3D
 ## Spin in view space, in rad/s. +X flips the muzzle up and back.
 @export var throw_spin: Vector3 = Vector3(14.0, 0.0, 3.0)
 ## Each phase of the reload lasts this fraction of the weapon's reload time. The phases run one after the other.
-## When the sum is above 1, every phase shrinks by the same factor, so the motion still ends in time.
+## Every phase is scaled by the same factor so that the motion ends when the reload does.
 @export_range(0.0, 1.0, 0.01) var wind_up_fraction: float = 0.1
 @export_range(0.0, 1.0, 0.01) var toss_fraction: float = 0.2
 ## The hands stay empty after the throw for this fraction.
@@ -221,7 +221,7 @@ func _on_reload_started(weapon: Weapon) -> void:
 		return
 	_restart_tween()
 	var phases := wind_up_fraction + toss_fraction + empty_hands_fraction + draw_fraction + slide_pull_fraction + slide_release_fraction
-	var time := weapon.reload_time() / maxf(phases, 1.0)
+	var time := weapon.reload_time() / phases
 	_wind_up = _model_rest.translated_local(wind_up_offset).rotated_local(Vector3.RIGHT, deg_to_rad(wind_up_angle))
 	_toss_time = time * toss_fraction
 	slide.position = _slide_rest
