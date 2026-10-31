@@ -385,7 +385,6 @@ func test_dying_emits_died_once() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var deaths: Array[int] = [0]
 	player.died.connect(func() -> void: deaths[0] += 1)
-	player.downed_time = 0.0
 	var health := Health.find_on(player)
 	health.damage(health.max_health)
 	health.damage(10.0)
@@ -469,7 +468,6 @@ func test_click_after_death_does_not_enable_the_trigger() -> void:
 
 
 func _kill(player: Player) -> void:
-	player.downed_time = 0.0
 	var health := Health.find_on(player)
 	health.damage(health.max_health)
 
@@ -518,7 +516,6 @@ func test_aiming_cancels_sprint_and_the_weapon_can_fire() -> void:
 func test_dead_player_cannot_aim() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Input.action_press("aim")
-	player.downed_time = 0.0
 	Health.find_on(player).damage(10000.0)
 	await run_seconds(0.5)
 	assert_true(not player.is_aiming(), "a dead player does not aim")

@@ -2,10 +2,10 @@ class_name Player
 extends CharacterBody3D
 ## First-person controller. The origin is at the feet. Yaw is on this body, pitch is on Head.
 
-## Emitted once when the Health child gets to 0 and the player goes down. Not emitted when downed_time is 0.
+## Emitted once when the Health child gets to 0 and the player goes down, which needs a self-revive perk.
 signal downed
 
-## Emitted once when the player dies: the downed time ends, or the Health child gets to 0 with downed_time at 0.
+## Emitted once when the player dies: the downed time ends, or the Health child gets to 0 without a self-revive perk.
 ## After it, the player ignores all input.
 signal died
 
@@ -50,8 +50,8 @@ const GROUP := &"player"
 @export_range(0.0, 10.0, 0.05) var slide_friction: float = 0.6
 
 @export_group("Downed")
-## At 0 health the player is downed for this long, then dies. 0 means the player dies at once.
-@export_range(0.0, 60.0, 0.5, "suffix:s") var downed_time: float = 10.0
+## With a self-revive perk, the player is downed at 0 health for this long, then dies.
+@export_range(0.5, 60.0, 0.5, "suffix:s") var downed_time: float = 10.0
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var downed_speed: float = 1.0
 ## The height of the head above the feet while downed.
 @export_range(0.1, 1.0, 0.05, "suffix:m") var downed_head_height: float = 0.5
@@ -330,7 +330,7 @@ func is_meleeing() -> bool:
 	return melee.is_swinging()
 
 
-## True from the moment that the downed time ends (or at 0 health when downed_time is 0).
+## True from 0 health without a self-revive perk, or from the end of the downed time.
 func is_dead() -> bool:
 	return _life == Life.DEAD
 
@@ -360,7 +360,7 @@ func _update_focus() -> void:
 
 
 func _on_health_died() -> void:
-	if downed_time > 0.0:
+	if perks.has_self_revive():
 		_go_down()
 	else:
 		_die()

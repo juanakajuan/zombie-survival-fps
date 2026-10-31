@@ -3,6 +3,20 @@ extends TestCase
 const SMG: WeaponData = preload("res://weapons/smg.tres")
 const SETTLE_FRAMES := 10
 
+var _self_revive := PerkItem.new()
+
+
+func test_without_a_self_revive_perk_zero_health_kills_at_once() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var counts: Array[int] = [0, 0]
+	player.downed.connect(func() -> void: counts[0] += 1)
+	player.died.connect(func() -> void: counts[1] += 1)
+	player.health.damage(player.health.max_health)
+	assert_true(player.is_dead(), "is_dead")
+	assert_true(not player.is_downed(), "not downed")
+	assert_eq(counts[0], 0, "downed does not emit")
+	assert_eq(counts[1], 1, "died emits once")
+
 
 func test_zero_health_downs_the_player() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
@@ -159,4 +173,7 @@ func test_zombie_keeps_attacking_a_downed_player() -> void:
 
 
 func _down(player: Player) -> void:
+	_self_revive.self_revive = true
+	if player.perks.can_add(_self_revive):
+		player.perks.add(_self_revive)
 	player.health.damage(player.health.max_health)

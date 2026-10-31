@@ -1,0 +1,18 @@
+# Downed state: with a self-revive perk, 0 health downs the player (low, slow, pistol only), then the timer ends in game over.
+tap restart
+wait 10
+self_revive
+expect hud.perks SR
+until zombies.alive 4 300
+until player.downed true 3600
+expect player.dead false
+expect hud.weapon PISTOL
+expect hud.ammo 12 / 48
+state 00-downed
+shot 00-downed
+until game_over.visible true 1200
+expect player.dead true
+expect player.downed false
+expect hud.downed
+state 01-game-over
+shot 01-game-over

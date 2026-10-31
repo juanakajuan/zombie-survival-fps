@@ -6,7 +6,7 @@ Edit this file only when the core loop or a decided rule changes. Do not list th
 
 ## The core loop
 
-You stand in an arena. Zombies come at you in rounds, and you shoot them before they reach you. When all zombies of a round are dead, a short break starts. Then a harder round starts. When your health gets to 0, you are downed: you are low, you move slowly, and you can fire only the pistol. When the downed timer ends, the game ends and shows the round that you reached. A revive stands you up before that. You restart and try to reach a later round.
+You stand in an arena. Zombies come at you in rounds, and you shoot them before they reach you. When all zombies of a round are dead, a short break starts. Then a harder round starts. When your health gets to 0, the game ends and shows the round that you reached. With a self-revive perk you are downed first: you are low, you move slowly, and you can fire only the pistol. When the downed timer ends, the game ends. A revive stands you up before that. You restart and try to reach a later round.
 
 ## Decided rules
 
@@ -16,7 +16,7 @@ You stand in an arena. Zombies come at you in rounds, and you shoot them before 
 - The level uses Godot primitives and code for meshes and materials. The only imported models are the weapon view models, `weapons/pistol.glb` and `weapons/smg.glb` (Blender sources `art_source/pistol.blend` and `art_source/smg.blend`), the zombie, and the player.
 - Weapons are hitscan. A shot is one ray from the camera.
 - A shot that hits a `WeakSpot` (`health/weak_spot.gd`) multiplies its damage by `WeakSpot.damage_multiplier`, and the HUD shows the hit marker in the headshot color. The zombie's head is a `WeakSpot` that follows the animated head, and a dead zombie's head is off. Punches do not headshot.
-- The downed state belongs to `Player`. At 0 health the player is downed for `Player.downed_time` seconds, then dies (`died` and the game over screen follow). A downed player has the pistol with a full magazine, does not sprint, jump, melee, switch weapons, or interact, and zombies still attack. `Player.revive(fraction)` is the API that a perk calls to stand the player up.
+- The downed state belongs to `Player`. Solo, the player dies at once at 0 health. Only a held perk with `PerkItem.self_revive` downs the player instead, for `Player.downed_time` seconds, and then the player dies (`died` and the game over screen follow). A downed player has the pistol with a full magazine, does not sprint, jump, melee, switch weapons, or interact, and zombies still attack. `Player.revive(fraction)` is the API that a perk calls to stand the player up.
 - The player cannot shoot while sprinting.
 - The slide is the fast way to move. There is no bunny hop: each jump needs a new press of jump, and air control never takes the speed above the speed at takeoff or the target speed.
 - A node that can take damage has a `Health` child (`health/health.gd`). Code that deals damage finds it with `Health.find_on(node)`.

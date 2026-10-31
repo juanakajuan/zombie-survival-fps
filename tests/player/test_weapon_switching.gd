@@ -102,7 +102,6 @@ func test_a_dead_player_does_not_switch() -> void:
 	var pistol := player.weapon
 	player.give_weapon(SMG)
 	press_action(&"weapon_1")
-	player.downed_time = 0.0
 	Health.find_on(player).damage(1.0e6)
 	press_action(&"weapon_2")
 	assert_true(player.weapon == pistol, "no switch after death")
@@ -124,7 +123,6 @@ func test_third_person_hides_the_weapon_in_hand_after_a_switch() -> void:
 func test_death_disables_the_trigger_of_the_weapon_in_hand() -> void:
 	var player := await spawn_player()
 	var smg := player.give_weapon(SMG)
-	player.downed_time = 0.0
 	Health.find_on(player).damage(1.0e6)
 	var ammo := smg.ammo
 	Input.action_press("fire")

@@ -71,7 +71,6 @@ func test_a_press_during_the_swing_does_nothing_and_a_new_swing_works_after_it()
 
 func test_a_dead_player_cannot_punch() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
-	player.downed_time = 0.0
 	Health.find_on(player).damage(1.0e6)
 	assert_true(not player.melee.try_swing(), "no swing")
 	await _tap_melee()

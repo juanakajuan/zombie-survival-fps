@@ -109,12 +109,22 @@ func _step(line: String) -> bool:
 			return await _face(deg_to_rad(parts[1].to_float()), deg_to_rad(parts[2].to_float()))
 		"fight_until":
 			return await _fight_until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
+		"self_revive":
+			_give_self_revive()
 		"until":
 			return await _until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
 		_:
 			printerr("driver: unknown command %s" % command)
 			return false
 	return true
+
+
+## The game has no self-revive perk to buy yet, so this gives the player one, to show the downed state.
+func _give_self_revive() -> void:
+	var perk := PerkItem.new()
+	perk.icon_text = "SR"
+	perk.self_revive = true
+	(get_first_node_in_group(Player.GROUP) as Player).perks.add(perk)
 
 
 func _wait_frames(count: int) -> void:
