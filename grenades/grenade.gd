@@ -21,8 +21,7 @@ signal damaged(target: Node, killed: bool, headshot: bool)
 
 @export_group("Flash")
 @export_range(0.05, 2.0, 0.05, "suffix:s") var flash_time: float = 0.25
-## The radius of the flash sphere when it is biggest.
-@export_range(0.5, 20.0, 0.1, "suffix:m") var flash_size: float = 2.5
+@export_range(0.5, 20.0, 0.1, "suffix:m") var flash_diameter: float = 2.5
 
 ## The player who threw it. The grenade does not collide with the thrower, and the blast hurts the thrower
 ## by player_damage_scale. Grenades sets it.
@@ -103,6 +102,6 @@ func _fade_flash(delta: float) -> void:
 		queue_free()
 		return
 	var progress := 1.0 - _flash_left / flash_time
-	_flash.scale = Vector3.ONE * flash_size * lerpf(0.3, 1.0, progress)
+	_flash.scale = Vector3.ONE * flash_diameter * lerpf(0.3, 1.0, progress)
 	_flash.transparency = progress
 	_light.light_energy = _flash_energy * (1.0 - progress)
