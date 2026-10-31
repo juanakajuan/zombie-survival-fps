@@ -117,7 +117,7 @@ All are in `.claude/skills/verify/scripts/` and run from any directory.
 - `drive.sh <steps file> [run id]`: runs one journey. See [Launch](#launch).
 - `doctor.sh`: read-only checks. See [Doctor](#doctor).
 - `cleanup.sh`: stops runs that this skill started. See [Cleanup](#cleanup).
-- `driver.gd`: the SceneTree main loop that `drive.sh` runs. It is not under `tools/check.sh`, because that check skips hidden folders. A parse error shows as `SCRIPT ERROR` in `godot.log`.
+- `driver.gd`: the SceneTree main loop that `drive.sh` runs. `tools/check.sh` lints and type-checks it (it is in `tools/hidden_scripts.gd`). At run time, a parse error shows as `SCRIPT ERROR` in `godot.log`.
 
 ## Other surfaces
 
