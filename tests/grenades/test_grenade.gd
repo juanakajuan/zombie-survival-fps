@@ -30,6 +30,14 @@ func _still_zombie(at: Vector3) -> Zombie:
 	return spawn_zombie(at)
 
 
+func _tough_zombie(at: Vector3) -> Zombie:
+	var zombie := spawn_zombie(at)
+	var health := Health.find_on(zombie)
+	health.max_health = 10000.0
+	health.reset()
+	return zombie
+
+
 func _damage_taken(zombie: Zombie) -> float:
 	var health := Health.find_on(zombie)
 	return health.max_health - health.current
@@ -144,6 +152,19 @@ func test_a_blast_that_wounds_pays_only_the_hit() -> void:
 	await run_seconds(0.4)
 	assert_true(not Health.find_on(zombie).is_dead(), "the zombie lives")
 	assert_eq(player.wallet.points, player.wallet.points_per_hit, "a hit and no bonus")
+
+
+func test_a_blast_on_the_floor_takes_the_legs_and_one_overhead_does_not() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var low := _tough_zombie(Vector3(-4.0, 0.0, FAR - 3.0))
+	var high := _tough_zombie(Vector3(4.0, 0.0, FAR - 3.0))
+	add_child(_still_grenade(player, Vector3(-4.0, 0.1, FAR)))
+	add_child(_still_grenade(player, Vector3(4.0, 2.0, FAR)))
+	await run_seconds(0.4)
+	assert_true(_damage_taken(low) >= low.leg_loss_damage, "the floor blast is strong enough")
+	assert_true(_damage_taken(high) >= high.leg_loss_damage, "the overhead blast is strong enough")
+	assert_eq(low.gait, Zombie.Gait.CRAWL, "gait after a blast on the floor")
+	assert_eq(high.gait, Zombie.Gait.WALK, "gait after a blast overhead")
 
 
 func test_insta_kill_makes_a_grenade_hit_a_kill() -> void:

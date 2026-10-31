@@ -16,5 +16,6 @@ first_runner_fraction = 0.25
 runner_fraction_per_round = 0.1
 max_runner_fraction = 0.6
 runner_speed = 5.5
+crawl_speed = 0.8
 break_time = 10.0
 spawn_interval = 1.0

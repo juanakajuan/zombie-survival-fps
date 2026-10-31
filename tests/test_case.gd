@@ -75,7 +75,7 @@ func spawn_player(at: Vector3 = Vector3.ZERO, settle_frames: int = 1) -> Player:
 func spawn_zombie(at: Vector3, target: Node3D = null, gait: Zombie.Gait = Zombie.Gait.WALK) -> Zombie:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
 	var speed := ROUND_SETTINGS.runner_speed if gait == Zombie.Gait.RUN else ROUND_SETTINGS.zombie_speed(1)
-	zombie.configure(speed, ROUND_SETTINGS.zombie_health(1), target, null, gait)
+	zombie.configure(speed, ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.zombie_health(1), target, null, gait)
 	zombie.position = at
 	zombie.drops = null
 	add_child(zombie)

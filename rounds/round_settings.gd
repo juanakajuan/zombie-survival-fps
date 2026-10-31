@@ -26,6 +26,10 @@ extends Resource
 ## Runners ignore the walking speed. Keep this above `max_speed`, so that a runner is always faster than a walker.
 @export_range(0.0, 20.0, 0.1, "suffix:m/s") var runner_speed: float = 5.5
 
+@export_group("Crawlers")
+## The speed of a zombie that has lost its legs, in every round.
+@export_range(0.0, 5.0, 0.05, "suffix:m/s") var crawl_speed: float = 0.8
+
 @export_group("Timing")
 @export_range(0.0, 60.0, 0.5, "suffix:s") var break_time: float = 10.0
 ## Time between two spawns in a round. The first zombie spawns when the round starts.
