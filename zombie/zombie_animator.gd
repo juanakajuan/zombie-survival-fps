@@ -1,7 +1,8 @@
 class_name ZombieAnimator
 extends Node
 ## Poses the zombie model in code: a shambling walk that follows the move speed, an idle sway, an arm slam on each hit,
-## and a fall onto its back when it dies.
+## and a fall onto its back when it dies. A RUN zombie blends the walk into a run: a forward lean, longer strides, and
+## arms that reach out and pump.
 ## It moves the parts of art_source/zombie.blend: LegL, LegR, Torso, and its children Head, ArmL, and ArmR.
 
 @export_group("Walk")
@@ -14,6 +15,21 @@ extends Node
 @export_range(0.0, 30.0, 0.5, "suffix:°") var head_wobble: float = 8.0
 ## Below this speed the zombie stands and sways.
 @export_range(0.0, 1.0, 0.01, "suffix:m/s") var walk_threshold: float = 0.1
+
+@export_group("Run")
+## Full leg cycles for each metre run. It is below the walk value, because the longer swing covers more ground in a
+## cycle. Fit it to RoundSettings.runner_speed so the feet do not slide.
+@export_range(0.1, 3.0, 0.01) var run_steps_per_metre: float = 0.35
+@export_range(0.0, 80.0, 0.5, "suffix:°") var run_leg_swing: float = 50.0
+@export_range(0.0, 0.3, 0.005, "suffix:m") var run_bob_height: float = 0.08
+## The torso leans forward this far while it runs.
+@export_range(0.0, 60.0, 0.5, "suffix:°") var run_lean: float = 22.0
+## The head tips back this far against the lean, so that the zombie looks ahead.
+@export_range(0.0, 60.0, 0.5, "suffix:°") var run_head_lift: float = 20.0
+## The arms reach forward this far while it runs.
+@export_range(0.0, 120.0, 1.0, "suffix:°") var run_arm_reach: float = 50.0
+## Around the reach, the arms pump this far, one up and one down.
+@export_range(0.0, 60.0, 0.5, "suffix:°") var run_arm_pump: float = 30.0
 
 @export_group("Idle")
 @export_range(0.0, 5.0, 0.05, "suffix:Hz") var idle_rate: float = 0.6
@@ -50,6 +66,9 @@ extends Node
 ## How fast the pose blends between walking, standing, and attacking.
 @export_range(0.1, 40.0, 0.1) var blend_sharpness: float = 10.0
 
+## The gait to pose. The pose blends toward it. Set it before attach(), which starts the blend at this gait.
+var gait: Zombie.Gait = Zombie.Gait.WALK
+
 var _model: Node3D
 var _model_rest_y: float
 var _death_time: float = 0.0
@@ -63,6 +82,7 @@ var _torso_rest_y: float
 var _phase: float = 0.0
 var _time: float = 0.0
 var _walk_weight: float = 0.0
+var _run_weight: float = 0.0
 var _attack_weight: float = 0.0
 
 
@@ -77,32 +97,38 @@ func attach(model: Node3D) -> void:
 	_arm_l = _part(model, "ArmL")
 	_arm_r = _part(model, "ArmR")
 	_torso_rest_y = _torso.position.y
+	_run_weight = _run_target()
 
 
 ## Moves the pose on by one step. `attack_progress` goes from 0 just after a hit to 1 at the next hit, and is
 ## negative when the zombie is not attacking.
 func advance(delta: float, speed: float, attack_progress: float) -> void:
 	_time += delta
-	_phase = fmod(_phase + speed * delta * steps_per_metre * TAU, TAU)
 	var blend := 1.0 - exp(-blend_sharpness * delta)
+	_run_weight = lerpf(_run_weight, _run_target(), blend)
+	_phase = fmod(_phase + speed * delta * lerpf(steps_per_metre, run_steps_per_metre, _run_weight) * TAU, TAU)
 	_walk_weight = lerpf(_walk_weight, 1.0 if speed > walk_threshold else 0.0, blend)
 	_attack_weight = lerpf(_attack_weight, 1.0 if attack_progress >= 0.0 else 0.0, blend)
 
 	var step := sin(_phase)
 	var idle := sin(_time * idle_rate * TAU) * (1.0 - _walk_weight)
-	_leg_l.rotation.x = deg_to_rad(leg_swing) * step * _walk_weight
+	_leg_l.rotation.x = deg_to_rad(lerpf(leg_swing, run_leg_swing, _run_weight)) * step * _walk_weight
 	_leg_r.rotation.x = -_leg_l.rotation.x
-	_torso.position.y = _torso_rest_y + bob_height * absf(cos(_phase)) * _walk_weight
+	_torso.position.y = _torso_rest_y + lerpf(bob_height, run_bob_height, _run_weight) * absf(cos(_phase)) * _walk_weight
 	_torso.rotation.z = deg_to_rad(torso_sway * step * _walk_weight + idle_sway * idle)
 	_head.rotation.z = deg_to_rad(head_wobble * sin(_phase * 0.5) * _walk_weight - idle_sway * idle)
 
-	var swing := deg_to_rad(arm_swing) * cos(_phase) * _walk_weight
+	var run_pose := _run_weight * _walk_weight
+	_head.rotation.x = deg_to_rad(run_head_lift) * run_pose
+	var swing := deg_to_rad(lerpf(arm_swing, run_arm_pump, _run_weight)) * cos(_phase) * _walk_weight
+	var reach := deg_to_rad(run_arm_reach) * run_pose
 	var slam := _slam_amount(attack_progress)
 	var wind_up := _wind_up_amount(attack_progress)
 	var attack_pitch := deg_to_rad(wind_up_angle * wind_up - slam_angle * slam)
-	_arm_l.rotation.x = lerpf(swing, attack_pitch, _attack_weight)
-	_arm_r.rotation.x = lerpf(-swing, attack_pitch, _attack_weight)
-	_torso.rotation.x = deg_to_rad(lunge_angle * (0.3 * wind_up - slam)) * _attack_weight
+	_arm_l.rotation.x = lerpf(reach + swing, attack_pitch, _attack_weight)
+	_arm_r.rotation.x = lerpf(reach - swing, attack_pitch, _attack_weight)
+	var lunge := deg_to_rad(lunge_angle * (0.3 * wind_up - slam))
+	_torso.rotation.x = lerpf(-deg_to_rad(run_lean) * run_pose, lunge, _attack_weight)
 
 
 ## Moves the death pose on by one step. Call it each physics frame after the zombie dies, until death_finished().
@@ -120,6 +146,7 @@ func advance_death(delta: float) -> void:
 	_leg_l.rotation.x = lerpf(_leg_l.rotation.x, deg_to_rad(leg_kick), blend)
 	_leg_r.rotation.x = lerpf(_leg_r.rotation.x, deg_to_rad(leg_kick * 0.5), blend)
 	_torso.rotation.x = lerpf(_torso.rotation.x, 0.0, blend)
+	_head.rotation.x = lerpf(_head.rotation.x, 0.0, blend)
 	_head.rotation.z = lerpf(_head.rotation.z, deg_to_rad(head_loll) * fall, blend)
 
 
@@ -146,6 +173,15 @@ func leg_pitch() -> float:
 ## The pitch of the left arm in radians. Positive raises it.
 func arm_pitch() -> float:
 	return _arm_l.rotation.x
+
+
+## How far the torso leans forward from standing, in radians. Positive leans forward.
+func torso_lean() -> float:
+	return -_torso.rotation.x
+
+
+func _run_target() -> float:
+	return 1.0 if gait == Zombie.Gait.RUN else 0.0
 
 
 func _wind_up_amount(progress: float) -> float:

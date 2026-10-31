@@ -84,6 +84,7 @@ func _ready() -> void:
 	_hit_flash.material = _tint
 	if gait == Gait.RUN:
 		ViewModel.swap_materials(_model, runner_materials)
+	animator.gait = gait
 	animator.attach(_model)
 	_health.died.connect(_on_died)
 	_groan_left = randf_range(groan_interval_min, groan_interval_max)
