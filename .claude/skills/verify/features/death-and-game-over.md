@@ -1,6 +1,6 @@
 # Death, game over, and restart
 
-Zombies hit the player for 40 damage each second when they are close, so three hits kill. Health comes back by itself: 3.5 s after the last hit, it refills at 40 each second. At 0 health the player dies and cannot move, look, fire, or reload. A GAME OVER screen shows the round that the player reached and releases the mouse. Enter starts the level again from round 1.
+Zombies hit the player for 40 damage each second when they are close, so three hits kill. Health comes back by itself: 5 s after the last hit, it refills at 40 each second. At 0 health the player dies and cannot move, look, fire, or reload. A GAME OVER screen shows the round that the player reached and releases the mouse. Enter starts the level again from round 1.
 
 ## Sub-features
 
