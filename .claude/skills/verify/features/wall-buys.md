@@ -17,6 +17,9 @@ A third wall buy, on the east face of the large crate at `-4 0 -8`, sells the MA
 - `rifle-aim` puts the red dot of the front post in the notch of the rear sight.
 - `buy-machine-gun` takes 2500 points and equips the machine gun: `hud.weapon` is `MACHINE GUN`, `hud.ammo` is `100 / 300`. A held fire button keeps firing.
 - `machine-gun-reload` shows RELOADING for 4.5 s and takes the missing rounds from the reserve.
+- `machine-gun-upgrade` turns the machine gun into MACHINE GUN+: a green body, 50 damage a shot, `150 / 450` ammo, and a 3.5 s reload.
+- `rifle-upgrade` turns the rifle into RIFLE+: an orange body, 150 damage a shot, and `15 / 90` ammo.
+- `upgrade` at the upgrade machine (with power) turns the shotgun into SHOTGUN+: a blue body, 10 pellets of 32 damage, and `10 / 60` ammo.
 
 ## How to get to it (user POV)
 
@@ -36,6 +39,9 @@ Preconditions:
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/shotgun.steps`.
 - **Rifle.** Run `debug +5000 POINTS`, `face -113 -5`, `hold move_forward`, `until hud.prompt_visible true 900`, `release move_forward`. `expect hud.prompt E BUY RIFLE 1500` passes. `tap interact`, then `expect hud.weapon RIFLE` and `expect hud.ammo 10 / 60` pass. Hold fire for 30 frames: `expect hud.ammo 9 / 60` passes. The proof is `journeys/rifle.steps`.
 - **Machine gun.** Run `debug +5000 POINTS`, `face 4.1 0`, `hold move_forward`, `wait 180`, `release move_forward`, `face 90 -5`, `hold move_forward`, `until hud.prompt_visible true 300`, `release move_forward`. `expect hud.prompt E BUY MACHINE GUN 2500` passes. The proof is `journeys/machine_gun.steps`.
+- **Shotgun upgrade.** `journeys/shotgun_upgrade.steps` buys the shotgun, the room door, and the power with `walk_to`, then upgrades the shotgun: `expect hud.weapon SHOTGUN+` and `expect hud.ammo 10 / 60` pass.
+- **Rifle upgrade.** `journeys/rifle_upgrade.steps` does the same with the rifle: `expect hud.weapon RIFLE+` and `expect hud.ammo 15 / 90` pass.
+- **Machine gun upgrade.** `journeys/machine_gun_upgrade.steps` does the same with the machine gun: `expect hud.weapon MACHINE GUN+` and `expect hud.ammo 150 / 450` pass.
 
 ## Gotchas
 
