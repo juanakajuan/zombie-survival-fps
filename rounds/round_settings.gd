@@ -16,6 +16,16 @@ extends Resource
 @export_range(0.0, 2.0, 0.05, "suffix:m/s") var speed_per_round: float = 0.25
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var max_speed: float = 5.0
 
+@export_group("Runners")
+## The first round that has runners. Earlier rounds have none.
+@export_range(1, 100) var first_runner_round: int = 5
+## The part of the round's zombies that run in the first runner round.
+@export_range(0.0, 1.0, 0.01) var first_runner_fraction: float = 0.25
+@export_range(0.0, 1.0, 0.01) var runner_fraction_per_round: float = 0.1
+@export_range(0.0, 1.0, 0.01) var max_runner_fraction: float = 0.6
+## Runners ignore the walking speed. Keep this above `max_speed`, so that a runner is always faster than a walker.
+@export_range(0.0, 20.0, 0.1, "suffix:m/s") var runner_speed: float = 5.5
+
 @export_group("Timing")
 @export_range(0.0, 60.0, 0.5, "suffix:s") var break_time: float = 10.0
 ## Time between two spawns in a round. The first zombie spawns when the round starts.
@@ -36,3 +46,11 @@ func zombie_health(round_number: int) -> float:
 
 func zombie_speed(round_number: int) -> float:
 	return minf(first_round_speed + speed_per_round * (round_number - 1), max_speed)
+
+
+## How many of the round's zombies run. It is 0 before `first_runner_round` and never more than the zombie count.
+func runner_count(round_number: int) -> int:
+	if round_number < first_runner_round:
+		return 0
+	var fraction := minf(first_runner_fraction + runner_fraction_per_round * (round_number - first_runner_round), max_runner_fraction)
+	return mini(roundi(zombie_count(round_number) * fraction), zombie_count(round_number))

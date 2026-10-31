@@ -70,10 +70,12 @@ func spawn_player(at: Vector3 = Vector3.ZERO, settle_frames: int = 1) -> Player:
 	return player
 
 
-## A round 1 zombie of the game's round settings. Without a target, it stands still.
-func spawn_zombie(at: Vector3, target: Node3D = null) -> Zombie:
+## A round 1 zombie of the game's round settings. A RUN zombie has the runner speed of the settings. Without a target, it
+## stands still.
+func spawn_zombie(at: Vector3, target: Node3D = null, gait: Zombie.Gait = Zombie.Gait.WALK) -> Zombie:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
-	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.zombie_health(1), target)
+	var speed := ROUND_SETTINGS.runner_speed if gait == Zombie.Gait.RUN else ROUND_SETTINGS.zombie_speed(1)
+	zombie.configure(speed, ROUND_SETTINGS.zombie_health(1), target, null, gait)
 	zombie.position = at
 	zombie.drops = null
 	add_child(zombie)

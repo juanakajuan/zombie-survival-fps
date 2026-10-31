@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "RunnerShirt"
+cull_mode = 2
+albedo_color = Color(0.865, 0.3959, 0.3656, 1)
+roughness = 0.75

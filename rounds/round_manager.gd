@@ -95,7 +95,9 @@ func _start_round(number: int) -> void:
 func _spawn_zombie() -> void:
 	var zombie := zombie_scene.instantiate() as Zombie
 	var point := _next_active_spawn_point()
-	zombie.configure(settings.zombie_speed(round_number), settings.zombie_health(round_number), player, point.barricade)
+	var gait := _next_gait()
+	var speed := settings.runner_speed if gait == Zombie.Gait.RUN else settings.zombie_speed(round_number)
+	zombie.configure(speed, settings.zombie_health(round_number), player, point.barricade, gait)
 	Health.find_on(zombie).died.connect(_on_zombie_died)
 	zombie.dropped.connect(_on_zombie_dropped)
 	if _drops_this_round >= settings.max_drops:
@@ -105,6 +107,16 @@ func _spawn_zombie() -> void:
 	_zombies_alive += 1
 	_spawn_cooldown = settings.spawn_interval
 	add_child(zombie)
+
+
+## The gait of the zombie that spawns next. The round's runners are spread evenly over its spawn order: the zombie at
+## index i runs when the count floor(i * runners / count) grows at i + 1. The first zombie runs only if all of them do.
+func _next_gait() -> Zombie.Gait:
+	var count := settings.zombie_count(round_number)
+	var runners := settings.runner_count(round_number)
+	var index := count - _zombies_to_spawn
+	var runs := floori(float(index + 1) * runners / count) > floori(float(index) * runners / count)
+	return Zombie.Gait.RUN if runs else Zombie.Gait.WALK
 
 
 ## The next active point after the one that spawned last. `_ready` makes sure that one point has no door, so the

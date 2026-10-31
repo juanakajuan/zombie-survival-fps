@@ -121,7 +121,7 @@ func _ready() -> void:
 	var weapon := get_parent() as Weapon
 	if weapon != null:
 		_materials = weapon.data.view_materials
-	_swap_materials(model, _materials)
+	swap_materials(model, _materials)
 	detach_from_shadows(self)
 	_motion_rest = motion.transform
 	_model_rest = model.transform
@@ -256,7 +256,7 @@ func _throw() -> void:
 	_player.get_parent().add_child(gun)
 	gun.global_transform = model.global_transform
 	gun.add_collision_exception_with(_player)
-	_swap_materials(gun, _materials)
+	swap_materials(gun, _materials)
 	gun.linear_velocity = _player.velocity + global_basis * throw_velocity
 	gun.angular_velocity = global_basis * throw_spin
 
@@ -294,7 +294,9 @@ func _hold_hand_upright(upright: bool) -> void:
 		hand_anchor.update_rotation = not upright
 
 
-static func _swap_materials(root: Node, materials: Dictionary[String, Material]) -> void:
+## Gives each surface under `root` whose material has the name of a key of `materials` the material of that key, as a
+## surface override. The shared meshes do not change.
+static func swap_materials(root: Node, materials: Dictionary[String, Material]) -> void:
 	if materials.is_empty():
 		return
 	for mesh: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):

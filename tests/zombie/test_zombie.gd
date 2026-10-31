@@ -103,6 +103,35 @@ func test_headshot_deals_multiplied_damage_and_a_body_shot_deals_base_damage() -
 	assert_eq(reports, [false, true] as Array[bool], "only the second shot is a headshot")
 
 
+func test_runner_closes_in_faster_than_a_walker() -> void:
+	await spawn_nav_world()
+	var player := await spawn_player(Vector3(0.0, 0.0, 0.0), 3)
+	var walker := spawn_zombie(Vector3(-5.0, 0.0, -20.0), player)
+	var runner := spawn_zombie(Vector3(5.0, 0.0, -20.0), player, Zombie.Gait.RUN)
+	var walker_start := _flat_distance(walker, player)
+	var runner_start := _flat_distance(runner, player)
+	var seconds := 2.0
+	await run_seconds(seconds)
+	var walker_speed := (walker_start - _flat_distance(walker, player)) / seconds
+	var runner_speed := (runner_start - _flat_distance(runner, player)) / seconds
+	assert_true(runner_speed > ROUND_SETTINGS.runner_speed * 0.8 and runner_speed < ROUND_SETTINGS.runner_speed * 1.05,
+		"runner moves at %s m/s, settings say %s m/s" % [runner_speed, ROUND_SETTINGS.runner_speed])
+	assert_true(runner_speed > walker_speed * 1.5, "runner %s m/s, walker %s m/s" % [runner_speed, walker_speed])
+
+
+func test_runner_wears_a_red_shirt_and_grey_pants_and_a_walker_does_not() -> void:
+	var walker := spawn_zombie(Vector3.ZERO)
+	var runner := spawn_zombie(Vector3(3.0, 0.0, 0.0), null, Zombie.Gait.RUN)
+	await physics_frames(1)
+	var worn_shirt := runner.body_material("ShamblerShirt").albedo_color
+	assert_true(worn_shirt.r > worn_shirt.g * 2.0 and worn_shirt.r > worn_shirt.b * 2.0, "runner shirt is red, %s" % worn_shirt)
+	var worn_pants := runner.body_material("ShamblerPants").albedo_color
+	assert_true(absf(worn_pants.r - worn_pants.g) < 0.05 and absf(worn_pants.g - worn_pants.b) < 0.1, "runner pants are grey, %s" % worn_pants)
+	var shirt := walker.body_material("ShamblerShirt").albedo_color
+	assert_true(shirt.r < shirt.g * 2.0, "walker shirt is not red, %s" % shirt)
+	assert_true(runner.body_material("ShamblerSkin").albedo_color.is_equal_approx(walker.body_material("ShamblerSkin").albedo_color), "the skin is the same")
+
+
 func test_the_head_shape_follows_the_animated_head() -> void:
 	await spawn_nav_world()
 	var player := await spawn_player(Vector3(0.0, 0.0, 0.0), 3)
