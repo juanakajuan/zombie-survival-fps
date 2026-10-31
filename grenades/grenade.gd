@@ -10,8 +10,7 @@ signal exploded
 signal damaged(target: Node, killed: bool, headshot: bool)
 
 @export_range(0.1, 10.0, 0.1, "suffix:s") var fuse_time: float = 2.5
-## The blast reaches this far from the grenade.
-@export_range(0.5, 20.0, 0.1, "suffix:m") var radius: float = 5.0
+@export_range(0.5, 20.0, 0.1, "suffix:m") var blast_radius: float = 5.0
 ## The damage at the centre.
 @export_range(1.0, 10000.0, 1.0) var max_damage: float = 250.0
 ## The damage at the edge of the blast. The damage falls off in a line between the two.
@@ -72,7 +71,7 @@ func _explode() -> void:
 	_light.visible = true
 	_flash_left = flash_time
 	var shape := SphereShape3D.new()
-	shape.radius = radius
+	shape.radius = blast_radius
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = shape
 	query.transform = Transform3D(Basis.IDENTITY, global_position)
@@ -85,7 +84,7 @@ func _explode() -> void:
 			continue
 		struck.append(health)
 		var target := collider as Node3D
-		var amount := lerpf(max_damage, min_damage, clampf(global_position.distance_to(target.global_position) / radius, 0.0, 1.0))
+		var amount := lerpf(max_damage, min_damage, clampf(global_position.distance_to(target.global_position) / blast_radius, 0.0, 1.0))
 		if collider == thrower:
 			health.damage(amount * player_damage_scale)
 			continue

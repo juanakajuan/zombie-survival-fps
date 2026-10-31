@@ -122,8 +122,8 @@ func _lint_file(rel: String, path: String) -> void:
 	for i: int in lines.size():
 		var line := lines[i]
 		var allowed := _allowed_rule(rel, i + 1, line)
-		var code := _code(line, true)
-		var bare := _code(line, false)
+		var code := _without_comment(line, true)
+		var bare := _without_comment(line, false)
 		for rule: Rule in _rules:
 			if rule.path_re.search(rel) == null or rule.name == allowed:
 				continue
@@ -132,9 +132,9 @@ func _lint_file(rel: String, path: String) -> void:
 				_report(rel, i + 1, rule.what, rule.fix.replace("{1}", found.get_string(1)))
 
 
-## The line without its comment. Without `keep_strings`, each string literal becomes "".
+## Without `keep_strings`, each string literal becomes "".
 ## A `#` in a string does not start a comment.
-func _code(line: String, keep_strings: bool) -> String:
+func _without_comment(line: String, keep_strings: bool) -> String:
 	var out := ""
 	var quote := ""
 	var i := 0

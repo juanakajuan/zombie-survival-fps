@@ -142,9 +142,13 @@ func _shoot() -> void:
 	var aim := wielder.aim_transform() if wielder != null else global_transform
 	var spread := deg_to_rad(data.spread)
 	for _pellet: int in data.pellets:
-		# The square root spreads the rays evenly over the cone, not packed at its centre.
-		var direction := (-aim.basis.z).rotated(aim.basis.x, spread * sqrt(randf())).rotated(-aim.basis.z, randf() * TAU)
+		var direction := _uniform_cone_direction(aim.basis, spread)
 		_shoot_ray(aim.origin, direction)
+
+
+func _uniform_cone_direction(aim: Basis, half_angle: float) -> Vector3:
+	var forward := -aim.z
+	return forward.rotated(aim.x, half_angle * sqrt(randf())).rotated(forward, randf() * TAU)
 
 
 func _shoot_ray(from: Vector3, direction: Vector3) -> void:
@@ -163,13 +167,12 @@ func _shoot_ray(from: Vector3, direction: Vector3) -> void:
 	_spawn_tracer(_muzzle(), point)
 	hit.emit(collider, point)
 	var weak_spot := WeakSpot.find_hit(collider, shape_index)
-	if _damage(collider, data.damage * (weak_spot.damage_multiplier if weak_spot != null else 1.0), weak_spot != null) \
+	if _try_damage(collider, data.damage * (weak_spot.damage_multiplier if weak_spot != null else 1.0), weak_spot != null) \
 			and data.chain_targets > 0:
 		_chain(collider as CollisionObject3D, point)
 
 
-## Damages the Health of the collider, when it has one that is alive. Returns whether it did.
-func _damage(collider: Object, amount: float, headshot: bool) -> bool:
+func _try_damage(collider: Object, amount: float, headshot: bool) -> bool:
 	if not collider is Node:
 		return false
 	var health := Health.find_on(collider as Node)
@@ -195,7 +198,7 @@ func _chain(first: CollisionObject3D, from: Vector3) -> void:
 		amount *= data.chain_damage_scale
 		_spawn_tracer(from, to)
 		hit.emit(next, to)
-		_damage(next, amount, false)
+		_try_damage(next, amount, false)
 		struck.append(next.get_rid())
 		from = to
 

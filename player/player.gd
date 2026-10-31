@@ -626,8 +626,8 @@ func _has_room_to_stand() -> bool:
 	standing.height = _stand_height
 	var query := PhysicsShapeQueryParameters3D.new()
 	query.shape = standing
-	# Lifted a little, so that the floor under the feet does not count.
-	query.transform = global_transform.translated(Vector3.UP * (_stand_height / 2.0 + 0.05))
+	var floor_clearance := 0.05
+	query.transform = global_transform.translated(Vector3.UP * (_stand_height / 2.0 + floor_clearance))
 	query.collision_mask = collision_mask
 	query.exclude = [get_rid()]
 	return get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()

@@ -134,11 +134,10 @@ func sells(level: Level, item_class: GDScript) -> bool:
 	return false
 
 
-## Whether a buy station of the level sells the weapon with this display name.
-func sells_weapon(level: Level, weapon_name: String) -> bool:
+func sells_weapon(level: Level, display_name: String) -> bool:
 	for station: BuyStation in stations_in(level):
 		var item := station.item as WeaponItem
-		if item != null and item.weapon.display_name == weapon_name:
+		if item != null and item.weapon.display_name == display_name:
 			return true
 	return false
 

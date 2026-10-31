@@ -5,9 +5,8 @@ const COMPOUND_SCENE: PackedScene = preload("res://levels/compound.tscn")
 const MEZZANINE_RAMP_FOOT := Vector3(-20.0, 0.0, 0.0)
 const WATCHTOWER_RAMP_FOOT := Vector3(29.0, 0.0, -9.0)
 const HIGH_FLOOR_HEIGHT := 4.0
-## The floor plans of the two buildings with doors, as x and z.
-const WAREHOUSE := Rect2(-22.0, -22.0, 34.0, 26.0)
-const OFFICE := Rect2(-34.0, 22.0, 14.0, 12.0)
+const WAREHOUSE_XZ := Rect2(-22.0, -22.0, 34.0, 26.0)
+const OFFICE_XZ := Rect2(-34.0, 22.0, 14.0, 12.0)
 
 
 func test_every_spawn_point_has_a_path_to_the_player_start_once_the_doors_are_open() -> void:
@@ -59,8 +58,8 @@ func test_the_player_start_and_the_stations_are_outside_both_buildings() -> void
 	for station: BuyStation in _shops(level):
 		points.append(station.global_position)
 	for at: Vector3 in points:
-		assert_true(not WAREHOUSE.has_point(Vector2(at.x, at.z)), "%s is outside the warehouse" % at)
-		assert_true(not OFFICE.has_point(Vector2(at.x, at.z)), "%s is outside the office" % at)
+		assert_true(not WAREHOUSE_XZ.has_point(Vector2(at.x, at.z)), "%s is outside the warehouse" % at)
+		assert_true(not OFFICE_XZ.has_point(Vector2(at.x, at.z)), "%s is outside the office" % at)
 
 
 func test_the_player_walks_up_the_mezzanine_ramp_onto_the_mezzanine() -> void:
@@ -92,13 +91,13 @@ func test_the_level_has_an_ammo_station_and_a_weapon_station_near_the_player_sta
 func test_the_power_switch_is_in_the_office_and_powers_every_machine_outside_it() -> void:
 	var level := await spawn_level(null, COMPOUND_SCENE)
 	var power := level.get_node("PowerSwitch") as PowerSwitch
-	assert_true(OFFICE.has_point(Vector2(power.global_position.x, power.global_position.z)), "the switch is in the office")
+	assert_true(OFFICE_XZ.has_point(Vector2(power.global_position.x, power.global_position.z)), "the switch is in the office")
 	var machines: Array[BuyStation] = stations_in(level).filter(_is_machine)
 	assert_eq(machines.filter(func(station: BuyStation) -> bool: return station.item is PerkItem).size(), 4, "perk machines")
 	assert_eq(machines.filter(func(station: BuyStation) -> bool: return station.item is UpgradeItem).size(), 1, "upgrade machines")
 	for machine: BuyStation in machines:
 		var at := Vector2(machine.global_position.x, machine.global_position.z)
-		assert_true(not WAREHOUSE.has_point(at) and not OFFICE.has_point(at), "%s is outside both buildings" % machine.name)
+		assert_true(not WAREHOUSE_XZ.has_point(at) and not OFFICE_XZ.has_point(at), "%s is outside both buildings" % machine.name)
 		assert_true(machine.power == power, "%s needs the switch" % machine.name)
 		assert_true(not machine.has_power(), "%s has no power at the start" % machine.name)
 	power.turn_on()

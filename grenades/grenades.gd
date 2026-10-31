@@ -71,7 +71,7 @@ func _physics_process(delta: float) -> void:
 	if _held != null:
 		_held.fuse_left -= delta
 		if _held.fuse_left <= 0.0:
-			_burst()
+			_explode_in_hand()
 			return
 	if _state == State.THROWING:
 		if _held != null and _swing_elapsed >= throw_wind_time:
@@ -178,8 +178,7 @@ func _throw() -> void:
 	_leave_hand(aim.origin - aim.basis.z * throw_offset, -aim.basis.z * throw_speed + Vector3.UP * throw_up_speed + wielder.velocity)
 
 
-## The fuse ran out in the hand.
-func _burst() -> void:
+func _explode_in_hand() -> void:
 	var aim := wielder.aim_transform()
 	var grenade := _held
 	grenade.freeze = true

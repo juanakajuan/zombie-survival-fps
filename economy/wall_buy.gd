@@ -19,8 +19,9 @@ func _ready() -> void:
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var box := model.global_transform.affine_inverse() * mesh.global_transform * mesh.get_aabb()
 		bounds = box if bounds.size == Vector3.ZERO else bounds.merge(box)
-	# The Silhouette node lays the model's -Z (the barrel) along the board.
-	var fit := minf(silhouette_size.x / bounds.size.z, silhouette_size.y / bounds.size.y)
+	var barrel_length := bounds.size.z
+	var height := bounds.size.y
+	var fit := minf(silhouette_size.x / barrel_length, silhouette_size.y / height)
 	model.transform = Transform3D(Basis.from_scale(Vector3.ONE * fit), -bounds.get_center() * fit)
 
 

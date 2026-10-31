@@ -118,8 +118,8 @@ func test_jump_in_air_adds_no_upward_velocity() -> void:
 	Input.action_press("jump")
 	await physics_frames(1)
 	Input.action_release("jump")
-	# Three quarters of the air time: past the peak, before landing.
-	await run_seconds(1.5 * player.jump_velocity / player.gravity)
+	var air_time := 2.0 * player.jump_velocity / player.gravity
+	await run_seconds(air_time * 0.75)
 	assert_true(not player.is_on_floor(), "player is still in the air")
 	var velocity_before := player.velocity.y
 	assert_true(velocity_before < 0.0, "player is falling, got vy=%s" % velocity_before)

@@ -37,9 +37,8 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	# Ready means playable: the player is in the tree and the round panel shows a round. Only then do steps start.
 	var waited := 0
-	while _state().get("hud.round_visible", "false") != "true":
+	while not _is_playable():
 		if waited >= 600:
 			printerr("driver: the level was not ready after 600 frames: %s" % str(_state()))
 			quit(1)
@@ -278,6 +277,11 @@ func _fight_until(key: String, want: String, max_frames: int) -> bool:
 		await _wait_frames(7)
 	printerr("driver: fight: %s never became %s in %d frames, last %s" % [key, want, max_frames, str(_state().get(key))])
 	return false
+
+
+func _is_playable() -> bool:
+	var round_visible: String = _state().get("hud.round_visible", "false")
+	return round_visible == "true"
 
 
 func _state() -> Dictionary[String, String]:
