@@ -25,6 +25,7 @@
 [ext_resource type="PackedScene" path="res://economy/wall_buy.tscn" id="23_wall_buy"]
 [ext_resource type="Resource" path="res://economy/rifle_item.tres" id="24_rifle_item"]
 [ext_resource type="Resource" path="res://economy/machine_gun_item.tres" id="25_machine_gun_item"]
+[ext_resource type="PackedScene" path="res://upgrades/upgrade_machine.tscn" id="23_upgrade_machine"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -298,3 +299,7 @@ item = ExtResource("24_rifle_item")
 position = Vector3(-4, 0, -8)
 rotation = Vector3(0, 1.5707964, 0)
 item = ExtResource("25_machine_gun_item")
+
+[node name="UpgradeMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("23_upgrade_machine")]
+position = Vector3(4, 0, 0)
+power = NodePath("../PowerSwitch")
