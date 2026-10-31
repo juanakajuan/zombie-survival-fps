@@ -86,12 +86,13 @@ func test_the_level_has_an_ammo_station_and_a_weapon_station_near_the_player_sta
 		assert_true(station.global_position.distance_to(player.global_position) < 10.0, "%s is in the yard near the start" % station.name)
 
 
-func test_the_power_switch_is_in_the_office_and_powers_every_perk_machine_outside_it() -> void:
+func test_the_power_switch_is_in_the_office_and_powers_every_machine_outside_it() -> void:
 	var level := await spawn_level(null, COMPOUND_SCENE)
 	var power := level.get_node("PowerSwitch") as PowerSwitch
 	assert_true(OFFICE.has_point(Vector2(power.global_position.x, power.global_position.z)), "the switch is in the office")
-	var machines: Array[BuyStation] = stations_in(level).filter(func(station: BuyStation) -> bool: return station.item is PerkItem)
-	assert_eq(machines.size(), 4, "perk machines")
+	var machines: Array[BuyStation] = stations_in(level).filter(_is_machine)
+	assert_eq(machines.filter(func(station: BuyStation) -> bool: return station.item is PerkItem).size(), 4, "perk machines")
+	assert_eq(machines.filter(func(station: BuyStation) -> bool: return station.item is UpgradeItem).size(), 1, "upgrade machines")
 	for machine: BuyStation in machines:
 		var at := Vector2(machine.global_position.x, machine.global_position.z)
 		assert_true(not WAREHOUSE.has_point(at) and not OFFICE.has_point(at), "%s is outside both buildings" % machine.name)
@@ -103,7 +104,12 @@ func test_the_power_switch_is_in_the_office_and_powers_every_perk_machine_outsid
 
 
 func _shops(level: Level) -> Array[BuyStation]:
-	return stations_in(level).filter(func(station: BuyStation) -> bool: return not (station.item is DoorItem or station.item is PerkItem))
+	return stations_in(level).filter(func(station: BuyStation) -> bool: return not (station.item is DoorItem or _is_machine(station)))
+
+
+## Whether the station is a machine that needs the power.
+func _is_machine(station: BuyStation) -> bool:
+	return station.item is PerkItem or station.item is UpgradeItem
 
 
 func _assert_walks_up_the_ramp_from(foot: Vector3, floor_name: String) -> void:

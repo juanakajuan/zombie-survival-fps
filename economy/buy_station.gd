@@ -42,6 +42,9 @@ func prompt_text(player: Player) -> String:
 		return "NEEDS POWER"
 	if item.sold_out(player):
 		return "SOLD OUT"
+	var blocked := item.blocked_text(player)
+	if blocked != "":
+		return blocked
 	return "E  BUY %s  %d" % [item.label(player), item.price(player)]
 
 
