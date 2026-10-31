@@ -109,12 +109,22 @@ func _step(line: String) -> bool:
 			return await _face(deg_to_rad(parts[1].to_float()), deg_to_rad(parts[2].to_float()))
 		"fight_until":
 			return await _fight_until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
+		"self_revive":
+			_give_self_revive()
 		"until":
 			return await _until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
 		_:
 			printerr("driver: unknown command %s" % command)
 			return false
 	return true
+
+
+## The game has no self-revive perk to buy yet, so this gives the player one, to show the downed state.
+func _give_self_revive() -> void:
+	var perk := PerkItem.new()
+	perk.icon_text = "SR"
+	perk.self_revive = true
+	(get_first_node_in_group(Player.GROUP) as Player).perks.add(perk)
 
 
 func _wait_frames(count: int) -> void:
@@ -252,6 +262,7 @@ func _state() -> Dictionary[String, String]:
 		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
 		s["player.pitch_deg"] = "%.0f" % rad_to_deg(player.head.rotation.x)
 		s["player.dead"] = str(player.is_dead())
+		s["player.downed"] = str(player.is_downed())
 		s["player.crouching"] = str(player.is_crouching())
 		s["player.sliding"] = str(player.is_sliding())
 		s["player.speed"] = "%.1f" % Vector2(player.velocity.x, player.velocity.z).length()
@@ -273,6 +284,7 @@ func _state() -> Dictionary[String, String]:
 		s["hud.crosshair"] = str(hud.crosshair_visible)
 		s["hud.hit_marker"] = str(hud.hit_marker)
 		s["hud.headshot_marker"] = str(hud.headshot_marker)
+		s["hud.downed"] = hud.downed_text if hud.downed_visible else ""
 		s["hud.perks"] = " ".join(hud.perk_icons)
 		s["hud.max_health"] = str(ceili(player.health.max_health))
 	var zombies := 0

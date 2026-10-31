@@ -192,6 +192,8 @@ func _chase_goal(live_target: Node3D) -> Vector3:
 func _live_target() -> Node3D:
 	if target == null:
 		return null
+	if target is Player:
+		return null if (target as Player).is_dead() else target
 	var target_health := Health.find_on(target)
 	if target_health == null or target_health.is_dead():
 		return null

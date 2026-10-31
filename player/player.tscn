@@ -23,6 +23,7 @@ height = 1.8
 collision_mask = 5
 script = ExtResource("1_player")
 weapon_scene = ExtResource("3_weapon")
+downed_weapon = ExtResource("4_pistol")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.9, 0)

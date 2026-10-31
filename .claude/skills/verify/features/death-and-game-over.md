@@ -9,6 +9,7 @@ Zombies hit the player for 10 damage each second when they are close. At 0 healt
 - `game-over-screen` shows GAME OVER, `You reached round N`, and `Press Enter to restart`, and releases the mouse.
 - `restart` reloads the level on Enter: round 1, 100 health, `12 / 48`, the mouse captured.
 - `restart-before-death` does nothing when Enter is pressed before death.
+- `downed` needs a self-revive perk (driver command `self_revive`). At 0 health the player is downed, not dead: `player.downed true`, a low camera, `hud.downed` shows `DOWNED` and the seconds left, the pistol has a full magazine, and the zombies keep hitting. About 10 s later the player dies and GAME OVER shows. Proof: `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/downed.steps`.
 
 ## How to get to it (user POV)
 
