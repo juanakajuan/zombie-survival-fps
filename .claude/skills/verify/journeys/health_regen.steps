@@ -1,0 +1,10 @@
+expect hud.health 100
+fight_until hud.objective 1 LEFT 2400
+face 0 0
+until hud.health 20 1200
+shot low
+state low
+fight_until zombies.alive 0 600
+until hud.health 100 600
+shot healed
+expect player.dead false
