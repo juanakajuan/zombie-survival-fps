@@ -46,6 +46,7 @@ func test_resume_click_does_not_fire_and_the_next_click_does() -> void:
 
 func test_dead_player_cannot_pause() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	player.downed_time = 0.0
 	var health := Health.find_on(player)
 	health.damage(health.max_health)
 	_tap_escape()

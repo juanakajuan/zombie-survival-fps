@@ -2,7 +2,11 @@ class_name Player
 extends CharacterBody3D
 ## First-person controller. The origin is at the feet. Yaw is on this body, pitch is on Head.
 
-## Emitted once when the Health child gets to 0. After it, the player ignores all input.
+## Emitted once when the Health child gets to 0 and the player goes down. Not emitted when downed_time is 0.
+signal downed
+
+## Emitted once when the player dies: the downed time ends, or the Health child gets to 0 with downed_time at 0.
+## After it, the player ignores all input.
 signal died
 
 ## Emitted when another weapon becomes the current one, and when a bought weapon is equipped.
@@ -44,6 +48,15 @@ const GROUP := &"player"
 @export_range(0.0, 10.0, 0.05, "suffix:s") var slide_cooldown: float = 1.5
 ## Each second of a slide, the player loses this many times its speed. The slide ends at crouch speed.
 @export_range(0.0, 10.0, 0.05) var slide_friction: float = 0.6
+
+@export_group("Downed")
+## At 0 health the player is downed for this long, then dies. 0 means the player dies at once.
+@export_range(0.0, 60.0, 0.5, "suffix:s") var downed_time: float = 10.0
+@export_range(0.0, 10.0, 0.1, "suffix:m/s") var downed_speed: float = 1.0
+## The height of the head above the feet while downed.
+@export_range(0.1, 1.0, 0.05, "suffix:m") var downed_head_height: float = 0.5
+## The only weapon that a downed player fires. It always has a full magazine.
+@export var downed_weapon: WeaponData
 
 @export_group("Look")
 @export_range(0.0001, 0.02, 0.0001, "suffix:rad/px") var mouse_sensitivity: float = 0.0025
@@ -94,8 +107,15 @@ var punch_view: PunchView
 var settings: GameSettings
 
 enum Stance { STANDING, CROUCHED, SLIDING }
+enum Life { ALIVE, DOWNED, DEAD }
 
 var _stance := Stance.STANDING
+var _life := Life.ALIVE
+var _downed_left := 0.0
+## The weapon in hand before the player went down.
+var _weapon_before_down: Weapon
+## The pistol of a downed player who holds none. It is not in `weapons`, and a revive frees it.
+var _temporary_weapon: Weapon
 var _slide_cooldown_left := 0.0
 var _aim_blend := 0.0
 var _shape: CapsuleShape3D
@@ -119,6 +139,7 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	health.died.connect(_on_health_died)
+	health.changed.connect(_on_health_changed)
 	health.damaged.connect(hurt_sound.play.unbind(1))
 	weapon.damaged.connect(_on_damaged)
 	melee.damaged.connect(_on_damaged)
@@ -177,6 +198,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
+	if is_downed():
+		_downed_left -= delta
+		hud.show_downed(_downed_left)
+		if _downed_left <= 0.0:
+			_die()
 	_update_focus()
 	if _focused != null and weapon.trigger_enabled:
 		if Input.is_action_just_pressed("interact"):
@@ -187,7 +213,7 @@ func _physics_process(delta: float) -> void:
 		melee.try_swing()
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_update_stance(on_floor, delta)
-	var jumping := on_floor and Input.is_action_just_pressed("jump") and not is_dead()
+	var jumping := on_floor and Input.is_action_just_pressed("jump") and _life == Life.ALIVE
 	if jumping:
 		velocity.y = jump_velocity
 	elif on_floor:
@@ -195,13 +221,13 @@ func _physics_process(delta: float) -> void:
 		if _stance == Stance.SLIDING:
 			_apply_friction(slide_friction, 0.0, delta)
 		else:
-			_apply_friction(friction, stop_speed, delta)
+			_apply_friction(friction, minf(stop_speed, downed_speed) if is_downed() else stop_speed, delta)
 	else:
 		velocity.y -= gravity * delta
 
 	var move_input := _move_input()
 	var wish_dir := (global_basis * Vector3(move_input.x, 0.0, move_input.y)).normalized()
-	var target_speed := (crouch_speed if is_crouching() else aim_speed if is_aiming() else sprint_speed if is_sprinting() else walk_speed) * move_input.length()
+	var target_speed := (downed_speed if is_downed() else crouch_speed if is_crouching() else aim_speed if is_aiming() else sprint_speed if is_sprinting() else walk_speed) * move_input.length()
 	if not on_floor:
 		_air_accelerate(wish_dir, target_speed, delta)
 	elif _stance != Stance.SLIDING:
@@ -263,16 +289,16 @@ func weapon_holding(data: WeaponData) -> Weapon:
 	return null
 
 
-## Takes the weapon in this slot in hand. It does nothing for the slot in hand, a slot with no weapon, or a dead player.
+## Takes the weapon in this slot in hand. It does nothing for the slot in hand, a slot with no weapon, or a downed or dead player.
 ## The weapon that goes away loses its reload in progress.
 func switch_to(index: int) -> void:
-	if is_dead() or index < 0 or index >= weapons.size() or weapons[index] == weapon:
+	if _life != Life.ALIVE or index < 0 or index >= weapons.size() or weapons[index] == weapon:
 		return
 	_holster(weapon)
 	_equip(weapons[index])
 
 
-## The interactable within interact_range that the player looks at, or null. A dead player has none.
+## The interactable within interact_range that the player looks at, or null. A downed or dead player has none.
 func focused() -> Interactable:
 	return _focused
 
@@ -304,13 +330,26 @@ func is_meleeing() -> bool:
 	return melee.is_swinging()
 
 
+## True from the moment that the downed time ends (or at 0 health when downed_time is 0).
 func is_dead() -> bool:
-	return health.is_dead()
+	return _life == Life.DEAD
+
+
+## True from 0 health until the downed time ends or a revive stands the player up.
+func is_downed() -> bool:
+	return _life == Life.DOWNED
+
+
+## Stands a downed player up with `health_fraction` of max_health, at least 1 hp. It does nothing for a player who is not downed.
+func revive(health_fraction: float) -> void:
+	if not is_downed():
+		return
+	health.heal(maxf(health.max_health * health_fraction, 1.0))
 
 
 func _update_focus() -> void:
 	_focused = null
-	if is_dead():
+	if _life != Life.ALIVE:
 		return
 	var aim := aim_transform()
 	var query := PhysicsRayQueryParameters3D.create(aim.origin, aim.origin - aim.basis.z * interact_range, collision_mask, [get_rid()])
@@ -321,9 +360,58 @@ func _update_focus() -> void:
 
 
 func _on_health_died() -> void:
+	if downed_time > 0.0:
+		_go_down()
+	else:
+		_die()
+
+
+func _on_health_changed(current: float) -> void:
+	if is_downed() and current > 0.0:
+		_stand_up()
+
+
+func _go_down() -> void:
+	_life = Life.DOWNED
+	_downed_left = downed_time
+	_weapon_before_down = weapon
+	_set_stance(Stance.CROUCHED)
+	var pistol := weapon_holding(downed_weapon)
+	if pistol == null:
+		pistol = weapon_scene.instantiate() as Weapon
+		pistol.data = downed_weapon
+		pistol.wielder = self
+		pistol.trigger_enabled = weapon.trigger_enabled
+		camera.add_child(pistol)
+		pistol.damaged.connect(_on_damaged)
+		_temporary_weapon = pistol
+	if pistol != weapon:
+		_holster(weapon)
+		_equip(pistol)
+	pistol.ammo = pistol.data.magazine_size
+	hud.show_downed(_downed_left)
+	downed.emit()
+
+
+func _stand_up() -> void:
+	_life = Life.ALIVE
+	hud.hide_downed()
+	if weapon != _weapon_before_down:
+		_holster(weapon)
+		_equip(_weapon_before_down)
+	if _temporary_weapon != null:
+		_temporary_weapon.queue_free()
+		_temporary_weapon = null
+
+
+func _die() -> void:
+	_life = Life.DEAD
+	_set_stance(Stance.CROUCHED)
+	hud.hide_downed()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	for held: Weapon in weapons:
 		held.trigger_enabled = false
+	weapon.trigger_enabled = false
 	died.emit()
 
 
@@ -393,7 +481,10 @@ func _set_third_person(on: bool) -> void:
 	var casting := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if on else GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false):
 		mesh.cast_shadow = casting
-	for held: Weapon in weapons:
+	var shown: Array[Weapon] = weapons.duplicate()
+	if _temporary_weapon != null:
+		shown.append(_temporary_weapon)
+	for held: Weapon in shown:
 		if held.view_model != null:
 			held.view_model.visible = not on
 	punch_view.visible = not on
@@ -445,7 +536,14 @@ func _air_accelerate(wish_dir: Vector3, target_speed: float, delta: float) -> vo
 
 
 func _update_stance(on_floor: bool, delta: float) -> void:
-	var crouch_held := Input.is_action_pressed("crouch") and not is_dead()
+	if _life == Life.ALIVE:
+		_choose_stance(on_floor)
+	var head_height := downed_head_height if _life != Life.ALIVE else _stand_head_height - (_stand_height - crouch_height if is_crouching() else 0.0)
+	head.position.y = move_toward(head.position.y, head_height, crouch_camera_speed * delta)
+
+
+func _choose_stance(on_floor: bool) -> void:
+	var crouch_held := Input.is_action_pressed("crouch")
 	if not crouch_held:
 		if _stance != Stance.STANDING and _has_room_to_stand():
 			_set_stance(Stance.STANDING)
@@ -458,8 +556,6 @@ func _update_stance(on_floor: bool, delta: float) -> void:
 		_start_slide()
 	else:
 		_set_stance(Stance.CROUCHED)
-	var head_height := _stand_head_height - (_stand_height - crouch_height if is_crouching() else 0.0)
-	head.position.y = move_toward(head.position.y, head_height, crouch_camera_speed * delta)
 
 
 func _start_slide() -> void:

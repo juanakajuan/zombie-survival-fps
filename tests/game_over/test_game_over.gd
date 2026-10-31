@@ -86,6 +86,7 @@ func _clear_round(manager: RoundManager) -> void:
 
 
 func _kill(player: Player) -> void:
+	player.downed_time = 0.0
 	var health := Health.find_on(player)
 	health.damage(health.max_health)
 

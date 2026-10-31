@@ -15,7 +15,7 @@ expect hud.round 2
 until zombies.alive 6 400
 state 03-round-two
 shot 03-round-two
-until game_over.visible true 5400
+until game_over.visible true 6600
 expect player.dead true
 expect hud.health 0
 expect game_over.text You reached round 2

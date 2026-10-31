@@ -66,12 +66,12 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `hud.crosshair`, `hud.hit_marker`, `hud.headshot_marker` | Whether the crosshair shows (hidden while aiming), whether the hit marker shows (0.2 s after a shot hits a zombie or a dummy), and whether it shows in the headshot color (0.2 s after a shot hits a zombie's head). |
 | `game_over.visible`, `game_over.text` | The game-over screen, and its text, for example `You reached round 1`. |
 | `mouse.mode` | `captured` or `visible`. |
-| `player.position`, `player.yaw_deg`, `player.pitch_deg`, `player.dead`, `player.crouching`, `player.sliding`, `player.speed` | Feet position (`x y z`, 1 decimal), turn angle, up-down angle (`89` is straight up), death, crouch (true while sliding too), slide, and horizontal speed in m/s (1 decimal). The player starts at `0.0 0.0 6.0`, yaw `0`, pitch `0`, and looks toward -Z. |
+| `player.position`, `player.yaw_deg`, `player.pitch_deg`, `player.dead`, `player.downed`, `player.crouching`, `player.sliding`, `player.speed` | Feet position (`x y z`, 1 decimal), turn angle, up-down angle (`89` is straight up), death, crouch (true while sliding too), slide, and horizontal speed in m/s (1 decimal). The player starts at `0.0 0.0 6.0`, yaw `0`, pitch `0`, and looks toward -Z. |
 | `player.aiming`, `player.third_person` | Whether the player aims down the sights, and whether the debug third-person camera is on. |
 | `game.paused`, `pause_menu.open` | Whether the game tree is paused, and whether the pause menu shows. Esc toggles both. |
 | `zombies.alive`, `zombies.bars`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, and target dummies that show. |
 | `doors.open`, `pickups` | Doors that are open, and pickups on the ground in the level (a placed one counts too). |
-| `power.on`, `hud.perks`, `hud.max_health` | Whether the power switch is on, the text of each perk icon on the HUD in order, with one space between them (empty with no perk), and the max health under the health number. |
+| `power.on`, `hud.perks`, `hud.max_health`, `hud.downed` | The downed timer text on the HUD (for example `DOWNED  7`, empty when hidden), whether the power switch is on, the text of each perk icon on the HUD in order, with one space between them (empty with no perk), and the max health under the health number. |
 | `barricades.boards` | The boards left on all barricades in the level, added up. The test range has one barricade with 5 boards, so it starts at `5`. |
 | `tracers` | Shot tracers in flight. A tracer into the sky lives about 50 frames; one to the dummy ahead lives about 4. |
 | `frame` | The physics frame counter. |

@@ -12,7 +12,7 @@ Zombies hit the player for 10 damage each second when they are close. At 0 healt
 
 ## How to get to it (user POV)
 
-- Start the game and do not shoot. The zombies of round 1 reach the player and kill the player in about 12 s.
+- Start the game and do not shoot. The zombies of round 1 reach the player and bring the player down in about 12 s. The player dies about 10 s later.
 - On the GAME OVER screen, press Enter.
 
 ## Driving it with drive.sh
@@ -21,7 +21,7 @@ Preconditions:
 
 - Baseline state. Do not fire, so that all 4 zombies of round 1 reach the player.
 
-- **Die.** Run `until zombies.alive 4 300`, then `until game_over.visible true 3600`. It passes after about 10 s. `expect player.dead true` and `expect hud.health 0` pass.
+- **Down, then die.** Run `until zombies.alive 4 300`, then `until player.downed true 3600`. At 0 health the player is downed: low, slow, with the pistol only. `expect player.dead false` passes, and `hud.downed` shows `DOWNED` and the seconds left. The zombies keep hitting the player. Then run `until game_over.visible true 1200`. It passes about 10 s after the player went down. `expect player.dead true`, `expect player.downed false`, `expect hud.downed` (empty), and `expect hud.health 0` pass.
 - **Read the screen.** `expect game_over.text You reached round 1` and `expect mouse.mode visible` pass. The screenshot shows GAME OVER over a dim screen.
 - **Dead input.** Run `tap move_forward` and `tap fire`. `expect hud.ammo 12 / 48` passes.
 - **Restart.** Run `tap restart`, `wait 10`. `expect game_over.visible false`, `expect player.dead false`, `expect hud.health 100`, `expect hud.ammo 12 / 48`, `expect hud.round 1`, `expect player.position 0.0 0.0 6.0`, and `expect mouse.mode captured` pass.

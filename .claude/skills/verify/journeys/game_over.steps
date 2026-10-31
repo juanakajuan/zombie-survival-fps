@@ -4,8 +4,13 @@ wait 10
 expect game_over.visible false
 expect player.position 0.0 0.0 6.0
 until zombies.alive 4 300
-until game_over.visible true 3600
+until player.downed true 3600
+expect player.dead false
+state 00-downed
+shot 00-downed
+until game_over.visible true 1200
 expect player.dead true
+expect player.downed false
 expect hud.health 0
 expect game_over.text You reached round 1
 expect mouse.mode visible

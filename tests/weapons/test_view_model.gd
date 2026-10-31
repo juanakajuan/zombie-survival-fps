@@ -91,6 +91,7 @@ func test_walking_bobs_the_gun() -> void:
 func test_gun_goes_down_when_the_player_dies() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var rest := _pose(player)
+	player.downed_time = 0.0
 	Health.find_on(player).damage(10000.0)
 	await physics_frames(SETTLE_FRAMES)
 	assert_true(_pose(player).origin.y < rest.origin.y - 0.1, "the gun drops out of view")

@@ -146,6 +146,7 @@ func test_a_dead_zombie_takes_no_shot_at_its_head() -> void:
 func test_zombie_ignores_a_dead_player() -> void:
 	await spawn_nav_world()
 	var player := await spawn_player(Vector3(0.0, 0.0, 0.0), 3)
+	player.downed_time = 0.0
 	Health.find_on(player).damage(1000000.0)
 	var zombie := spawn_zombie(Vector3(0.0, 0.0, -6.0), player)
 	zombie.attack_interval = 0.3

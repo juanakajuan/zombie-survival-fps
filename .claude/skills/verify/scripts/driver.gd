@@ -252,6 +252,7 @@ func _state() -> Dictionary[String, String]:
 		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
 		s["player.pitch_deg"] = "%.0f" % rad_to_deg(player.head.rotation.x)
 		s["player.dead"] = str(player.is_dead())
+		s["player.downed"] = str(player.is_downed())
 		s["player.crouching"] = str(player.is_crouching())
 		s["player.sliding"] = str(player.is_sliding())
 		s["player.speed"] = "%.1f" % Vector2(player.velocity.x, player.velocity.z).length()
@@ -273,6 +274,7 @@ func _state() -> Dictionary[String, String]:
 		s["hud.crosshair"] = str(hud.crosshair_visible)
 		s["hud.hit_marker"] = str(hud.hit_marker)
 		s["hud.headshot_marker"] = str(hud.headshot_marker)
+		s["hud.downed"] = hud.downed_text if hud.downed_visible else ""
 		s["hud.perks"] = " ".join(hud.perk_icons)
 		s["hud.max_health"] = str(ceili(player.health.max_health))
 	var zombies := 0
