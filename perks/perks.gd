@@ -1,8 +1,8 @@
 class_name Perks
 extends Node
-## The perks that the player holds. It is the only owner of the list. A perk stays until the player dies.
+## The perks that the player holds. It is the only owner of the list. A perk stays until the player gets to 0 health.
 
-## Emitted after a perk is added.
+## Emitted after a perk is added or the perks are lost.
 signal changed
 
 @export_range(1, 8) var max_held: int = 4
@@ -22,9 +22,20 @@ func add(perk: PerkItem) -> void:
 	changed.emit()
 
 
-## Whether a held perk downs the player at 0 health instead of killing them.
-func has_self_revive() -> bool:
-	return held.any(func(perk: PerkItem) -> bool: return perk.self_revive)
+## Removes every held perk and its max health bonus.
+func lose_all() -> void:
+	for perk: PerkItem in held:
+		health.lower_max(perk.max_health_bonus)
+	held.clear()
+	changed.emit()
+
+
+## The held perk that downs the player at 0 health instead of killing them, or null.
+func self_revive() -> PerkItem:
+	for perk: PerkItem in held:
+		if perk.self_revive_time > 0.0:
+			return perk
+	return null
 
 
 func reload_time_scale() -> float:

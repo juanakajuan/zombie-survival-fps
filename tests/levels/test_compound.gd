@@ -91,7 +91,7 @@ func test_the_power_switch_is_in_the_office_and_powers_every_perk_machine_outsid
 	var power := level.get_node("PowerSwitch") as PowerSwitch
 	assert_true(OFFICE.has_point(Vector2(power.global_position.x, power.global_position.z)), "the switch is in the office")
 	var machines: Array[BuyStation] = stations_in(level).filter(func(station: BuyStation) -> bool: return station.item is PerkItem)
-	assert_eq(machines.size(), 3, "perk machines")
+	assert_eq(machines.size(), 4, "perk machines")
 	for machine: BuyStation in machines:
 		var at := Vector2(machine.global_position.x, machine.global_position.z)
 		assert_true(not WAREHOUSE.has_point(at) and not OFFICE.has_point(at), "%s is outside both buildings" % machine.name)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PerkItem" format=3]
+
+[ext_resource type="Script" path="res://perks/perk_item.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+icon_text = "S"
+icon_color = Color(0.25, 0.55, 1, 1)
+self_revive_time = 4.0
+display_name = "SECOND WIND"
+cost = 1500

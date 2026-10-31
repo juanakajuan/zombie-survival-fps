@@ -1,6 +1,8 @@
 extends TestCase
 
 const SMG: WeaponData = preload("res://weapons/smg.tres")
+const SECOND_WIND: PerkItem = preload("res://perks/second_wind.tres")
+const IRON_GUT: PerkItem = preload("res://perks/iron_gut.tres")
 const SETTLE_FRAMES := 10
 
 var _self_revive := PerkItem.new()
@@ -172,8 +174,44 @@ func test_zombie_keeps_attacking_a_downed_player() -> void:
 	assert_true(player.health.current < player.health.max_health * 0.5, "the zombie hits the revived player")
 
 
+func test_second_wind_stands_the_player_up_after_its_time() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	player.perks.add(SECOND_WIND)
+	player.health.damage(player.health.max_health)
+	assert_true(player.is_downed(), "downed")
+	await run_seconds(SECOND_WIND.self_revive_time - 0.2)
+	assert_true(player.is_downed(), "still downed just before the revive time")
+	await run_seconds(0.4)
+	assert_true(not player.is_downed(), "not downed after the revive time")
+	assert_true(not player.is_dead(), "not dead")
+	assert_almost_eq(player.health.current, player.health.max_health * SECOND_WIND.self_revive_health, 0.01, "revive health")
+	assert_true(not player.hud.readout().downed_visible, "the HUD timer is hidden")
+
+
+func test_going_down_loses_every_perk() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	var start_max := player.health.max_health
+	player.perks.add(IRON_GUT)
+	player.perks.add(SECOND_WIND)
+	player.health.damage(player.health.max_health)
+	assert_true(player.perks.held.is_empty(), "no perk held")
+	assert_almost_eq(player.health.max_health, start_max, 0.01, "the IRON GUT bonus is gone")
+	assert_true(player.hud.readout().perk_icons.is_empty(), "the HUD shows no perk icon")
+
+
+func test_the_revive_uses_up_second_wind() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	player.perks.add(SECOND_WIND)
+	player.health.damage(player.health.max_health)
+	await run_seconds(SECOND_WIND.self_revive_time + 0.2)
+	assert_true(not player.is_downed(), "stood up")
+	player.health.damage(player.health.max_health)
+	assert_true(player.is_dead(), "with the perk used up, 0 health kills")
+
+
+## A self-revive slower than downed_time, so that these tests see the downed state end in death.
 func _down(player: Player) -> void:
-	_self_revive.self_revive = true
+	_self_revive.self_revive_time = 30.0
 	if player.perks.can_add(_self_revive):
 		player.perks.add(_self_revive)
 	player.health.damage(player.health.max_health)

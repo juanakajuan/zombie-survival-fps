@@ -104,7 +104,7 @@ func test_the_test_range_power_switch_is_behind_the_room_door_and_powers_every_p
 	var power := level.get_node("PowerSwitch") as PowerSwitch
 	assert_true(ROOM.has_point(Vector2(power.global_position.x, power.global_position.z)), "the switch is in the room")
 	var machines: Array[BuyStation] = stations_in(level).filter(func(station: BuyStation) -> bool: return station.item is PerkItem)
-	assert_eq(machines.size(), 3, "perk machines")
+	assert_eq(machines.size(), 4, "perk machines")
 	for machine: BuyStation in machines:
 		assert_true(machine.power == power, "%s needs the switch" % machine.name)
 		assert_true(not machine.has_power(), "%s has no power at the start" % machine.name)
