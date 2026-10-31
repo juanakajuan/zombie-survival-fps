@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://barricades/barricade.tscn" id="16_barricade"]
 [ext_resource type="PackedScene" path="res://perks/power_switch.tscn" id="17_power_switch"]
 [ext_resource type="PackedScene" path="res://perks/perk_machine.tscn" id="18_perk_machine"]
+[ext_resource type="PackedScene" path="res://weapon_box/weapon_box.tscn" id="23_weapon_box"]
 [ext_resource type="Resource" path="res://perks/iron_gut.tres" id="19_iron_gut"]
 [ext_resource type="Resource" path="res://perks/quick_hands.tres" id="20_quick_hands"]
 [ext_resource type="Resource" path="res://perks/hair_trigger.tres" id="21_hair_trigger"]
@@ -281,3 +282,18 @@ power = NodePath("../PowerSwitch")
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -5, 0, 2.5)
 item = ExtResource("22_second_wind")
 power = NodePath("../PowerSwitch")
+
+[node name="WeaponBoxPlaces" type="Node3D" parent="."]
+
+[node name="South" type="Marker3D" parent="WeaponBoxPlaces"]
+position = Vector3(0, 0, 9.5)
+
+[node name="NorthWest" type="Marker3D" parent="WeaponBoxPlaces"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -16, 0, -15)
+
+[node name="NorthEast" type="Marker3D" parent="WeaponBoxPlaces"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 16, 0, -4)
+
+[node name="WeaponBox" parent="." node_paths=PackedStringArray("places") instance=ExtResource("23_weapon_box")]
+position = Vector3(0, 0, 9.5)
+places = [NodePath("../WeaponBoxPlaces/South"), NodePath("../WeaponBoxPlaces/NorthWest"), NodePath("../WeaponBoxPlaces/NorthEast")]
