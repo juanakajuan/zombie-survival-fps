@@ -3,13 +3,12 @@ extends SceneTree
 ## Usage: godot --headless --path . -s res://tools/check_project.gd [-- --write]
 ## With --write it rewrites project.godot in that form (tools/canon_project.sh does this).
 
-const CANON_PATH := "user://canon_project.godot"
-
-
 func _init() -> void:
 	var write := OS.get_cmdline_user_args().has("--write")
 	var target := "res://project.godot"
-	var out := ProjectSettings.globalize_path(target) if write else CANON_PATH
+	# user:// is shared by every checkout, so a per-process name keeps parallel runs apart.
+	var canon_path := "user://canon_project_%d.godot" % OS.get_process_id()
+	var out := ProjectSettings.globalize_path(target) if write else canon_path
 	if ProjectSettings.save_custom(out) != OK:
 		printerr("check: cannot write %s" % out)
 		quit(1)
@@ -17,9 +16,9 @@ func _init() -> void:
 	if write:
 		quit(0)
 		return
-	var canonical := FileAccess.get_file_as_string(CANON_PATH)
+	var canonical := FileAccess.get_file_as_string(canon_path)
 	var current := FileAccess.get_file_as_string(target)
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(CANON_PATH))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(canon_path))
 	if canonical != current:
 		printerr("check: project.godot is not in the editor's canonical form. Run tools/canon_project.sh and commit the result.")
 		quit(1)
