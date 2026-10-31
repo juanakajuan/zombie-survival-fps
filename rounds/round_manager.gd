@@ -33,6 +33,9 @@ func _ready() -> void:
 	if _spawn_points.is_empty():
 		push_error("RoundManager: add SpawnPoint children.")
 		return
+	if not _spawn_points.any(func(point: SpawnPoint) -> bool: return point.doors.is_empty()):
+		push_error("RoundManager: give one SpawnPoint no doors, so that round 1 has a place to spawn.")
+		return
 	_start_round(1)
 
 
@@ -104,15 +107,12 @@ func _spawn_zombie() -> void:
 	add_child(zombie)
 
 
-## The next active point after the one that spawned last. A point with no door is always active, so one exists unless
-## every point lists doors and all are closed. Then the zombie spawns at the next point anyway.
+## The next active point after the one that spawned last. `_ready` makes sure that one point has no door, so the
+## recursion ends.
 func _next_active_spawn_point() -> SpawnPoint:
-	for _i: int in _spawn_points.size():
-		var point := _spawn_points[_next_spawn_point]
-		_next_spawn_point = (_next_spawn_point + 1) % _spawn_points.size()
-		if point.is_active():
-			return point
-	return _spawn_points[_next_spawn_point]
+	var point := _spawn_points[_next_spawn_point]
+	_next_spawn_point = (_next_spawn_point + 1) % _spawn_points.size()
+	return point if point.is_active() else _next_active_spawn_point()
 
 
 func _on_zombie_died() -> void:
