@@ -1,5 +1,7 @@
 expect hud.health 100
 fight_until hud.objective 1 LEFT 2400
+tap reload
+until hud.reloading false 120
 face 0 0
 until hud.health 20 1200
 shot low

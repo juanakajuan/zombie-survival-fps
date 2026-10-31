@@ -79,13 +79,14 @@ func _step(line: String) -> bool:
 		"hold", "release":
 			if not _send_action(parts[1], command == "hold"):
 				return false
-			await _wait_frames(1)
+			await _wait_flush()
 		"tap":
 			if not _send_action(parts[1], true):
 				return false
-			await _wait_frames(2)
-			_send_action(parts[1], false)
+			await _wait_flush()
 			await _wait_frames(1)
+			_send_action(parts[1], false)
+			await _wait_flush()
 		"key":
 			return await _tap_key(parts[1])
 		"look":
@@ -184,7 +185,8 @@ func _tap_key(key_name: String) -> bool:
 		event.keycode = keycode
 		event.pressed = pressed
 		Input.parse_input_event(event)
-		await _wait_frames(2)
+		await _wait_flush()
+		await _wait_frames(1)
 	return true
 
 
@@ -281,9 +283,11 @@ func _fight_until(key: String, want: String, max_frames: int) -> bool:
 		await _aim_nearest_zombie()
 		if not _send_action(&"fire", true):
 			return false
-		await _wait_frames(2)
+		await _wait_flush()
+		await _wait_frames(1)
 		_send_action(&"fire", false)
-		await _wait_frames(7)
+		await _wait_flush()
+		await _wait_frames(6)
 	printerr("driver: fight: %s never became %s in %d frames, last %s" % [key, want, max_frames, str(_state().get(key))])
 	return false
 
@@ -300,8 +304,8 @@ func _state() -> Dictionary[String, String]:
 	var player := get_first_node_in_group(Player.GROUP) as Player
 	if player != null:
 		s["player.position"] = "%.1f %.1f %.1f" % [player.global_position.x, player.global_position.y, player.global_position.z]
-		s["player.yaw_deg"] = "%.0f" % rad_to_deg(player.rotation.y)
-		s["player.pitch_deg"] = "%.0f" % rad_to_deg(player.head.rotation.x)
+		s["player.yaw_deg"] = str(roundi(rad_to_deg(player.rotation.y)))
+		s["player.pitch_deg"] = str(roundi(rad_to_deg(player.head.rotation.x)))
 		s["player.dead"] = str(player.is_dead())
 		s["player.downed"] = str(player.is_downed())
 		s["player.crouching"] = str(player.is_crouching())

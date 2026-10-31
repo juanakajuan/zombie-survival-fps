@@ -5,9 +5,9 @@ The player presses G to pull the pin: the left hand comes up with a small green 
 ## Sub-features
 
 - `cook` takes one grenade when G goes down, raises the hand with the grenade, and starts the fuse. The HUD shows the fuse left in orange next to the count (`hud.grenade_fuse`, for example `2.1`). With none left, or while downed or dead, G does nothing.
-- `throw` plays the swing when G comes up. The grenade leaves the hand 0.12 s later along the aim, with the fuse that is left, and the hand drops out of view. A press during the cook or the swing does nothing.
-- `busy` stops the gun (no fire, no reload) and the punch from the pin pull until the swing ends. The gun dips out of the hand's way.
-- `fuse` explodes the grenade once, `Grenade.fuse_time` after the press, then shows the flash for a moment. A grenade held that long explodes in the hand, at the head.
+- `throw` plays the swing when G comes up. The grenade leaves the hand 0.12 s later along the aim, with the fuse that is left, and the hand drops out of view. A press during the cook, the swing, or the 0.3 s after the throw does nothing. G also does nothing during a punch.
+- `busy` stops the gun (no fire, no reload) and the punch from the pin pull until 0.3 s after the throw. The gun dips out of the hand's way.
+- `fuse` explodes the grenade once, `Grenade.fuse_time` after the press, then shows the flash for a moment. A grenade held that long explodes in the hand.
 - `drop` lets a player who goes down or dies while cooking drop the grenade at the feet. It still explodes.
 - `blast` damages each living zombie in the radius once, with less damage the farther it stands from the centre. A wall does not stop it.
 - `blast-points` gives the points of a hit for each zombie that the blast damages, and the kill bonus for each that dies. It never counts as a headshot.
@@ -29,7 +29,7 @@ Preconditions:
 - **Wait for the zombies.** `until zombies.alive 4 300`, then `wait 40` and `aim`. The nearest zombie is about 13 m away and walks at 2.5 m/s.
 - **Aim at the ground ahead.** `look 0 220` turns the view about 33 degrees down from the zombie, so that the grenade lands about 4 m ahead and rolls on toward the zombies.
 - **Throw.** `tap grenade`, then `expect hud.grenades 1`. A `shot` 30 frames later shows the grenade on the ground. `look 0 -190` first turns the view back up to the zombies.
-- **Blast.** The grenade explodes 150 frames after the throw. A `shot` at about frame 153 shows the flash. `expect_not hud.points 0` and `expect_not zombies.alive 4` pass after it.
+- **Blast.** The grenade explodes 150 frames after the press of G. A `shot` at about frame 153 shows the flash. `expect_not hud.points 0` and `expect_not zombies.alive 4` pass after it.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/grenade.steps`. The fuse, the falloff, the points of a kill, the self damage, and the refill are in `tests/grenades/test_grenade.gd`.
 - **Cook.** `hold grenade`, then a `shot` about 25 frames later shows the raised hand with the grenade, and `hud.grenade_fuse` is below `2.5`. `release grenade`, `wait 12`, and `look 0 -190` turn the view back up after the grenade has left the hand. `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/grenade_cook.steps` holds for 60 frames, so the blast comes 150 frames after the press, and checks it has happened 120 frames after the release, which a full fuse after the release would not allow. The timing, the gun and fist lock, the hand, the drop and the HUD are in `tests/grenades/test_grenade_cook.gd`.
 

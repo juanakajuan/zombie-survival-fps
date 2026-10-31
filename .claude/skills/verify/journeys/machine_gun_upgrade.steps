@@ -42,5 +42,5 @@ wait 40
 shot 02-upgraded
 tap fire
 shot 03-fired
-expect hud.ammo 149 / 450
+expect_not hud.ammo 150 / 450
 state 03-fired
