@@ -3,6 +3,7 @@ extends TestCase
 const MAX_AMMO: BuyItem = preload("res://pickups/max_ammo.tres")
 const DOUBLE_POINTS: BuyItem = preload("res://pickups/double_points.tres")
 const INSTA_KILL: BuyItem = preload("res://pickups/insta_kill.tres")
+const NUKE: BuyItem = preload("res://pickups/nuke.tres")
 
 
 func test_a_zombie_with_chance_1_drops_a_pickup_at_its_feet_when_it_dies() -> void:
@@ -40,7 +41,7 @@ func test_a_zombie_of_the_game_drops_by_the_table_of_its_scene() -> void:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
 	assert_true(zombie.drops != null, "the zombie scene has a drop table")
 	assert_almost_eq(zombie.drops.chance, 0.1, 0.001, "chance")
-	assert_eq(zombie.drops.items, [MAX_AMMO, DOUBLE_POINTS, INSTA_KILL] as Array[BuyItem], "items")
+	assert_eq(zombie.drops.items, [MAX_AMMO, DOUBLE_POINTS, INSTA_KILL, NUKE] as Array[BuyItem], "items")
 	zombie.free()
 
 

@@ -1,6 +1,8 @@
 extends TestCase
 
-const DOUBLE_POINTS: BuyItem = preload("res://pickups/double_points.tres")
+const DOUBLE_POINTS: DoublePointsItem = preload("res://pickups/double_points.tres")
+const MAX_AMMO: BuyItem = preload("res://pickups/max_ammo.tres")
+const NUKE: NukeItem = preload("res://pickups/nuke.tres")
 
 
 func test_a_second_pickup_of_the_same_effect_starts_its_time_again() -> void:
@@ -94,3 +96,22 @@ func _insta_kill(duration: float) -> InstaKillItem:
 	item.display_name = "INSTA-KILL"
 	item.duration = duration
 	return item
+
+
+func test_a_nuke_kills_every_living_zombie_pays_its_points_and_drops_nothing() -> void:
+	var player := await spawn_player()
+	var table := DropTable.new()
+	table.chance = 1.0
+	table.items = [MAX_AMMO] as Array[BuyItem]
+	var zombies: Array[Zombie] = []
+	for x: int in [-6, 6, 9]:
+		var zombie := spawn_zombie(Vector3(x, 0.0, -4.0))
+		zombie.drops = table
+		zombies.append(zombie)
+	player.powerups.start(DOUBLE_POINTS)
+	spawn_pickup(NUKE, Vector3.ZERO)
+	await physics_frames(3)
+	for zombie: Zombie in zombies:
+		assert_true(zombie.is_dead(), "the zombie at %s is dead" % zombie.position)
+	assert_eq(player.wallet.points, NUKE.points, "a fixed payment, not doubled, with no points for the kills")
+	assert_eq(pickups_in(self).size(), 0, "the dead zombies dropped nothing")

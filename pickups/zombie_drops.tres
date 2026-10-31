@@ -5,9 +5,10 @@
 [ext_resource type="Resource" path="res://pickups/max_ammo.tres" id="3_ammo"]
 [ext_resource type="Resource" path="res://pickups/double_points.tres" id="4_double_points"]
 [ext_resource type="Resource" path="res://pickups/insta_kill.tres" id="5_insta_kill"]
+[ext_resource type="Resource" path="res://pickups/nuke.tres" id="6_nuke"]
 
 [resource]
 script = ExtResource("1_table")
 chance = 0.1
-items = Array[ExtResource("2_buy_item")]([ExtResource("3_ammo"), ExtResource("4_double_points"), ExtResource("5_insta_kill")])
+items = Array[ExtResource("2_buy_item")]([ExtResource("3_ammo"), ExtResource("4_double_points"), ExtResource("5_insta_kill"), ExtResource("6_nuke")])
 lifetime = 20.0

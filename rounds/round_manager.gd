@@ -53,9 +53,7 @@ func kill_all() -> void:
 	_zombies_to_spawn = 0
 	for child: Node in get_children():
 		if child is Zombie:
-			(child as Zombie).drops = null
-			var health := Health.find_on(child)
-			health.damage(health.current)
+			(child as Zombie).kill_quietly()
 	# With no living zombie, no death ends the round.
 	if state == State.ACTIVE:
 		_start_break()
