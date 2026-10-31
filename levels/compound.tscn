@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" path="res://economy/wall_buy.tscn" id="29_wall_buy"]
 [ext_resource type="Resource" path="res://economy/rifle_item.tres" id="30_rifle_item"]
 [ext_resource type="PackedScene" path="res://upgrades/upgrade_machine.tscn" id="29_upgrade_machine"]
+[ext_resource type="PackedScene" path="res://weapon_box/weapon_box.tscn" id="30_weapon_box"]
 
 [sub_resource type="NavigationMesh" id="navigation_mesh"]
 geometry_parsed_geometry_type = 1
@@ -622,3 +623,21 @@ item = ExtResource("30_rifle_item")
 [node name="UpgradeMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("29_upgrade_machine")]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 10, 0, 4.8)
 power = NodePath("../PowerSwitch")
+
+[node name="WeaponBoxPlaces" type="Node3D" parent="."]
+
+[node name="Yard" type="Marker3D" parent="WeaponBoxPlaces"]
+position = Vector3(-6, 0, 21.5)
+
+[node name="Warehouse" type="Marker3D" parent="WeaponBoxPlaces"]
+position = Vector3(-10.5, 0, -13)
+
+[node name="Watchtower" type="Marker3D" parent="WeaponBoxPlaces"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 21.5, 0, -28)
+
+[node name="East" type="Marker3D" parent="WeaponBoxPlaces"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 30, 0, 10)
+
+[node name="WeaponBox" parent="." node_paths=PackedStringArray("places") instance=ExtResource("30_weapon_box")]
+position = Vector3(-6, 0, 21.5)
+places = [NodePath("../WeaponBoxPlaces/Yard"), NodePath("../WeaponBoxPlaces/Warehouse"), NodePath("../WeaponBoxPlaces/Watchtower"), NodePath("../WeaponBoxPlaces/East")]
