@@ -51,6 +51,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | `face <yaw> <pitch>` | One mouse-motion event that turns the view to an absolute yaw and pitch in degrees. `face 0 0` looks level toward -Z, as at the start. Use it after `aim` or `fight_until`, which leave the view toward the last zombie. |
 | `fight_until <key> <value> <frames>` | Repeat `aim` and `tap fire` (about 6 shots a second) until the state key has the value. Fails at the frame limit. |
 | `until <key> <value> <frames>` | Wait until the state key has the value. Fails at the frame limit. |
+| `debug <label>` | Run the debug menu command with this button label, as a click on it does, for example `debug +5000 POINTS`. The labels are `+500 POINTS`, `+5000 POINTS`, `REFILL AMMO`, `FULL HEALTH`, `GOD MODE`, `KILL ALL ZOMBIES`, and `SKIP BREAK`. |
 | `self_revive` | Give the player SECOND WIND (HUD icon `S`) without the power and the points, so that 0 health downs the player. |
 | `expect <key> <value>` / `expect_not <key> <value>` | Compare a state value now. A failed expect is recorded and the run continues. Any other failed command stops the run. |
 | `state <name>` | Write the state to `<name>.json`. |

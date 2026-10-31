@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://weapons/shotgun_view.tscn" id="2_view"]
+[ext_resource type="PackedScene" path="res://weapons/tracer.tscn" id="3_tracer"]
+[ext_resource type="PackedScene" path="res://weapons/shotgun.glb" id="4_model"]
+
+[resource]
+script = ExtResource("1_data")
+display_name = "SHOTGUN"
+damage = 20.0
+fire_interval = 0.75
+magazine_size = 6
+max_reserve = 36
+reload_time = 2.2
+max_range = 35.0
+pellets = 8
+spread = 5.0
+automatic = false
+view_model = ExtResource("2_view")
+tracer = ExtResource("3_tracer")
+world_model = ExtResource("4_model")

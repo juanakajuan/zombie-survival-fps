@@ -112,6 +112,8 @@ func _step(line: String) -> bool:
 			return await _fight_until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
 		"self_revive":
 			_give_self_revive()
+		"debug":
+			return _run_debug_command(" ".join(parts.slice(1)))
 		"until":
 			return await _until(parts[1], " ".join(parts.slice(2, parts.size() - 1)), parts[parts.size() - 1].to_int())
 		_:
@@ -123,6 +125,16 @@ func _step(line: String) -> bool:
 ## Gives the player SECOND WIND without the power switch and the points, to show the downed state quickly.
 func _give_self_revive() -> void:
 	(get_first_node_in_group(Player.GROUP) as Player).perks.add(SECOND_WIND)
+
+
+## Runs a debug menu command by its button label, as a click on the button does.
+func _run_debug_command(label: String) -> bool:
+	var menu := (get_first_node_in_group(Player.GROUP) as Player).debug_menu
+	if not menu.command_labels().has(label):
+		printerr("driver: no debug command %s in %s" % [label, menu.command_labels()])
+		return false
+	menu.run_command(label)
+	return true
 
 
 func _wait_frames(count: int) -> void:

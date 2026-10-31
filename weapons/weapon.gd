@@ -1,6 +1,7 @@
 class_name Weapon
 extends Node3D
-## Hitscan weapon. It shoots along its wielder's aim, or along its own -Z axis when it has no wielder. It ignores its wielder. Each shot shows a tracer from the muzzle.
+## Hitscan weapon. It shoots along its wielder's aim, or along its own -Z axis when it has no wielder. It ignores its wielder. A shot is
+## `data.pellets` rays inside the `data.spread` cone, and each ray shows a tracer from the muzzle.
 
 signal fired
 signal reload_started
@@ -8,7 +9,7 @@ signal reload_started
 signal dry_fired
 signal reload_finished
 signal hit(collider: Object, position: Vector3)
-## Emitted when a shot damages a Health that is alive. `killed` is true when this shot took it to 0, and `headshot` is true when it hit a WeakSpot. A dead target takes no damage.
+## Emitted when a ray of a shot damages a Health that is alive. `killed` is true when this ray took it to 0, and `headshot` is true when it hit a WeakSpot. A dead target takes no damage.
 signal damaged(target: Node, killed: bool, headshot: bool)
 ## Emitted after `ammo` or `reserve` changes.
 signal ammo_changed
@@ -139,7 +140,15 @@ func is_reloading() -> bool:
 
 func _shoot() -> void:
 	var aim := wielder.aim_transform() if wielder != null else global_transform
-	var query := PhysicsRayQueryParameters3D.create(aim.origin, aim.origin - aim.basis.z * data.max_range)
+	var spread := deg_to_rad(data.spread)
+	for _pellet: int in data.pellets:
+		# The square root spreads the rays evenly over the cone, not packed at its centre.
+		var direction := (-aim.basis.z).rotated(aim.basis.x, spread * sqrt(randf())).rotated(-aim.basis.z, randf() * TAU)
+		_shoot_ray(aim.origin, direction)
+
+
+func _shoot_ray(from: Vector3, direction: Vector3) -> void:
+	var query := PhysicsRayQueryParameters3D.create(from, from + direction * data.max_range)
 	if wielder != null:
 		query.exclude = [wielder.get_rid()]
 	query.collision_mask = hit_mask
