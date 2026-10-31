@@ -27,6 +27,8 @@ extends CanvasLayer
 @export var health_color: Color = Color(1, 1, 1, 0.95)
 @export var low_health_color: Color = Color(0.95, 0.2, 0.2)
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
+## Player sets it from the Show FPS setting.
+@export var show_fps: bool = false
 
 ## The level sets it. Without one, the round panel stays hidden.
 var round_manager: RoundManager:
@@ -64,6 +66,8 @@ class Readout extends RefCounted:
 	var revive_text: String
 	## The icon text of each perk icon, in the order they show.
 	var perk_icons: PackedStringArray
+	var fps_visible: bool
+	var fps_text: String
 
 
 @onready var hit_sound: AudioStreamPlayer = $HitSound
@@ -88,6 +92,7 @@ class Readout extends RefCounted:
 @onready var _downed_label: Label = %DownedLabel
 @onready var _revive_label: Label = %ReviveLabel
 @onready var _perk_icons: HBoxContainer = %PerkIcons
+@onready var _fps_label: Label = %FpsLabel
 ## The hidden icon that each perk icon is a copy of.
 @onready var _perk_icon: PanelContainer = %PerkIcon
 
@@ -108,6 +113,7 @@ func _process(_delta: float) -> void:
 	_update_objective()
 	_update_prompt()
 	_update_boost()
+	_update_fps()
 
 
 func readout() -> Readout:
@@ -139,6 +145,9 @@ func readout() -> Readout:
 	for icon: Node in _perk_icons.get_children():
 		if icon != _perk_icon:
 			r.perk_icons.append((icon.get_child(0) as Label).text)
+	_update_fps()
+	r.fps_visible = _fps_label.is_visible_in_tree()
+	r.fps_text = _fps_label.text
 	return r
 
 
@@ -218,6 +227,12 @@ func _update_boost() -> void:
 	_boost_label.visible = wallet.multiplier > 1
 	if _boost_label.visible:
 		_boost_label.text = "%dX POINTS  %d" % [wallet.multiplier, ceili(wallet.boost_time_left())]
+
+
+func _update_fps() -> void:
+	_fps_label.visible = show_fps
+	if show_fps:
+		_fps_label.text = "%d FPS" % roundi(Engine.get_frames_per_second())
 
 
 func _update_prompt() -> void:

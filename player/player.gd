@@ -475,6 +475,7 @@ func _close_debug_menu() -> void:
 func _apply_settings() -> void:
 	_apply_field_of_view()
 	settings.apply_to_engine()
+	hud.show_fps = settings.show_fps
 
 
 func _apply_field_of_view() -> void:

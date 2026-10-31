@@ -11,6 +11,7 @@ signal settings_changed
 @onready var fov_slider: HSlider = %FovSlider
 @onready var volume_slider: HSlider = %VolumeSlider
 @onready var fullscreen_toggle: CheckButton = %FullscreenToggle
+@onready var show_fps_toggle: CheckButton = %ShowFpsToggle
 @onready var resume_button: Button = %ResumeButton
 @onready var _sensitivity_value: Label = %SensitivityValue
 @onready var _fov_value: Label = %FovValue
@@ -26,6 +27,7 @@ func _ready() -> void:
 	fov_slider.value_changed.connect(_on_fov_changed)
 	volume_slider.value_changed.connect(_on_volume_changed)
 	fullscreen_toggle.toggled.connect(_on_fullscreen_toggled)
+	show_fps_toggle.toggled.connect(_on_show_fps_toggled)
 	resume_button.pressed.connect(resume_requested.emit)
 	_quit_button.pressed.connect(get_tree().quit)
 
@@ -43,6 +45,7 @@ func open(settings: GameSettings) -> void:
 	fov_slider.set_value_no_signal(settings.field_of_view)
 	volume_slider.set_value_no_signal(settings.master_volume)
 	fullscreen_toggle.set_pressed_no_signal(settings.fullscreen)
+	show_fps_toggle.set_pressed_no_signal(settings.show_fps)
 	_update_value_labels()
 	show()
 	get_tree().paused = true
@@ -76,6 +79,11 @@ func _on_volume_changed(value: float) -> void:
 
 func _on_fullscreen_toggled(on: bool) -> void:
 	_settings.fullscreen = on
+	_changed()
+
+
+func _on_show_fps_toggled(on: bool) -> void:
+	_settings.show_fps = on
 	_changed()
 
 

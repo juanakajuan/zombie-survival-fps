@@ -34,6 +34,15 @@ func test_red_edge_grows_as_health_gets_low_and_goes_when_it_comes_back() -> voi
 	assert_almost_eq(player.hud.readout().low_health_vignette, 0.0, 0.001, "hidden after health comes back")
 
 
+func test_fps_counter_is_hidden_until_turned_on() -> void:
+	var player := await spawn_player()
+	assert_true(not player.hud.readout().fps_visible, "hidden by default")
+	player.hud.show_fps = true
+	await physics_frames(2)
+	assert_true(player.hud.readout().fps_visible, "shown when on")
+	assert_eq(player.hud.readout().fps_text, "%d FPS" % roundi(Engine.get_frames_per_second()), "fps text")
+
+
 func test_ammo_text_follows_shots() -> void:
 	var player := await spawn_player()
 	var weapon := player.weapon

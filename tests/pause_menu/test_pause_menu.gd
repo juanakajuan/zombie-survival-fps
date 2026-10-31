@@ -76,6 +76,19 @@ func test_fov_slider_changes_the_camera_fov_at_once() -> void:
 	assert_almost_eq(player.camera.fov, 100.0, 0.001, "camera fov")
 
 
+func test_show_fps_toggle_shows_the_counter_and_is_saved() -> void:
+	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
+	_tap_escape()
+	await physics_frames(2)
+	player.pause_menu.show_fps_toggle.button_pressed = true
+	assert_true(player.hud.readout().fps_visible, "counter shows at once")
+	_tap_escape()
+	await physics_frames(2)
+	player.queue_free()
+	var next := await spawn_player(Vector3(5.0, 0.0, 0.0), SETTLE_FRAMES)
+	assert_true(next.hud.readout().fps_visible, "counter shows in the new player")
+
+
 func test_settings_are_saved_on_resume_and_load_in_a_new_player() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	_tap_escape()
@@ -95,6 +108,7 @@ func test_bad_values_in_the_settings_file_give_the_defaults() -> void:
 	var file := ConfigFile.new()
 	file.set_value(GameSettings.SECTION, "field_of_view", "wide")
 	file.set_value(GameSettings.SECTION, "fullscreen", 3)
+	file.set_value(GameSettings.SECTION, "show_fps", "yes")
 	file.set_value(GameSettings.SECTION, "master_volume", 7.0)
 	file.set_value(GameSettings.SECTION, "mouse_sensitivity_scale", 1.5)
 	file.save(GameSettings.file_path)
@@ -102,6 +116,7 @@ func test_bad_values_in_the_settings_file_give_the_defaults() -> void:
 	var defaults := GameSettings.new()
 	assert_eq(loaded.field_of_view, defaults.field_of_view, "a string fov gives the default")
 	assert_eq(loaded.fullscreen, defaults.fullscreen, "an int fullscreen gives the default")
+	assert_eq(loaded.show_fps, defaults.show_fps, "a string show_fps gives the default")
 	assert_eq(loaded.master_volume, 1.0, "the volume is clamped")
 	assert_eq(loaded.mouse_sensitivity_scale, 1.5, "a good value loads")
 
