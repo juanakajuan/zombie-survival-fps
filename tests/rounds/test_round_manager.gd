@@ -92,6 +92,51 @@ func test_next_round_has_more_zombies_with_more_health_and_speed() -> void:
 	assert_true(zombies[0].move_speed > first_speed, "round 2 zombies are faster")
 
 
+func test_runner_round_spawns_its_runners_spread_over_the_spawn_order_at_runner_speed() -> void:
+	var settings := _settings()
+	settings.first_round_zombies = 6
+	settings.first_runner_round = 1
+	settings.first_runner_fraction = 0.5
+	var manager := _spawn_manager(settings)
+	await _spawn_all(manager, settings)
+	var gaits: Array[Zombie.Gait] = []
+	for zombie: Zombie in _zombies(manager):
+		gaits.append(zombie.gait)
+		var expected := settings.runner_speed if zombie.gait == Zombie.Gait.RUN else settings.zombie_speed(1)
+		assert_almost_eq(zombie.move_speed, expected, 0.001, "speed of a %s zombie" % Zombie.Gait.keys()[zombie.gait])
+	assert_eq(settings.runner_count(1), 3, "the settings give 3 runners")
+	var walk := Zombie.Gait.WALK
+	var run := Zombie.Gait.RUN
+	assert_eq(gaits, [walk, run, walk, run, walk, run] as Array[Zombie.Gait], "gaits in spawn order")
+
+
+func test_runners_come_only_from_the_first_runner_round() -> void:
+	var settings := _settings()
+	settings.first_runner_round = 2
+	settings.first_runner_fraction = 0.5
+	var manager := _spawn_manager(settings)
+	await _spawn_all(manager, settings)
+	assert_eq(_runners(manager), 0, "runners in round 1")
+	for zombie: Zombie in _zombies(manager):
+		Health.find_on(zombie).damage(1.0e6)
+	await run_seconds(settings.break_time + FRAME_MARGIN / 60.0)
+	await _spawn_all(manager, settings)
+	assert_eq(manager.round_number, 2, "round number")
+	assert_eq(_zombies(manager).size(), settings.zombie_count(2), "zombie count in round 2")
+	assert_eq(_runners(manager), settings.runner_count(2), "runners in round 2")
+	assert_true(settings.runner_count(2) > 0, "round 2 has runners")
+
+
+func test_a_round_where_every_zombie_runs_has_only_runners() -> void:
+	var settings := _settings()
+	settings.first_runner_round = 1
+	settings.first_runner_fraction = 1.0
+	settings.max_runner_fraction = 1.0
+	var manager := _spawn_manager(settings)
+	await _spawn_all(manager, settings)
+	assert_eq(_runners(manager), settings.zombie_count(1), "runners in round 1")
+
+
 func _settings() -> RoundSettings:
 	var settings := RoundSettings.new()
 	settings.first_round_zombies = 3
@@ -141,6 +186,10 @@ func _zombies(manager: RoundManager) -> Array[Zombie]:
 		if child is Zombie and not (child as Zombie).is_dead():
 			zombies.append(child as Zombie)
 	return zombies
+
+
+func _runners(manager: RoundManager) -> int:
+	return _zombies(manager).filter(func(zombie: Zombie) -> bool: return zombie.gait == Zombie.Gait.RUN).size()
 
 
 func _nearest_spawn_point(zombie: Zombie) -> Vector3:
