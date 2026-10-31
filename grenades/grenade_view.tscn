@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://grenades/grenade_view.gd" id="1_view"]
+[ext_resource type="PackedScene" path="res://player/player_fist.glb" id="2_hand"]
+[ext_resource type="PackedScene" path="res://grenades/grenade_model.tscn" id="3_model"]
+
+[node name="GrenadeView" type="Node3D" node_paths=PackedStringArray("hand", "grenade")]
+script = ExtResource("1_view")
+hand = NodePath("Hand")
+grenade = NodePath("Hand/Grenade")
+
+[node name="Hand" parent="." instance=ExtResource("2_hand")]
+visible = false
+
+[node name="Grenade" parent="Hand" instance=ExtResource("3_model")]
+transform = Transform3D(0.42, 0, 0, 0, 0.42, 0, 0, 0, 0.42, -0.012, 0.03, 0)

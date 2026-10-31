@@ -11,6 +11,12 @@ func _tap_grenade() -> void:
 	Input.action_release("grenade")
 
 
+## A tap, and the wait for the grenade to leave the hand.
+func _throw_grenade(player: Player) -> void:
+	await _tap_grenade()
+	await run_seconds(player.grenades.throw_wind_time + 0.1)
+
+
 ## A grenade that stays where it is, so the distances to the zombies are exact.
 func _still_grenade(player: Player, at: Vector3, fuse_time: float = 0.2) -> Grenade:
 	var grenade := GRENADE_SCENE.instantiate() as Grenade
@@ -35,7 +41,7 @@ func test_pressing_grenade_throws_one_along_the_aim() -> void:
 	var thrown: Array[Grenade] = []
 	player.grenades.thrown.connect(thrown.append)
 	var before := player.grenades.count
-	await _tap_grenade()
+	await _throw_grenade(player)
 	assert_eq(player.grenades.count, before - 1, "a throw takes one grenade")
 	assert_eq(thrown.size(), 1, "one grenade flies")
 	await physics_frames(10)
@@ -43,16 +49,16 @@ func test_pressing_grenade_throws_one_along_the_aim() -> void:
 	assert_almost_eq(Health.find_on(player).current, Health.find_on(player).max_health, 0.001, "the throw does not hurt the player")
 
 
-func test_a_press_right_after_a_throw_does_nothing_and_one_after_the_cooldown_throws() -> void:
+func test_a_press_during_the_throw_does_nothing_and_one_after_it_throws() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	var thrown: Array[Grenade] = []
 	player.grenades.thrown.connect(thrown.append)
+	await _throw_grenade(player)
 	await _tap_grenade()
-	await _tap_grenade()
-	assert_eq(thrown.size(), 1, "the second press in the cooldown throws nothing")
-	await run_seconds(player.grenades.cooldown)
-	await _tap_grenade()
-	assert_eq(thrown.size(), 2, "a press after the cooldown throws")
+	assert_eq(player.grenades.count, player.grenades.starting_count - 1, "the second press in the recovery takes no grenade")
+	await run_seconds(player.grenades.throw_recover_time + player.grenades.throw_wind_time)
+	await _throw_grenade(player)
+	assert_eq(thrown.size(), 2, "a press after the recovery throws")
 
 
 func test_with_no_grenades_a_press_throws_nothing() -> void:
@@ -60,7 +66,7 @@ func test_with_no_grenades_a_press_throws_nothing() -> void:
 	player.grenades.count = 0
 	var thrown: Array[Grenade] = []
 	player.grenades.thrown.connect(thrown.append)
-	await _tap_grenade()
+	await _throw_grenade(player)
 	assert_eq(thrown.size(), 0, "no grenade flies")
 	assert_eq(player.grenades.count, 0, "the count stays at 0")
 
@@ -69,8 +75,8 @@ func test_a_dead_player_does_not_throw() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	Health.find_on(player).damage(1.0e6)
 	var before := player.grenades.count
-	assert_true(not player.grenades.try_throw(), "no throw")
-	await _tap_grenade()
+	assert_true(not player.grenades.start_cook(), "no cook")
+	await _throw_grenade(player)
 	assert_eq(player.grenades.count, before, "the press takes no grenade")
 
 
@@ -200,7 +206,7 @@ func test_a_new_round_adds_grenades_up_to_the_maximum() -> void:
 func test_the_hud_shows_the_count() -> void:
 	var player := await spawn_player(Vector3.ZERO, SETTLE_FRAMES)
 	assert_eq(player.hud.readout().grenades_text, str(player.grenades.starting_count), "the HUD starts with the starting count")
-	await _tap_grenade()
+	await _throw_grenade(player)
 	assert_eq(player.hud.readout().grenades_text, str(player.grenades.starting_count - 1), "the HUD follows a throw")
 
 

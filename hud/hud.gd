@@ -47,6 +47,8 @@ class Readout extends RefCounted:
 	var health_text: String
 	var ammo_text: String
 	var grenades_text: String
+	## The seconds before the grenade in hand explodes, with one decimal. Empty when no grenade is in hand.
+	var grenade_fuse_text: String
 	var points_text: String
 	## One entry for each running timed effect, in the order that they started: the name and the seconds left.
 	var powerups: PackedStringArray
@@ -85,6 +87,7 @@ class Readout extends RefCounted:
 @onready var _weapon_name: Label = %WeaponName
 @onready var _ammo_value: Label = %AmmoValue
 @onready var _grenade_value: Label = %GrenadeValue
+@onready var _grenade_fuse: Label = %GrenadeFuse
 @onready var _points_value: Label = %PointsValue
 @onready var _powerup_label: Label = %PowerupLabel
 @onready var _prompt: Label = %Prompt
@@ -120,6 +123,7 @@ func _process(_delta: float) -> void:
 	_update_objective()
 	_update_prompt()
 	_update_powerups()
+	_update_grenade_fuse()
 	_update_fps()
 
 
@@ -128,6 +132,8 @@ func readout() -> Readout:
 	r.health_text = _health_value.text
 	r.ammo_text = _ammo_value.text
 	r.grenades_text = _grenade_value.text
+	_update_grenade_fuse()
+	r.grenade_fuse_text = _grenade_fuse.text if _grenade_fuse.visible else ""
 	r.points_text = _points_value.text
 	_update_powerups()
 	r.powerups = _powerup_lines()
@@ -214,6 +220,11 @@ func _update_ammo() -> void:
 
 func _update_grenades(count: int) -> void:
 	_grenade_value.text = str(count)
+
+
+func _update_grenade_fuse() -> void:
+	_grenade_fuse.visible = grenades.has_grenade_in_hand()
+	_grenade_fuse.text = "%.1f" % grenades.fuse_left()
 
 
 func _update_perks() -> void:

@@ -380,6 +380,15 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.6)
 theme_override_font_sizes/font_size = 18
 text = "G  GRENADES"
 
+[node name="GrenadeFuse" type="Label" parent="Root/WeaponPanel/GrenadeRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_colors/font_color = Color(1, 0.62, 0.15, 1)
+theme_override_font_sizes/font_size = 24
+text = "2.5"
+
 [node name="GrenadeValue" type="Label" parent="Root/WeaponPanel/GrenadeRow"]
 unique_name_in_owner = true
 layout_mode = 2

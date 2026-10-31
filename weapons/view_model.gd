@@ -84,7 +84,7 @@ extends Node3D
 @export_range(0.1, 40.0, 0.1) var aim_sharpness: float = 14.0
 
 @export_group("Punch")
-## While the wielder punches, the gun moves by this much and rolls right, out of the hand's path.
+## While the wielder punches or has a grenade in hand, the gun moves by this much and rolls right, out of the hand's path.
 @export var punch_dip_offset: Vector3 = Vector3(0.03, -0.08, 0.02)
 @export_range(0.0, 45.0, 0.5, "suffix:°") var punch_dip_roll: float = 15.0
 
@@ -159,6 +159,9 @@ func _process(delta: float) -> void:
 		var punch := _player.melee.visual_progress()
 		if punch >= 0.0:
 			punch_dip = sin(PI * clampf(punch, 0.0, 1.0))
+		var grenade := _player.grenades.visual_progress()
+		if grenade >= 0.0:
+			punch_dip = maxf(punch_dip, minf(1.0, minf(grenade, 3.0 - grenade)))
 
 	if on_floor:
 		_bob_phase = fmod(_bob_phase + speed * delta * bob_cycles_per_metre * TAU, TAU)
