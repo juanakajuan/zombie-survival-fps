@@ -1,0 +1,14 @@
+expect hud.fps 
+shot off
+key Escape
+expect pause_menu.open true
+key Up
+key Enter
+shot menu
+expect_not hud.fps 
+key Escape
+expect game.paused false
+wait 60
+expect_not hud.fps 
+state on
+shot on

@@ -76,6 +76,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `zombies.alive`, `zombies.bars`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, and target dummies that show. |
 | `doors.open`, `pickups` | Doors that are open, and pickups on the ground in the level (a placed one counts too). |
 | `power.on`, `hud.perks`, `hud.max_health`, `hud.downed` | The downed timer text on the HUD (for example `DOWNED  7`, empty when hidden), whether the power switch is on, the text of each perk icon on the HUD in order, with one space between them (empty with no perk), and the max health under the health number. |
+| `hud.fps` | The frame counter in the top-left corner, for example `60 FPS` (empty while the SHOW FPS setting is off). |
 | `hud.revive` | The self-revive line under the downed timer, for example `SECOND WIND  GETTING UP IN 3` (empty when hidden). |
 | `barricades.boards` | The boards left on all barricades in the level, added up. The test range has one barricade with 5 boards, so it starts at `5`. |
 | `box.position`, `box.offer` | Where the weapon box stands (`x y z`, 1 decimal; it starts at `0.0 0.0 9.5`), and the weapon name over it (empty with none). |
