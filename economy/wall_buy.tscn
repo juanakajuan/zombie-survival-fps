@@ -27,7 +27,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0.02)
 mesh = SubResource("board_mesh")
 
 [node name="Silhouette" type="Node3D" parent="."]
-transform = Transform3D(0, 0, -1.3, 0, 1.3, 0, 0.065, 0, 0, -0.18, 1.36, 0.045)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 0.05, 0, 0, 0, 1.4, 0.045)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0.05)

@@ -1,0 +1,32 @@
+# Rifle: get points from the debug menu, walk to the rifle wall buy on the room's north wall, buy the rifle, fire it, aim it, reload it.
+expect hud.weapon PISTOL
+debug +5000 POINTS
+face -113 -5
+hold move_forward
+until hud.prompt_visible true 900
+release move_forward
+wait 10
+expect hud.prompt E BUY RIFLE 1500
+shot 01-wall-buy
+tap interact
+wait 5
+expect hud.points 3500
+expect hud.weapon RIFLE
+expect hud.ammo 10 / 60
+face 0 0
+wait 40
+shot 02-rifle
+hold fire
+wait 30
+release fire
+expect hud.ammo 9 / 60
+hold aim
+wait 30
+shot 03-aimed
+release aim
+tap reload
+wait 50
+shot 04-reload
+until hud.reloading false 200
+expect hud.ammo 10 / 59
+state 04-reloaded

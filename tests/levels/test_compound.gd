@@ -83,6 +83,7 @@ func test_the_level_has_an_ammo_station_and_a_weapon_station_near_the_player_sta
 	assert_true(sells(level, AmmoItem), "an ammo station")
 	assert_true(sells_weapon(level, "SMG"), "a weapon station that sells the SMG")
 	assert_true(sells_weapon(level, "SHOTGUN"), "a wall buy that sells the shotgun")
+	assert_true(sells_weapon(level, "RIFLE"), "a wall buy that sells the rifle")
 	for station: BuyStation in _shops(level):
 		assert_true(station.global_position.distance_to(player.global_position) < 10.0, "%s is in the yard near the start" % station.name)
 
