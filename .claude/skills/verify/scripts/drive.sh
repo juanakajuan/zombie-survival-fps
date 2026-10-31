@@ -31,7 +31,7 @@ if grep -E '^(ERROR|SCRIPT ERROR|USER ERROR)' -A2 "$log"; then
 	echo "drive: the engine logged errors (see $log)" >&2
 	status=1
 fi
-# gamescope does not pass on the exit code of godot, so the driver's summary decides the result.
+# gamescope exits 0 whatever godot returns, even on a crash, so the driver's summary decides the result.
 if [[ ! -f "$out/summary.txt" ]]; then
 	echo "drive: the driver did not finish (see $log)" >&2
 	status=1
