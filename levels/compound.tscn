@@ -357,19 +357,6 @@ use_collision = true
 size = Vector3(1, 3, 11)
 material = SubResource("prop_material")
 
-[node name="LoadingDock" type="CSGBox3D" parent="Geometry"]
-position = Vector3(7, 0.6, 6.625)
-use_collision = true
-size = Vector3(14, 1.2, 4.75)
-material = SubResource("platform_material")
-
-[node name="LoadingDockRamp" type="CSGBox3D" parent="Geometry"]
-position = Vector3(19, 0.3986, 6.5)
-rotation = Vector3(0, 0, -0.1194)
-use_collision = true
-size = Vector3(10.0717, 0.4, 4)
-material = SubResource("ramp_material")
-
 [node name="OfficeWallNorth" type="CSGBox3D" parent="Geometry"]
 position = Vector3(-30, 1.75, 22)
 use_collision = true
