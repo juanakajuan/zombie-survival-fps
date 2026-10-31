@@ -89,6 +89,16 @@ A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes o
 - It works only while Blender runs with its MCP add-on enabled. The add-on listens on 127.0.0.1:9876 (`ss -ltn | grep 9876`).
 - The add-on opens its port only when Blender's Online Access preference is on. The human turns on Online Access and the add-on in Blender's Preferences. Do not change Blender preferences from the command line while Blender is open: Blender saves its own preferences on exit and undoes the change.
 
+## Problems found during a task
+
+File a GitHub issue for a problem that is outside the task only when all of these are true:
+
+- It is a correctness, data, or tooling problem, and you proved it. You reproduced it, or you cite `file:line` and checked the code. Put a guess, or "this might be dead code", in the PR body and call it a guess.
+- It is outside the current change. Fix a problem inside the change in the same PR.
+- `gh issue list --search` shows no open issue for it.
+
+Give the issue a title like a commit (`fix:`, `refactor:`), the problem, a "Done when" list, a link to the PR or task that found it, and the `found-by-agent` label. Do not file an issue for a cosmetic nit or a naming preference.
+
 ## Style
 
 - Follow the official GDScript style guide: snake_case for files, folders, functions, and variables, and PascalCase for nodes and `class_name`.
