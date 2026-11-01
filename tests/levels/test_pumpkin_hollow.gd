@@ -98,6 +98,16 @@ func test_the_player_walks_up_the_church_ramp_onto_the_platform() -> void:
 	assert_almost_eq(level.player.global_position.y, CHURCH_PLATFORM_HEIGHT, 0.05, "player height on the church platform")
 
 
+func test_the_navmesh_answers_queries_when_the_level_loads_right_after_another_level() -> void:
+	var first := await spawn_level()
+	first.queue_free()
+	await physics_frames(1)
+	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
+	var map := level.navigation.get_navigation_map()
+	var start := level.player.global_position
+	assert_eq(NavigationServer3D.map_get_closest_point_owner(map, start), level.navigation.get_rid(), "the region that owns the navmesh at the player start")
+
+
 func test_round_1_starts_and_the_level_runs_for_5_seconds() -> void:
 	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
 	assert_eq(level.round_manager.round_number, 1, "round number")

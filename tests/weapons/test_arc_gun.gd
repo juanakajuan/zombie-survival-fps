@@ -2,7 +2,7 @@ extends TestCase
 
 const ARC_GUN: WeaponData = preload("res://weapons/arc_gun.tres")
 const BOX_TABLE: WeaponBoxTable = preload("res://weapon_box/weapon_box_table.tres")
-const COMPOUND_SCENE: PackedScene = preload("res://levels/compound.tscn")
+const PUMPKIN_HOLLOW_SCENE: PackedScene = preload("res://levels/pumpkin_hollow/pumpkin_hollow.tscn")
 
 
 func test_the_arc_jumps_to_the_nearest_zombies_with_less_damage_each_jump() -> void:
@@ -62,7 +62,7 @@ func test_the_upgraded_arc_gun_jumps_further_and_to_more_targets() -> void:
 
 func test_only_the_weapon_box_gives_the_arc_gun() -> void:
 	assert_true(BOX_TABLE.entries.any(func(entry: WeaponBoxEntry) -> bool: return entry.item.weapon == ARC_GUN), "the box can roll it")
-	for scene: PackedScene in [LEVEL_SCENE, COMPOUND_SCENE]:
+	for scene: PackedScene in [LEVEL_SCENE, PUMPKIN_HOLLOW_SCENE]:
 		var level := await spawn_level(null, scene)
 		assert_true(not sells_weapon(level, ARC_GUN.display_name), "no station in %s sells it" % level.name)
 		level.queue_free()
