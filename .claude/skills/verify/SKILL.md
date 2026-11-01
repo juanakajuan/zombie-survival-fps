@@ -75,7 +75,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `player.position`, `player.yaw_deg`, `player.pitch_deg`, `player.dead`, `player.downed`, `player.crouching`, `player.sliding`, `player.speed` | Feet position (`x y z`, 1 decimal), turn angle, up-down angle (`89` is straight up), death, crouch (true while sliding too), slide, and horizontal speed in m/s (1 decimal). The player starts at `0.0 0.0 6.0`, yaw `0`, pitch `0`, and looks toward -Z. |
 | `player.aiming`, `player.third_person` | Whether the player aims down the sights, and whether the debug third-person camera is on. |
 | `game.paused`, `pause_menu.open` | Whether the game tree is paused, and whether the pause menu shows. Esc toggles both. |
-| `zombies.alive`, `zombies.bars`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, and target dummies that show. |
+| `zombies.alive`, `zombies.bars`, `zombies.runners`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, living runners (the red shirts that run), and target dummies that show. |
 | `doors.open`, `pickups` | Doors that are open, and pickups on the ground in the level (a placed one counts too). |
 | `power.on`, `hud.perks`, `hud.max_health`, `hud.downed` | Whether the power switch is on, the text of each perk icon on the HUD in order with one space between them (empty with no perk), the max health under the health number, and the downed timer text on the HUD (for example `DOWNED  7`, empty when hidden). |
 | `hud.fps` | The frame counter in the top-left corner, for example `60 FPS` (empty while the SHOW FPS setting is off). |
