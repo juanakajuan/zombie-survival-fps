@@ -31,16 +31,88 @@ func test_the_upgrade_raises_damage_and_ammo_of_the_weapon_in_hand() -> void:
 	assert_almost_eq(health.max_health - health.current, upgraded.damage, 0.001, "the shot deals the upgraded damage")
 
 
-func test_a_weapon_cannot_be_upgraded_twice() -> void:
+func test_the_first_purchase_upgrades_and_gives_no_effect() -> void:
 	var player := await spawn_player()
 	var machine := _spawn_machine(null)
-	player.wallet.add(UPGRADE.cost * 2)
+	player.wallet.add(UPGRADE.cost + UPGRADE.effect_cost)
+	assert_true(machine.buy(player), "the first purchase")
+	assert_true(not player.effect_menu.is_open(), "the menu stays closed")
+	assert_true(not get_tree().paused, "the game runs")
+	assert_true(player.weapon.effect == null, "the weapon has no effect")
+	assert_eq(player.wallet.points, UPGRADE.effect_cost, "only the first price was spent")
+
+
+func test_a_weapon_with_the_first_upgrade_gets_an_effect_that_the_player_selects() -> void:
+	var player := await spawn_player()
+	var machine := _spawn_machine(null)
+	player.wallet.add(UPGRADE.cost + UPGRADE.effect_cost)
 	assert_true(machine.buy(player), "the first upgrade")
 	var upgraded := player.weapon
+	assert_eq(machine.prompt_text(player), "E  BUY UPGRADE %s  %d" % [upgraded.data.display_name, UPGRADE.effect_cost], "prompt")
+	assert_true(machine.buy(player), "the second upgrade")
+	assert_eq(player.wallet.points, 0, "the effect price was spent")
+	assert_true(player.effect_menu.is_open(), "the menu opens")
+	assert_true(get_tree().paused, "the game is paused")
+	assert_true(player.weapon.effect == null, "no effect until the player selects one")
+	assert_eq(player.effect_menu.effect_labels(), PackedStringArray(["FIRE"]), "the menu offers fire")
+
+	player.effect_menu.select("FIRE")
+	assert_true(player.weapon == upgraded, "the same weapon is in hand")
+	assert_eq(player.weapon.effect.display_name, "FIRE", "the weapon has the effect")
+	assert_true(not player.effect_menu.is_open(), "the menu closes")
+	assert_true(not get_tree().paused, "the game runs again")
+
+
+func test_the_effect_price_is_not_taken_without_the_points() -> void:
+	var player := await spawn_player()
+	var machine := _spawn_machine(null)
+	player.wallet.add(UPGRADE.cost)
+	assert_true(machine.buy(player), "the first upgrade")
+	player.wallet.add(UPGRADE.effect_cost - 1)
+	assert_true(not machine.buy(player), "one point short")
+	assert_true(not player.effect_menu.is_open(), "no menu")
+	assert_eq(player.wallet.points, UPGRADE.effect_cost - 1, "no points spent")
+
+
+func test_the_effect_menu_has_no_cancel() -> void:
+	var player := await spawn_player()
+	player.wallet.add(UPGRADE.cost + UPGRADE.effect_cost)
+	var machine := _spawn_machine(null)
+	assert_true(machine.buy(player) and machine.buy(player), "both upgrades")
+	press_action(&"ui_cancel")
+	await physics_frames(2)
+	assert_true(player.effect_menu.is_open(), "Esc leaves the menu open")
+	assert_true(not player.pause_menu.is_open(), "the pause menu stays closed")
+	assert_true(get_tree().paused, "the game stays paused")
+
+
+func test_a_weapon_with_an_effect_cannot_be_upgraded_again() -> void:
+	var player := await spawn_player()
+	var machine := _spawn_machine(null)
+	player.wallet.add(UPGRADE.cost + UPGRADE.effect_cost * 2)
+	assert_true(machine.buy(player), "the first upgrade")
+	assert_true(machine.buy(player), "the second upgrade")
+	player.effect_menu.select("FIRE")
+	var upgraded := player.weapon
 	assert_eq(machine.prompt_text(player), "%s CANNOT BE UPGRADED" % upgraded.data.display_name, "prompt")
-	assert_true(not machine.buy(player), "the second purchase fails")
-	assert_eq(player.wallet.points, UPGRADE.cost, "no points spent")
+	assert_true(not machine.buy(player), "the third purchase fails")
+	assert_eq(player.wallet.points, UPGRADE.effect_cost, "no points spent")
 	assert_true(player.weapon == upgraded, "the weapon in hand did not change")
+	assert_true(not player.effect_menu.is_open(), "no menu")
+
+
+func test_a_weapon_with_no_upgrade_is_an_upgrade_of_another_weapon() -> void:
+	var weapons: Array[WeaponData] = []
+	for file: String in DirAccess.get_files_at("res://weapons"):
+		if file.get_extension() != "tres":
+			continue
+		var data := load("res://weapons/%s" % file) as WeaponData
+		if data != null:
+			weapons.append(data)
+	assert_true(weapons.size() > 1, "found the weapon data")
+	for data: WeaponData in weapons:
+		if data.upgrade == null:
+			assert_true(weapons.any(func(other: WeaponData) -> bool: return other.upgrade == data), "%s has no upgrade, so it must be an upgrade" % data.display_name)
 
 
 func test_the_machine_upgrades_only_with_power() -> void:

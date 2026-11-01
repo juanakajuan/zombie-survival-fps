@@ -1,7 +1,15 @@
 class_name UpgradeItem
 extends BuyItem
-## Upgrades the weapon in the player's hand to its WeaponData.upgrade. Each weapon has one upgrade, so an upgraded
-## weapon cannot be upgraded again.
+## Sells the upgrades of the weapon in the player's hand. The first swaps it for its WeaponData.upgrade, at `cost`. An
+## upgraded weapon has no upgrade, so a weapon with no upgrade and no effect is ready for the second, at `effect_cost`:
+## the player selects one of `effects`, and the weapon keeps it. A weapon with an effect has no upgrade left.
+
+@export_range(0, 100000) var effect_cost: int = 0
+@export var effects: Array[WeaponEffect] = []
+
+
+func price(player: Player) -> int:
+	return cost if _has_first_upgrade(player) else effect_cost
 
 
 func label(player: Player) -> String:
@@ -13,8 +21,15 @@ func blocked_text(player: Player) -> String:
 
 
 func can_apply(player: Player) -> bool:
-	return player.weapon.data.upgrade != null
+	return _has_first_upgrade(player) or (player.weapon.effect == null and not effects.is_empty())
 
 
 func apply(player: Player) -> void:
-	player.upgrade_weapon()
+	if _has_first_upgrade(player):
+		player.upgrade_weapon()
+	else:
+		player.choose_effect(effects)
+
+
+func _has_first_upgrade(player: Player) -> bool:
+	return player.weapon.data.upgrade != null
