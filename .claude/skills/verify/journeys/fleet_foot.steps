@@ -1,0 +1,56 @@
+# FLEET FOOT: walk and sprint speed before the buy, turn on the power, buy FLEET FOOT, walk and sprint speed after.
+debug +5000 POINTS
+debug GOD MODE
+debug KILL ALL ZOMBIES
+expect hud.perks
+walk_to -2.5 10.6 120
+face -90 0
+hold move_forward
+wait 60
+expect player.speed 4.5
+hold sprint
+wait 40
+expect player.speed 7.0
+release sprint
+release move_forward
+walk_to 16.5 10.6 300
+face 180 0
+until hud.prompt_visible true 60
+tap interact
+wait 10
+expect doors.open 1
+walk_to 16.5 14 120
+walk_to 17 17 120
+face -148 -9
+until hud.prompt_visible true 60
+expect hud.prompt E TURN ON POWER
+tap interact
+wait 10
+expect power.on true
+walk_to 16.5 14 120
+walk_to 16.5 10.6 120
+debug KILL ALL ZOMBIES
+walk_to -3.5 10.6 400
+walk_to -4 5 120
+face 90 -15
+until hud.prompt_visible true 60
+expect hud.prompt E BUY FLEET FOOT 2000
+shot 01-machine
+tap interact
+wait 10
+expect hud.points 2250
+expect hud.perks M
+state 02-perk
+shot 02-perk
+debug KILL ALL ZOMBIES
+walk_to -3.5 10.6 120
+face -90 0
+hold move_forward
+wait 60
+expect player.speed 5.4
+hold sprint
+wait 40
+expect player.speed 8.4
+release sprint
+release move_forward
+state 03-after
