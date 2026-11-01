@@ -31,6 +31,29 @@ extends CanvasLayer
 @export var health_color: Color = Color(1, 1, 1, 0.95)
 @export var low_health_color: Color = Color(0.95, 0.2, 0.2)
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
+@export_group("Round counter")
+## The color of the round counter.
+@export var round_color: Color = Color(0.75, 0.05, 0.05)
+## The last round that shows as tally marks. Later rounds show the number.
+@export_range(0, 5) var tally_rounds: int = 5
+## How big the counter gets at the start of a round, as a multiple of its size.
+@export_range(1.0, 3.0, 0.05) var round_pop_scale: float = 1.45
+## The seconds that the counter takes to bounce back to its size.
+@export_range(0.05, 3.0, 0.05, "suffix:s") var round_pop_time: float = 0.6
+## The seconds that the counter takes to fade from white back to its color.
+@export_range(0.05, 3.0, 0.05, "suffix:s") var round_flash_time: float = 0.8
+@export_group("Points")
+@export var gain_color: Color = Color(1, 0.9, 0, 1)
+@export var loss_color: Color = Color(0.95, 0.2, 0.2, 1)
+## The seconds that a +10 or -500 takes to drift away and fade.
+@export_range(0.1, 5.0, 0.1, "suffix:s") var popup_time: float = 1.2
+## The way a popup drifts, in pixels.
+@export var popup_drift: Vector2 = Vector2(-70, -50)
+## Each new popup starts this many pixels lower than the one before it, for three popups. Then the row starts again.
+@export_range(0.0, 60.0, 1.0, "suffix:px") var popup_spacing: float = 22.0
+## How big the points get when the player earns some, as a multiple of their size.
+@export_range(1.0, 2.0, 0.05) var points_bounce_scale: float = 1.25
+@export_range(0.05, 2.0, 0.05, "suffix:s") var points_bounce_time: float = 0.35
 @export_group("Special round")
 ## The color of the round number and the banner during a special round.
 @export var special_color: Color = Color(0.72, 0.5, 0.95)
@@ -55,10 +78,13 @@ var round_manager: RoundManager:
 class Readout extends RefCounted:
 	var health_text: String
 	var ammo_text: String
+	## The number of grenades the icons show.
 	var grenades_text: String
 	## The seconds before the grenade in hand explodes, with one decimal. Empty when no grenade is in hand.
 	var grenade_fuse_text: String
 	var points_text: String
+	## The text of each +N or -N on screen, oldest first.
+	var point_popups: PackedStringArray
 	## One entry for each running timed effect, in the order that they started: the name and the seconds left.
 	var powerups: PackedStringArray
 	var prompt_visible: bool
@@ -69,6 +95,8 @@ class Readout extends RefCounted:
 	var reloading: bool
 	var round_visible: bool
 	var round_text: String
+	## The number of tally marks that show in place of the round number. It is 0 when the number shows.
+	var round_tally: int
 	var round_color: Color
 	var objective_text: String
 	## The banner that names a special round as it starts.
@@ -91,7 +119,11 @@ class Readout extends RefCounted:
 
 
 var _banner_left: float = 0.0
-var _round_color: Color
+var _round_base_color: Color
+var _shown_points: int = 0
+var _popup_serial: int = 0
+var _round_tween: Tween
+var _points_tween: Tween
 
 @onready var hit_sound: AudioStreamPlayer = $HitSound
 @onready var kill_sound: AudioStreamPlayer = $KillSound
@@ -106,7 +138,7 @@ var _round_color: Color
 @onready var _weapon_name: Label = %WeaponName
 @onready var _weapon_effect: Label = %WeaponEffect
 @onready var _ammo_value: Label = %AmmoValue
-@onready var _grenade_value: Label = %GrenadeValue
+@onready var _grenade_icons: GrenadeIcons = %GrenadeIcons
 @onready var _grenade_fuse: Label = %GrenadeFuse
 @onready var _points_value: Label = %PointsValue
 @onready var _powerup_label: Label = %PowerupLabel
@@ -114,7 +146,8 @@ var _round_color: Color
 @onready var _reload_label: Label = %ReloadLabel
 @onready var _round_panel: Control = %RoundPanel
 @onready var _round_value: Label = %RoundValue
-@onready var _round_caption: Label = %RoundCaption
+@onready var _round_counter: Control = %RoundCounter
+@onready var _round_tally: RoundTally = %RoundTally
 @onready var _special_banner: Label = %SpecialBanner
 @onready var _objective: Label = %Objective
 @onready var _break_label: Label = %BreakLabel
@@ -123,15 +156,16 @@ var _round_color: Color
 @onready var _perk_icons: HBoxContainer = %PerkIcons
 @onready var _fps_label: Label = %FpsLabel
 @onready var _perk_icon_template: PanelContainer = %PerkIcon
+@onready var _popup_layer: Control = %PopupLayer
+@onready var _popup_template: PointPopup = %PopupTemplate
 
 
 func _ready() -> void:
-	_round_color = _round_value.get_theme_color("font_color")
 	health.changed.connect(_on_health_changed)
 	melee.damaged.connect(_on_damaged)
 	grenades.damaged.connect(_on_damaged)
 	grenades.changed.connect(_update_grenades)
-	wallet.changed.connect(_update_points.unbind(1))
+	wallet.changed.connect(_on_points_changed)
 	perks.changed.connect(_update_perks)
 	_on_health_changed(health.current)
 	_show_weapon()
@@ -155,10 +189,13 @@ func readout() -> Readout:
 	var r := Readout.new()
 	r.health_text = _health_value.text
 	r.ammo_text = _ammo_value.text
-	r.grenades_text = _grenade_value.text
+	r.grenades_text = str(_grenade_icons.count)
 	_update_grenade_fuse()
 	r.grenade_fuse_text = _grenade_fuse.text if _grenade_fuse.visible else ""
 	r.points_text = _points_value.text
+	for popup: Node in _popup_layer.get_children():
+		if popup != _popup_template and not popup.is_queued_for_deletion():
+			r.point_popups.append((popup as PointPopup).text)
 	_update_powerups()
 	r.powerups = _powerup_lines()
 	_update_prompt()
@@ -169,7 +206,8 @@ func readout() -> Readout:
 	r.reloading = _reload_label.is_visible_in_tree()
 	r.round_visible = _round_panel.is_visible_in_tree()
 	r.round_text = _round_value.text
-	r.round_color = _round_value.get_theme_color("font_color")
+	r.round_tally = _round_tally.count if _round_tally.visible else 0
+	r.round_color = _round_base_color
 	_update_objective()
 	r.objective_text = _objective.text
 	r.in_break = _break_label.is_visible_in_tree()
@@ -190,6 +228,16 @@ func readout() -> Readout:
 	r.fps_visible = _fps_label.is_visible_in_tree()
 	r.fps_text = _fps_label.text
 	return r
+
+
+## The scale of the round counter. It is above 1 while the counter pops at the start of a round.
+func round_counter_scale() -> float:
+	return _round_counter.scale.x
+
+
+## The color that the round counter shows now. It is white at the start of a round and fades to its color.
+func round_counter_color() -> Color:
+	return _round_tally.color if _round_tally.visible else _round_value.get_theme_color("font_color")
 
 
 ## Shows the seconds that a downed player has left, and the seconds until `revive_name` stands the player up.
@@ -257,7 +305,7 @@ func _update_ammo() -> void:
 
 
 func _update_grenades(count: int) -> void:
-	_grenade_value.text = str(count)
+	_grenade_icons.count = count
 
 
 func _update_grenade_fuse() -> void:
@@ -280,7 +328,37 @@ func _update_perks() -> void:
 
 
 func _update_points() -> void:
+	_shown_points = wallet.points
 	_points_value.text = str(wallet.points)
+
+
+func _on_points_changed(points: int) -> void:
+	var change := points - _shown_points
+	_update_points()
+	if change == 0:
+		return
+	_spawn_popup(change)
+	if change > 0:
+		_bounce_points()
+
+
+func _spawn_popup(change: int) -> void:
+	var popup := _popup_template.duplicate() as PointPopup
+	popup.visible = true
+	popup.text = "%+d" % change
+	popup.add_theme_color_override("font_color", gain_color if change > 0 else loss_color)
+	popup.position += Vector2(0.0, (_popup_serial % 3) * popup_spacing)
+	_popup_serial += 1
+	_popup_layer.add_child(popup)
+	popup.play(popup_drift, popup_time)
+
+
+func _bounce_points() -> void:
+	if _points_tween != null:
+		_points_tween.kill()
+	_points_value.scale = Vector2.ONE * points_bounce_scale
+	_points_tween = create_tween()
+	_points_tween.tween_property(_points_value, "scale", Vector2.ONE, points_bounce_time).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _update_powerups() -> void:
@@ -313,15 +391,41 @@ func _update_round() -> void:
 	_round_panel.visible = round_manager != null and round_manager.round_number > 0
 	if not _round_panel.visible:
 		return
-	_round_value.text = str(round_manager.round_number)
-	var color := special_color if round_manager.is_special_round() else _round_color
-	_round_value.add_theme_color_override("font_color", color)
-	_round_caption.add_theme_color_override("font_color", color)
+	var number := round_manager.round_number
+	_round_value.text = str(number)
+	var tally_marks := number if number <= tally_rounds else 0
+	_round_tally.count = tally_marks
+	_round_tally.visible = tally_marks > 0
+	_round_value.visible = tally_marks == 0
+	_round_base_color = special_color if round_manager.is_special_round() else round_color
+	_paint_round(_round_base_color)
 	_break_label.visible = round_manager.state == RoundManager.State.BREAK
 	_update_objective()
 
 
+func _paint_round(color: Color) -> void:
+	_round_tally.color = color
+	_round_value.add_theme_color_override("font_color", color)
+
+
+## Flashes the counter white and pops it big, then lets both settle back.
+func _pop_round() -> void:
+	if _round_tween != null:
+		_round_tween.kill()
+	_round_counter.scale = Vector2.ONE * round_pop_scale
+	_flash_round(1.0)
+	_round_tween = create_tween()
+	_round_tween.set_parallel(true)
+	_round_tween.tween_property(_round_counter, "scale", Vector2.ONE, round_pop_time).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	_round_tween.tween_method(_flash_round, 1.0, 0.0, round_flash_time)
+
+
+func _flash_round(whiteness: float) -> void:
+	_paint_round(_round_base_color.lerp(Color.WHITE, whiteness))
+
+
 func _on_round_started() -> void:
+	_pop_round()
 	if not round_manager.is_special_round():
 		round_start_sound.play()
 		return
