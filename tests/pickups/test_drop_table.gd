@@ -69,8 +69,7 @@ func test_the_zombies_that_kill_all_kills_drop_nothing() -> void:
 func test_zombies_drop_at_most_max_drops_pickups_in_a_round_and_again_in_the_next() -> void:
 	await spawn_player()
 	var settings := RoundSettings.new()
-	settings.first_round_zombies = 4
-	settings.zombies_per_round = 0
+	settings.early_round_counts = PackedInt32Array([4, 4])
 	settings.first_round_speed = 0.0
 	settings.break_time = 0.5
 	settings.spawn_interval = 0.1

@@ -1,17 +1,25 @@
 class_name RoundSettings
 extends Resource
 ## How many zombies each round has, how strong they are, and how long the break between rounds is.
-## Each value starts at its round 1 value and goes up by its per-round step for each later round.
+## The zombie count and health follow the solo Black Ops curve (zombacus.com/zombiecalculator, "Normal"). The speed
+## and the runner part start at their round 1 value and go up by a step for each later round.
 
 @export_group("Count")
-@export_range(1, 100) var first_round_zombies: int = 4
-@export_range(0, 20) var zombies_per_round: int = 2
+## The zombie count of the first rounds. Round n has entry n - 1 while n is not more than the size of the table.
+@export var early_round_counts: PackedInt32Array = [6, 8, 13, 18, 24, 27, 28, 28, 29]
+## After the table, a round has `base_zombies` plus `zombies_per_round_squared` times the square of the round number.
+@export_range(0, 200) var base_zombies: int = 24
+@export_range(0.0, 1.0, 0.001) var zombies_per_round_squared: float = 0.09
 ## The most zombies alive at one time. The round spawns the rest of its count when others die.
 @export_range(1, 100) var max_alive: int = 24
 
 @export_group("Health")
-@export_range(1.0, 10000.0, 1.0) var first_round_health: float = 100.0
-@export_range(0.0, 1000.0, 1.0) var health_per_round: float = 20.0
+@export_range(1.0, 10000.0, 1.0) var first_round_health: float = 150.0
+## Rounds before `health_growth_round` add this much health each.
+@export_range(0.0, 1000.0, 1.0) var health_per_round: float = 100.0
+## From this round on, each round adds `health_growth` of the health of the round before, in place of `health_per_round`.
+@export_range(2, 100) var health_growth_round: int = 10
+@export_range(0.0, 1.0, 0.01) var health_growth: float = 0.1
 
 @export_group("Speed")
 @export_range(0.0, 10.0, 0.1, "suffix:m/s") var first_round_speed: float = 2.5
@@ -55,11 +63,17 @@ extends Resource
 
 
 func zombie_count(round_number: int) -> int:
-	return first_round_zombies + zombies_per_round * (round_number - 1)
+	if round_number <= early_round_counts.size():
+		return early_round_counts[round_number - 1]
+	return base_zombies + floori(zombies_per_round_squared * (round_number * round_number))
 
 
+## Each growth step is cut to a whole number, so the health matches the reference curve.
 func zombie_health(round_number: int) -> float:
-	return first_round_health + health_per_round * (round_number - 1)
+	var health := first_round_health + health_per_round * (mini(round_number, health_growth_round - 1) - 1)
+	for growth_round: int in range(health_growth_round, round_number + 1):
+		health += floorf(health * health_growth)
+	return health
 
 
 func zombie_speed(round_number: int) -> float:

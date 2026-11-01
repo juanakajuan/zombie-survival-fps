@@ -125,8 +125,7 @@ func test_skip_break_without_a_level_does_nothing() -> void:
 
 func _one_zombie_settings() -> RoundSettings:
 	var settings := RoundSettings.new()
-	settings.first_round_zombies = 1
-	settings.zombies_per_round = 1
+	settings.early_round_counts = PackedInt32Array([1, 2])
 	settings.first_round_speed = 0.0
 	settings.speed_per_round = 0.0
 	settings.break_time = 30.0

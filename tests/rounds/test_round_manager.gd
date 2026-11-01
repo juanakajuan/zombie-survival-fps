@@ -18,7 +18,7 @@ func test_round_one_starts_when_the_manager_loads() -> void:
 func test_round_spawns_the_settings_count_at_the_spawn_points() -> void:
 	var settings := _settings()
 	# One zombie per point, because zombies that spawn on the same point push each other away from it.
-	settings.first_round_zombies = SPAWN_POINTS.size()
+	settings.early_round_counts = PackedInt32Array([SPAWN_POINTS.size()])
 	var manager := _spawn_manager(settings)
 	await run_seconds(settings.spawn_interval * settings.zombie_count(1) + 1.0)
 	var zombies := _zombies(manager)
@@ -112,7 +112,7 @@ func test_next_round_has_more_zombies_with_more_health_and_speed() -> void:
 
 func test_runner_round_spawns_its_runners_spread_over_the_spawn_order_at_runner_speed() -> void:
 	var settings := _settings()
-	settings.first_round_zombies = 6
+	settings.early_round_counts = PackedInt32Array([6])
 	settings.first_runner_round = 1
 	settings.first_runner_fraction = 0.5
 	var manager := _spawn_manager(settings)
@@ -200,8 +200,7 @@ func test_a_special_round_spawns_mutts_and_its_last_mutt_leaves_a_max_ammo() -> 
 
 func _settings() -> RoundSettings:
 	var settings := RoundSettings.new()
-	settings.first_round_zombies = 3
-	settings.zombies_per_round = 2
+	settings.early_round_counts = PackedInt32Array([3, 5, 7])
 	settings.first_round_health = 50.0
 	settings.health_per_round = 25.0
 	settings.first_round_speed = 0.0
