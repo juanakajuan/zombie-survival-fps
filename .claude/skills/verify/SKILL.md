@@ -5,7 +5,7 @@ description: Drive the Zombie Survival FPS game (Godot 4.7, levels/test_range.ts
 
 # Verify the Zombie Survival FPS
 
-The surface is the 3D game itself: keyboard, mouse, and what the screen shows. A run plays a **steps file** against the greybox test range (`levels/test_range.tscn`), not the main scene (`levels/compound.tscn`). The driver sends input through the Input Map (the same events as a real keyboard and mouse), reads what the player can see (HUD label text, the game-over screen, the player position), and saves screenshots.
+The surface is the 3D game itself: keyboard, mouse, and what the screen shows. A run plays a **steps file** against the greybox test range (`levels/test_range.tscn`), not the main scene (`levels/pumpkin_hollow/pumpkin_hollow.tscn`). The driver sends input through the Input Map (the same events as a real keyboard and mouse), reads what the player can see (HUD label text, the game-over screen, the player position), and saves screenshots.
 
 Each run is a separate, short-lived process with no shared data. Many runs can go side by side. A run never touches the editor or the game that the human starts from the editor.
 
