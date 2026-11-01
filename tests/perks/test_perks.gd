@@ -4,6 +4,7 @@ const POWER_SWITCH_SCENE := preload("res://perks/power_switch.tscn")
 const IRON_GUT := preload("res://perks/iron_gut.tres")
 const QUICK_HANDS := preload("res://perks/quick_hands.tres")
 const HAIR_TRIGGER := preload("res://perks/hair_trigger.tres")
+const FLEET_FOOT := preload("res://perks/fleet_foot.tres")
 const SECOND_WIND: PerkItem = preload("res://perks/second_wind.tres")
 const ROOM := Rect2(12.0, 12.0, 8.0, 8.0)
 
@@ -85,6 +86,16 @@ func test_fast_fire_fires_again_sooner() -> void:
 	assert_true(weapon.try_fire(), "with the perk, the weapon fires again after the shorter interval")
 
 
+func test_fleet_foot_raises_the_walk_speed() -> void:
+	var player := await spawn_player(Vector3.ZERO, 10)
+	Input.action_press("move_forward")
+	await run_seconds(0.5)
+	assert_almost_eq(_horizontal_speed(player), player.walk_speed, 0.2, "with no perk, the speed is walk_speed")
+	_buy(player, FLEET_FOOT)
+	await run_seconds(0.5)
+	assert_almost_eq(_horizontal_speed(player), player.walk_speed * FLEET_FOOT.move_speed_scale, 0.2, "with the perk, the speed is scaled")
+
+
 func test_the_player_cannot_hold_more_than_the_limit_or_the_same_perk_twice() -> void:
 	var player := await spawn_player()
 	player.perks.max_held = 2
@@ -105,13 +116,17 @@ func test_the_test_range_power_switch_is_behind_the_room_door_and_powers_every_p
 	var power := level.get_node("PowerSwitch") as PowerSwitch
 	assert_true(ROOM.has_point(Vector2(power.global_position.x, power.global_position.z)), "the switch is in the room")
 	var machines: Array[BuyStation] = stations_in(level).filter(func(station: BuyStation) -> bool: return station.item is PerkItem)
-	assert_eq(machines.size(), 4, "perk machines")
+	assert_eq(machines.size(), 5, "perk machines")
 	for machine: BuyStation in machines:
 		assert_true(machine.power == power, "%s needs the switch" % machine.name)
 		assert_true(not machine.has_power(), "%s has no power at the start" % machine.name)
 	power.turn_on()
 	for machine: BuyStation in machines:
 		assert_true(machine.has_power(), "%s has power" % machine.name)
+
+
+func _horizontal_speed(player: Player) -> float:
+	return Vector2(player.velocity.x, player.velocity.z).length()
 
 
 func _spawn_switch(at: Vector3) -> PowerSwitch:

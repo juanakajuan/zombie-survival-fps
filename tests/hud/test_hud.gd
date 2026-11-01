@@ -119,6 +119,70 @@ func test_a_special_round_shows_a_banner_and_purple_round_and_plays_its_own_soun
 	assert_true(not hud.readout().special_banner_visible, "no banner in round 3")
 
 
+func test_the_first_five_rounds_show_tally_marks_and_later_rounds_show_the_number() -> void:
+	var manager := _spawn_round_manager()
+	var player := await spawn_player()
+	var hud := player.hud
+	hud.round_manager = manager
+	for round_number in range(1, 8):
+		if round_number > 1:
+			manager.kill_all()
+			manager.skip_break()
+		var readout := hud.readout()
+		assert_eq(manager.round_number, round_number, "round %d is running" % round_number)
+		assert_eq(readout.round_text, str(round_number), "round text in round %d" % round_number)
+		assert_eq(readout.round_tally, round_number if round_number <= 5 else 0, "tally marks in round %d" % round_number)
+
+
+func test_a_new_round_pops_the_counter_and_flashes_it_white_then_it_settles() -> void:
+	var manager := _spawn_round_manager()
+	var player := await spawn_player()
+	var hud := player.hud
+	hud.round_manager = manager
+	manager.kill_all()
+	manager.skip_break()
+	assert_true(hud.round_counter_scale() > 1.0, "counter is big at the start of a round")
+	assert_true(hud.round_counter_color().is_equal_approx(Color.WHITE), "counter is white at the start of a round")
+	await run_seconds(maxf(hud.round_pop_time, hud.round_flash_time) + FRAME_MARGIN / 60.0)
+	assert_almost_eq(hud.round_counter_scale(), 1.0, 0.001, "counter back to its size")
+	assert_true(hud.round_counter_color().is_equal_approx(hud.round_color), "counter back to its color")
+
+
+func test_earning_points_shows_a_plus_popup_that_goes_after_its_time() -> void:
+	var player := await spawn_player()
+	var hud := player.hud
+	assert_eq(hud.readout().point_popups, PackedStringArray(), "no popup at spawn")
+	player.wallet.add(70)
+	assert_eq(hud.readout().point_popups, PackedStringArray(["+70"]), "a gain shows a plus popup")
+	await run_seconds(hud.popup_time + FRAME_MARGIN / 60.0)
+	assert_eq(hud.readout().point_popups, PackedStringArray(), "the popup is gone after its time")
+	assert_eq(hud.readout().points_text, "70", "the points stay")
+
+
+func test_spending_points_shows_a_minus_popup_and_popups_keep_their_order() -> void:
+	var player := await spawn_player()
+	var hud := player.hud
+	player.wallet.add(100)
+	player.wallet.spend(30)
+	player.wallet.add(10)
+	assert_eq(hud.readout().point_popups, PackedStringArray(["+100", "-30", "+10"]), "one popup for each change, oldest first")
+
+
+func test_a_refused_purchase_shows_no_popup() -> void:
+	var player := await spawn_player()
+	assert_true(not player.wallet.spend(10), "no points to spend")
+	assert_eq(player.hud.readout().point_popups, PackedStringArray(), "no popup for a refused purchase")
+
+
+func test_the_grenade_icons_follow_the_grenade_count() -> void:
+	var player := await spawn_player()
+	var grenades := player.grenades
+	assert_eq(player.hud.readout().grenades_text, str(grenades.starting_count), "icons at the start")
+	grenades.start_cook()
+	grenades.release()
+	assert_eq(player.hud.readout().grenades_text, str(grenades.starting_count - 1), "one icon fewer after a throw")
+
+
 func _spawn_round_manager(first_special_round: int = 100) -> RoundManager:
 	var settings := RoundSettings.new()
 	settings.early_round_counts = PackedInt32Array([1, 3, 5])

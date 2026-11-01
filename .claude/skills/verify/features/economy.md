@@ -25,7 +25,7 @@ Preconditions:
 
 - Baseline state: `hud.points` is `0`, `hud.ammo` is `12 / 48`, `hud.prompt_visible` is `false`.
 
-- **Earn points.** Run `until zombies.alive 4 300`, then `fight_until hud.break true 3600`. `expect hud.points 400` passes, and `expect_not hud.ammo 12 / 48` passes because reloads used the reserve. The screenshot shows POINTS 400 at the top right.
+- **Earn points.** Run `until zombies.alive 4 300`, then `fight_until hud.break true 3600`. `expect hud.points 400` passes, and `expect_not hud.ammo 12 / 48` passes because reloads used the reserve. The screenshot shows 400 on the blood splat at the bottom right, above the ammo.
 - **Face the station.** Run `face 0 0`, because the fight leaves the view toward the last zombie. `expect player.yaw_deg 0` passes. Then run `look 628 0` (the view turns right, toward +X), `hold move_forward`, `wait 30`, `release move_forward`, `wait 30`, `look 0 240` (the view tilts down to the crate top). `until hud.prompt_visible true 60` passes, and `expect hud.prompt E BUY AMMO 250` passes. The screenshot shows the yellow prompt under the crosshair.
 - **Buy.** Run `tap reload` and `wait 90` to fill the magazine, then `tap interact`, `wait 5`. `expect hud.points 150` and `expect hud.ammo 12 / 48` pass.
 - **Nothing to buy.** Run `tap interact`, `wait 5`. `expect hud.points 150` still passes: a full reserve buys nothing.

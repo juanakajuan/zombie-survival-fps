@@ -1,0 +1,378 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://levels/pumpkin_hollow/pumpkin_hollow.glb" id="1_map"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
+[ext_resource type="Script" path="res://levels/level_navigation.gd" id="4_nav"]
+[ext_resource type="Script" path="res://rounds/round_manager.gd" id="5_rounds"]
+[ext_resource type="Resource" path="res://rounds/round_settings.tres" id="6_settings"]
+[ext_resource type="Script" path="res://levels/level.gd" id="7_level"]
+[ext_resource type="PackedScene" path="res://game_over/game_over.tscn" id="8_game_over"]
+[ext_resource type="PackedScene" path="res://economy/buy_station.tscn" id="9_station"]
+[ext_resource type="Resource" path="res://economy/smg_item.tres" id="10_smg_item"]
+[ext_resource type="Material" path="res://economy/weapon_crate_material.tres" id="11_weapon_crate"]
+[ext_resource type="Script" path="res://rounds/spawn_point.gd" id="20_spawn_point"]
+[ext_resource type="PackedScene" path="res://doors/door.tscn" id="21_door"]
+[ext_resource type="PackedScene" path="res://barricades/barricade.tscn" id="22_barricade"]
+[ext_resource type="PackedScene" path="res://perks/power_switch.tscn" id="23_power_switch"]
+[ext_resource type="PackedScene" path="res://perks/perk_machine.tscn" id="24_perk_machine"]
+[ext_resource type="Resource" path="res://perks/iron_gut.tres" id="25_iron_gut"]
+[ext_resource type="Resource" path="res://perks/quick_hands.tres" id="26_quick_hands"]
+[ext_resource type="Resource" path="res://perks/hair_trigger.tres" id="27_hair_trigger"]
+[ext_resource type="Resource" path="res://perks/second_wind.tres" id="28_second_wind"]
+[ext_resource type="Resource" path="res://perks/fleet_foot.tres" id="34_fleet_foot"]
+[ext_resource type="PackedScene" path="res://economy/wall_buy.tscn" id="29_wall_buy"]
+[ext_resource type="Resource" path="res://economy/rifle_item.tres" id="30_rifle_item"]
+[ext_resource type="Resource" path="res://economy/machine_gun_item.tres" id="31_machine_gun_item"]
+[ext_resource type="PackedScene" path="res://upgrades/upgrade_machine.tscn" id="32_upgrade_machine"]
+[ext_resource type="PackedScene" path="res://weapon_box/weapon_box.tscn" id="33_weapon_box"]
+
+[sub_resource type="NavigationMesh" id="navigation_mesh"]
+geometry_parsed_geometry_type = 1
+geometry_collision_mask = 1
+agent_radius = 0.5
+agent_height = 2.0
+agent_max_climb = 0.25
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_material"]
+sky_top_color = Color(0.17, 0.15, 0.35, 1)
+sky_horizon_color = Color(0.93, 0.55, 0.38, 1)
+sky_curve = 0.12
+ground_bottom_color = Color(0.1, 0.09, 0.14, 1)
+ground_horizon_color = Color(0.62, 0.42, 0.4, 1)
+sun_angle_max = 20.0
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_material")
+
+[sub_resource type="Environment" id="environment"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 3
+ambient_light_energy = 0.8
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.6
+glow_bloom = 0.05
+glow_hdr_threshold = 1.2
+fog_enabled = true
+fog_light_color = Color(0.48, 0.38, 0.55, 1)
+fog_density = 0.006
+fog_sky_affect = 0.2
+
+[node name="PumpkinHollow" type="Node3D" node_paths=PackedStringArray("game_over", "navigation", "player", "round_manager")]
+script = ExtResource("7_level")
+game_over = NodePath("GameOver")
+navigation = NodePath("NavigationRegion3D")
+player = NodePath("Player")
+round_manager = NodePath("RoundManager")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("environment")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.6109, -1.2217, 0)
+light_color = Color(1, 0.74, 0.52, 1)
+light_energy = 1.2
+shadow_enabled = true
+directional_shadow_max_distance = 80.0
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("navigation_mesh")
+script = ExtResource("4_nav")
+
+[node name="Map" parent="." instance=ExtResource("1_map")]
+
+[node name="Lights" type="Node3D" parent="."]
+
+[node name="SquareLamp" type="OmniLight3D" parent="Lights"]
+position = Vector3(-9.5, 3.3, 9.5)
+light_color = Color(1, 0.78, 0.45, 1)
+light_energy = 1.5
+omni_range = 9.0
+
+[node name="SquareLamp2" type="OmniLight3D" parent="Lights"]
+position = Vector3(9.5, 3.3, 9.5)
+light_color = Color(1, 0.78, 0.45, 1)
+light_energy = 1.5
+omni_range = 9.0
+
+[node name="SquareLamp3" type="OmniLight3D" parent="Lights"]
+position = Vector3(-9.5, 3.3, -13.5)
+light_color = Color(1, 0.78, 0.45, 1)
+light_energy = 1.5
+omni_range = 9.0
+
+[node name="SquareLamp4" type="OmniLight3D" parent="Lights"]
+position = Vector3(9.5, 3.3, -13.5)
+light_color = Color(1, 0.78, 0.45, 1)
+light_energy = 1.5
+omni_range = 9.0
+
+[node name="FountainLamp" type="OmniLight3D" parent="Lights"]
+position = Vector3(-4.2, 3.3, -3)
+light_color = Color(1, 0.78, 0.45, 1)
+light_energy = 1.2
+omni_range = 7.0
+
+[node name="FountainLamp2" type="OmniLight3D" parent="Lights"]
+position = Vector3(4.2, 3.3, -3)
+light_color = Color(1, 0.78, 0.45, 1)
+light_energy = 1.2
+omni_range = 7.0
+
+[node name="DinerCounter" type="OmniLight3D" parent="Lights"]
+position = Vector3(20.5, 2.5, -8)
+light_color = Color(1, 0.86, 0.66, 1)
+light_energy = 1.5
+omni_range = 8.0
+
+[node name="DinerCounter2" type="OmniLight3D" parent="Lights"]
+position = Vector3(28, 2.5, -8)
+light_color = Color(1, 0.86, 0.66, 1)
+light_energy = 1.5
+omni_range = 8.0
+
+[node name="DinerTables" type="OmniLight3D" parent="Lights"]
+position = Vector3(21.5, 2.5, 3.5)
+light_color = Color(1, 0.86, 0.66, 1)
+light_energy = 1.5
+omni_range = 9.0
+
+[node name="DinerKitchen" type="OmniLight3D" parent="Lights"]
+position = Vector3(22, 3, -14)
+light_color = Color(0.85, 0.95, 1, 1)
+light_energy = 1.2
+omni_range = 9.0
+
+[node name="GarageLamp" type="OmniLight3D" parent="Lights"]
+position = Vector3(-17, 2.8, -8)
+light_color = Color(1, 0.9, 0.7, 1)
+light_energy = 1.5
+omni_range = 9.0
+
+[node name="GarageLamp2" type="OmniLight3D" parent="Lights"]
+position = Vector3(-24, 2.8, -4)
+light_color = Color(1, 0.9, 0.7, 1)
+light_energy = 1.5
+omni_range = 9.0
+
+[node name="GarageLamp3" type="OmniLight3D" parent="Lights"]
+position = Vector3(-17, 2.8, 5)
+light_color = Color(1, 0.9, 0.7, 1)
+light_energy = 1.5
+omni_range = 9.0
+
+[node name="GarageLamp4" type="OmniLight3D" parent="Lights"]
+position = Vector3(-26, 2.8, 6)
+light_color = Color(1, 0.9, 0.7, 1)
+light_energy = 1.5
+omni_range = 9.0
+
+[node name="GarageOffice" type="OmniLight3D" parent="Lights"]
+position = Vector3(-28.5, 2.8, -14.5)
+light_color = Color(1, 0.55, 0.45, 1)
+light_energy = 1.2
+omni_range = 6.0
+
+[node name="PathLantern" type="OmniLight3D" parent="Lights"]
+position = Vector3(-16, 1.5, -22.75)
+light_color = Color(1, 0.75, 0.35, 1)
+omni_range = 6.0
+
+[node name="PathLantern2" type="OmniLight3D" parent="Lights"]
+position = Vector3(-6, 1.5, -22.75)
+light_color = Color(1, 0.75, 0.35, 1)
+omni_range = 6.0
+
+[node name="PathLantern3" type="OmniLight3D" parent="Lights"]
+position = Vector3(14, 1.5, -22.75)
+light_color = Color(1, 0.75, 0.35, 1)
+omni_range = 6.0
+
+[node name="PathLantern4" type="OmniLight3D" parent="Lights"]
+position = Vector3(20, 1.5, -22.75)
+light_color = Color(1, 0.75, 0.35, 1)
+omni_range = 6.0
+
+[node name="ChurchSteps" type="OmniLight3D" parent="Lights"]
+position = Vector3(6, 2.5, -23)
+light_color = Color(0.7, 0.55, 1, 1)
+light_energy = 1.5
+omni_range = 8.0
+
+[node name="Mausoleum" type="OmniLight3D" parent="Lights"]
+position = Vector3(24, 2.5, -28)
+light_color = Color(0.6, 1, 0.55, 1)
+omni_range = 6.0
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector3(0, 0, 8)
+
+[node name="RoundManager" type="Node" parent="." node_paths=PackedStringArray("player")]
+script = ExtResource("5_rounds")
+settings = ExtResource("6_settings")
+player = NodePath("../Player")
+
+[node name="SpawnSouthGate" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("barricade")]
+script = ExtResource("20_spawn_point")
+position = Vector3(0, 0, 21)
+barricade = NodePath("../../BarricadeSouthGate")
+
+[node name="SpawnAlleyWest" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("barricade")]
+script = ExtResource("20_spawn_point")
+position = Vector3(-19, 0, 12)
+barricade = NodePath("../../BarricadeAlleyWest")
+
+[node name="SpawnAlleyEast" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("barricade")]
+script = ExtResource("20_spawn_point")
+position = Vector3(19, 0, 12)
+barricade = NodePath("../../BarricadeAlleyEast")
+
+[node name="SpawnGarageYard" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("doors", "barricade")]
+script = ExtResource("20_spawn_point")
+position = Vector3(-38, 0, -6)
+doors = [NodePath("../../GarageDoor")]
+barricade = NodePath("../../BarricadeGarage")
+
+[node name="SpawnDinerYard" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("doors", "barricade")]
+script = ExtResource("20_spawn_point")
+position = Vector3(38, 0, -6)
+doors = [NodePath("../../DinerDoor")]
+barricade = NodePath("../../BarricadeDiner")
+
+[node name="SpawnCemeteryGate" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("doors", "barricade")]
+script = ExtResource("20_spawn_point")
+position = Vector3(-20, 0, -42)
+doors = [NodePath("../../KitchenDoor"), NodePath("../../GarageBackDoor")]
+barricade = NodePath("../../BarricadeCemetery")
+
+[node name="SpawnOpenGrave" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("doors")]
+script = ExtResource("20_spawn_point")
+position = Vector3(-10, 0, -30)
+doors = [NodePath("../../KitchenDoor"), NodePath("../../GarageBackDoor")]
+
+[node name="GameOver" parent="." node_paths=PackedStringArray("player", "round_manager") instance=ExtResource("8_game_over")]
+player = NodePath("../Player")
+round_manager = NodePath("../RoundManager")
+
+[node name="AmmoStation" parent="." instance=ExtResource("9_station")]
+position = Vector3(-3.5, 0, 11)
+
+[node name="WeaponStation" parent="." instance=ExtResource("9_station")]
+position = Vector3(3.5, 0, 11)
+item = ExtResource("10_smg_item")
+
+[node name="MeshInstance3D" parent="WeaponStation" index="0"]
+surface_material_override/0 = ExtResource("11_weapon_crate")
+
+[node name="DinerDoor" parent="." instance=ExtResource("21_door")]
+position = Vector3(12, 0, -1)
+rotation = Vector3(0, -1.5707964, 0)
+size = Vector3(2.4, 3, 0.5)
+
+[node name="GarageDoor" parent="." instance=ExtResource("21_door")]
+position = Vector3(-12, 0, -2)
+rotation = Vector3(0, 1.5707964, 0)
+size = Vector3(3.6, 3.4, 0.5)
+
+[node name="KitchenDoor" parent="." instance=ExtResource("21_door")]
+position = Vector3(24, 0, -18)
+size = Vector3(2.4, 3, 0.5)
+
+[node name="GarageBackDoor" parent="." instance=ExtResource("21_door")]
+position = Vector3(-22, 0, -18)
+size = Vector3(2.4, 3, 0.5)
+
+[node name="BarricadeSouthGate" parent="." instance=ExtResource("22_barricade")]
+position = Vector3(0, 0, 14)
+
+[node name="BarricadeAlleyWest" parent="." instance=ExtResource("22_barricade")]
+position = Vector3(-12, 0, 12)
+rotation = Vector3(0, -1.5707964, 0)
+
+[node name="BarricadeAlleyEast" parent="." instance=ExtResource("22_barricade")]
+position = Vector3(12, 0, 12)
+rotation = Vector3(0, 1.5707964, 0)
+
+[node name="BarricadeGarage" parent="." instance=ExtResource("22_barricade")]
+position = Vector3(-32, 0, -6)
+rotation = Vector3(0, -1.5707964, 0)
+
+[node name="BarricadeDiner" parent="." instance=ExtResource("22_barricade")]
+position = Vector3(32, 0, -6)
+rotation = Vector3(0, 1.5707964, 0)
+
+[node name="BarricadeCemetery" parent="." instance=ExtResource("22_barricade")]
+position = Vector3(-20, 0, -36)
+rotation = Vector3(0, 3.1415927, 0)
+
+[node name="PowerSwitch" parent="." instance=ExtResource("23_power_switch")]
+position = Vector3(-31.5, 0, -14.5)
+rotation = Vector3(0, 1.5707964, 0)
+
+[node name="IronGutMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
+position = Vector3(-3.5, 0, -16.9)
+item = ExtResource("25_iron_gut")
+power = NodePath("../PowerSwitch")
+
+[node name="QuickHandsMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
+position = Vector3(3.5, 0, -16.9)
+item = ExtResource("26_quick_hands")
+power = NodePath("../PowerSwitch")
+
+[node name="HairTriggerMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
+position = Vector3(31.2, 0, 3.5)
+rotation = Vector3(0, -1.5707964, 0)
+item = ExtResource("27_hair_trigger")
+power = NodePath("../PowerSwitch")
+
+[node name="SecondWindMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
+position = Vector3(24, 0, -29)
+item = ExtResource("28_second_wind")
+power = NodePath("../PowerSwitch")
+
+[node name="FleetFootMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
+position = Vector3(-31.2, 0, 6)
+rotation = Vector3(0, 1.5707964, 0)
+item = ExtResource("34_fleet_foot")
+power = NodePath("../PowerSwitch")
+
+[node name="ShotgunWallBuy" parent="." instance=ExtResource("29_wall_buy")]
+position = Vector3(-7, 0, 13.75)
+rotation = Vector3(0, 3.1415927, 0)
+
+[node name="RifleWallBuy" parent="." instance=ExtResource("29_wall_buy")]
+position = Vector3(28, 0, 9.75)
+rotation = Vector3(0, 3.1415927, 0)
+item = ExtResource("30_rifle_item")
+
+[node name="MachineGunWallBuy" parent="." instance=ExtResource("29_wall_buy")]
+position = Vector3(-16, 0, 9.75)
+rotation = Vector3(0, 3.1415927, 0)
+item = ExtResource("31_machine_gun_item")
+
+[node name="UpgradeMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("32_upgrade_machine")]
+position = Vector3(6, 0.45, -24.9)
+power = NodePath("../PowerSwitch")
+
+[node name="WeaponBoxPlaces" type="Node3D" parent="."]
+
+[node name="Square" type="Marker3D" parent="WeaponBoxPlaces"]
+position = Vector3(-11, 0, -6)
+rotation = Vector3(0, 1.5707964, 0)
+
+[node name="Diner" type="Marker3D" parent="WeaponBoxPlaces"]
+position = Vector3(31, 0, -0.5)
+rotation = Vector3(0, -1.5707964, 0)
+
+[node name="Garage" type="Marker3D" parent="WeaponBoxPlaces"]
+position = Vector3(-22, 0, 9.05)
+rotation = Vector3(0, 3.1415927, 0)
+
+[node name="Cemetery" type="Marker3D" parent="WeaponBoxPlaces"]
+position = Vector3(16.6, 0, -35.15)
+
+[node name="WeaponBox" parent="." node_paths=PackedStringArray("places") instance=ExtResource("33_weapon_box")]
+position = Vector3(-11, 0, -6)
+rotation = Vector3(0, 1.5707964, 0)
+places = [NodePath("../WeaponBoxPlaces/Square"), NodePath("../WeaponBoxPlaces/Diner"), NodePath("../WeaponBoxPlaces/Garage"), NodePath("../WeaponBoxPlaces/Cemetery")]

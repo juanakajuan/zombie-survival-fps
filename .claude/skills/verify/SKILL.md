@@ -5,7 +5,7 @@ description: Drive the Zombie Survival FPS game (Godot 4.7, levels/test_range.ts
 
 # Verify the Zombie Survival FPS
 
-The surface is the 3D game itself: keyboard, mouse, and what the screen shows. A run plays a **steps file** against the greybox test range (`levels/test_range.tscn`), not the main scene (`levels/compound.tscn`). The driver sends input through the Input Map (the same events as a real keyboard and mouse), reads what the player can see (HUD label text, the game-over screen, the player position), and saves screenshots.
+The surface is the 3D game itself: keyboard, mouse, and what the screen shows. A run plays a **steps file** against the greybox test range (`levels/test_range.tscn`), not the main scene (`levels/pumpkin_hollow/pumpkin_hollow.tscn`). The driver sends input through the Input Map (the same events as a real keyboard and mouse), reads what the player can see (HUD label text, the game-over screen, the player position), and saves screenshots.
 
 Each run is a separate, short-lived process with no shared data. Many runs can go side by side. A run never touches the editor or the game that the human starts from the editor.
 
@@ -67,9 +67,9 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `hud.weapon_effect`, `effect_menu.open` | The effect of the weapon in hand on the HUD, for example `FIRE` (empty when it has none), and whether the SELECT AN EFFECT menu shows. |
 | `hud.grenades`, `hud.grenade_fuse` | The grenade count on the HUD, for example `2`, and the seconds left on the grenade in hand, for example `1.8` (empty when none is in hand). |
 | `hud.points`, `hud.prompt_visible`, `hud.prompt` | The points on the HUD, whether the buy prompt shows, and its text with each run of spaces made one space, for example `E BUY AMMO 250` (empty when hidden). |
-| `hud.powerups` | The timed effects under the points, one entry for each in the order they started, each with its runs of spaces made one space and joined with ` \| `, for example `DOUBLE POINTS 23 \| INSTA-KILL 30` (empty when none runs). |
+| `hud.powerups` | The timed effects at the bottom center, one entry for each in the order they started, each with its runs of spaces made one space and joined with ` \| `, for example `DOUBLE POINTS 23 \| INSTA-KILL 30` (empty when none runs). |
 | `hud.reloading`, `hud.break`, `hud.round_visible` | Whether the RELOADING label, the BREAK label, and the round panel show. |
-| `hud.round`, `hud.objective` | The round number on the HUD, and the line under it: `4 LEFT` during a round (zombies alive plus zombies still to spawn), `NEXT ROUND IN 10` during the break. |
+| `hud.round`, `hud.objective` | The round number on the HUD, and the line beside it: `4 LEFT` during a round (zombies alive plus zombies still to spawn), `NEXT ROUND IN 10` during the break. |
 | `hud.crosshair`, `hud.hit_marker`, `hud.headshot_marker` | Whether the crosshair shows (hidden while aiming), whether the hit marker shows (0.2 s after a shot hits a zombie or a dummy), and whether it shows in the headshot color (0.2 s after a shot hits a zombie's head). |
 | `game_over.visible`, `game_over.text` | The game-over screen, and its text, for example `You reached round 1`. |
 | `mouse.mode` | `captured` or `visible`. |
