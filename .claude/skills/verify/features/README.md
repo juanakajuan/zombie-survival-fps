@@ -6,7 +6,7 @@ This folder is the maintained source for proof of what a player can do in the ga
 
 - Run `godot --headless --path . --import` once in the checkout.
 - `.claude/skills/verify/scripts/doctor.sh` reports no `FAIL`.
-- Each run starts from a new load of `res://levels/test_range.tscn` (not the main scene, `levels/compound.tscn`): round 1, 100 health, `12 / 48` ammo, the mouse captured, the player at `0.0 0.0 6.0` and looking toward -Z, 3 target dummies, and zombies that spawn one each second.
+- Each run starts from a new load of `res://levels/test_range.tscn` (not the main scene, `levels/pumpkin_hollow/pumpkin_hollow.tscn`): round 1, 100 health, `12 / 48` ammo, the mouse captured, the player at `0.0 0.0 6.0` and looking toward -Z, 3 target dummies, and zombies that spawn one each second.
 - Never drive the game that the human runs from the editor.
 
 ## Driving conventions
