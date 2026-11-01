@@ -67,7 +67,7 @@ func test_the_power_switch_is_in_the_garage_behind_its_door_and_powers_every_mac
 	await run_seconds(1.0)
 	assert_true(_path_reaches(level, start, power.global_position + power.global_basis.z), "the switch has a path from the start")
 	var machines: Array[BuyStation] = stations_in(level).filter(func(station: BuyStation) -> bool: return station.item is PerkItem or station.item is UpgradeItem)
-	assert_eq(machines.size(), 5, "four perk machines and an upgrade machine")
+	assert_eq(machines.size(), 6, "five perk machines and an upgrade machine")
 	for machine: BuyStation in machines:
 		assert_true(machine.power == power, "%s needs the switch" % machine.name)
 		assert_true(not machine.has_power(), "%s has no power at the start" % machine.name)
