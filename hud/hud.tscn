@@ -374,6 +374,7 @@ horizontal_alignment = 2
 [node name="Row" type="HBoxContainer" parent="Root/WeaponPanel"]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 12
 
 [node name="WeaponName" type="Label" parent="Root/WeaponPanel/Row"]
 unique_name_in_owner = true
@@ -382,6 +383,14 @@ size_flags_horizontal = 3
 size_flags_vertical = 8
 theme_override_font_sizes/font_size = 20
 text = "PISTOL"
+
+[node name="WeaponEffect" type="Label" parent="Root/WeaponPanel/Row"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_font_sizes/font_size = 20
+text = "FIRE"
 
 [node name="AmmoValue" type="Label" parent="Root/WeaponPanel/Row"]
 unique_name_in_owner = true

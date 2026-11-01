@@ -54,11 +54,13 @@ func test_a_weapon_with_the_first_upgrade_gets_an_effect_that_the_player_selects
 	assert_true(player.effect_menu.is_open(), "the menu opens")
 	assert_true(get_tree().paused, "the game is paused")
 	assert_true(player.weapon.effect == null, "no effect until the player selects one")
+	assert_eq(player.hud.readout().weapon_effect, "", "no sign yet")
 	assert_eq(player.effect_menu.effect_labels(), PackedStringArray(["FIRE"]), "the menu offers fire")
 
 	player.effect_menu.select("FIRE")
 	assert_true(player.weapon == upgraded, "the same weapon is in hand")
 	assert_eq(player.weapon.effect.display_name, "FIRE", "the weapon has the effect")
+	assert_eq(player.hud.readout().weapon_effect, "FIRE", "the HUD shows the effect")
 	assert_true(not player.effect_menu.is_open(), "the menu closes")
 	assert_true(not get_tree().paused, "the game runs again")
 

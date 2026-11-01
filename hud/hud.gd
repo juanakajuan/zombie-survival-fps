@@ -12,6 +12,7 @@ extends CanvasLayer
 			weapon.reload_started.disconnect(_update_ammo)
 			weapon.reload_finished.disconnect(_update_ammo)
 			weapon.damaged.disconnect(_on_damaged)
+			weapon.effect_changed.disconnect(_update_effect)
 		weapon = value
 		weapon.fired.connect(_on_weapon_fired)
 		weapon.ammo_changed.connect(_update_ammo)
@@ -19,6 +20,7 @@ extends CanvasLayer
 		weapon.reload_started.connect(_update_ammo)
 		weapon.reload_finished.connect(_update_ammo)
 		weapon.damaged.connect(_on_damaged)
+		weapon.effect_changed.connect(_update_effect)
 		if is_node_ready():
 			_show_weapon()
 @export var melee: Melee
@@ -62,6 +64,8 @@ class Readout extends RefCounted:
 	var prompt_visible: bool
 	var prompt_text: String
 	var weapon_name: String
+	## The name of the effect of the weapon in hand. Empty when it has none.
+	var weapon_effect: String
 	var reloading: bool
 	var round_visible: bool
 	var round_text: String
@@ -100,6 +104,7 @@ var _round_color: Color
 @onready var _health_bar: SegmentBar = %HealthBar
 @onready var _low_health_vignette: TextureRect = %LowHealthVignette
 @onready var _weapon_name: Label = %WeaponName
+@onready var _weapon_effect: Label = %WeaponEffect
 @onready var _ammo_value: Label = %AmmoValue
 @onready var _grenade_value: Label = %GrenadeValue
 @onready var _grenade_fuse: Label = %GrenadeFuse
@@ -160,6 +165,7 @@ func readout() -> Readout:
 	r.prompt_visible = _prompt.visible
 	r.prompt_text = _prompt.text
 	r.weapon_name = _weapon_name.text
+	r.weapon_effect = _weapon_effect.text if _weapon_effect.visible else ""
 	r.reloading = _reload_label.is_visible_in_tree()
 	r.round_visible = _round_panel.is_visible_in_tree()
 	r.round_text = _round_value.text
@@ -214,7 +220,17 @@ func _on_health_changed(current: float) -> void:
 
 func _show_weapon() -> void:
 	_weapon_name.text = weapon.data.display_name
+	_update_effect()
 	_update_ammo()
+
+
+func _update_effect() -> void:
+	if not is_node_ready():
+		return
+	_weapon_effect.visible = weapon.effect != null
+	if weapon.effect != null:
+		_weapon_effect.text = weapon.effect.display_name
+		_weapon_effect.add_theme_color_override("font_color", weapon.effect.color)
 
 
 func _on_weapon_fired() -> void:
