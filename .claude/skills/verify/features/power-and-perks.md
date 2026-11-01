@@ -1,19 +1,19 @@
 # Power and perks
 
-The power switch is a dark cabinet with a red lamp and a yellow lever up, labeled POWER, in the room behind the door. When the player looks at it within 2.5 m, the prompt shows `E  TURN ON POWER`. E turns the power on for good: the lamp goes green, the lever swings down, and the switch shows no prompt after. The four perk machines are tall purple boxes in a row at `x -5`. Without power, each one shows `NO POWER` under its name, and its prompt is `NEEDS POWER`. With power, it shows its cost, and E buys the perk: IRON GUT (2500) adds 50 max health, QUICK HANDS (3000) halves the reload time, HAIR TRIGGER (2000) makes the time between shots 0.65 times as long, and SECOND WIND (1500) downs the player at 0 health and stands the player up after 4 s. Each buy of SECOND WIND raises its price by 1500 (the prompt and the label show 3000, then 4500), and after 3 buys in a run its prompt and label show `SOLD OUT`. Tests cover the price and the limit, because three downs take a long drive. Each held perk shows a colored icon over the health bar: `H` red, `R` green, `F` orange, `S` blue. The player holds one of each, at most 4, and loses all of them at 0 health.
+The power switch is a dark cabinet with a red lamp and a yellow lever up, labeled POWER, in the room behind the door. When the player looks at it within 2.5 m, the prompt shows `E  TURN ON POWER`. E turns the power on for good: the lamp goes green, the lever swings down, and the switch shows no prompt after. The five perk machines are tall purple boxes in a row at `x -5`. Without power, each one shows `NO POWER` under its name, and its prompt is `NEEDS POWER`. With power, it shows its cost, and E buys the perk: IRON GUT (2500) adds 50 max health, QUICK HANDS (3000) halves the reload time, HAIR TRIGGER (2000) makes the time between shots 0.65 times as long, FLEET FOOT (2000) makes the player 1.2 times as fast in every stance, and SECOND WIND (1500) downs the player at 0 health and stands the player up after 4 s. Each buy of SECOND WIND raises its price by 1500 (the prompt and the label show 3000, then 4500), and after 3 buys in a run its prompt and label show `SOLD OUT`. Tests cover the price and the limit, because three downs take a long drive. Each held perk shows a colored icon over the health bar: `H` red, `R` green, `F` orange, `M` yellow, `S` blue. The player holds one of each, at most 4 (of 5 perks), and loses all of them at 0 health.
 
 ## Sub-features
 
 - `power-switch` turns on once with E. `power.on` goes from `false` to `true`.
 - `perk-no-power` refuses a sale and takes no points while the power is off.
 - `perk-buy` takes the cost and adds the perk icon: `hud.perks` goes from empty to `F`.
-- `perk-effects` changes max health, reload time, and fire rate. `tests/perks/test_perks.gd` proves each one. With IRON GUT, `hud.max_health` reads `150`.
+- `perk-effects` changes max health, reload time, fire rate, and move speed. `tests/perks/test_perks.gd` proves each one. With IRON GUT, `hud.max_health` reads `150`.
 - `perk-limit` refuses a held perk and a perk over `Perks.max_held`. Tests cover it.
 
 ## How to get to it (user POV)
 
 - Start the test range. The switch is at `18 0 18.6` in the room (`x 12..20`, `z 12..20`). The room door is at `16.5 0 12` and costs 750.
-- The machines face east: IRON GUT at `-5 0 0`, QUICK HANDS at `-5 0 -2.5`, HAIR TRIGGER at `-5 0 -5`, SECOND WIND at `-5 0 2.5`.
+- The machines face east: IRON GUT at `-5 0 0`, QUICK HANDS at `-5 0 -2.5`, HAIR TRIGGER at `-5 0 -5`, SECOND WIND at `-5 0 2.5`, FLEET FOOT at `-5 0 5`.
 - Get points from the debug menu (F1, `+5000 POINTS`), buy the door, turn on the switch, walk to a machine, and press E.
 
 ## Driving it with drive.sh
