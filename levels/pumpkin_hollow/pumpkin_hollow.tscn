@@ -19,6 +19,7 @@
 [ext_resource type="Resource" path="res://perks/quick_hands.tres" id="26_quick_hands"]
 [ext_resource type="Resource" path="res://perks/hair_trigger.tres" id="27_hair_trigger"]
 [ext_resource type="Resource" path="res://perks/second_wind.tres" id="28_second_wind"]
+[ext_resource type="Resource" path="res://perks/fleet_foot.tres" id="34_fleet_foot"]
 [ext_resource type="PackedScene" path="res://economy/wall_buy.tscn" id="29_wall_buy"]
 [ext_resource type="Resource" path="res://economy/rifle_item.tres" id="30_rifle_item"]
 [ext_resource type="Resource" path="res://economy/machine_gun_item.tres" id="31_machine_gun_item"]
@@ -328,6 +329,12 @@ power = NodePath("../PowerSwitch")
 [node name="SecondWindMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
 position = Vector3(24, 0, -29)
 item = ExtResource("28_second_wind")
+power = NodePath("../PowerSwitch")
+
+[node name="FleetFootMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("24_perk_machine")]
+position = Vector3(-31.2, 0, 6)
+rotation = Vector3(0, 1.5707964, 0)
+item = ExtResource("34_fleet_foot")
 power = NodePath("../PowerSwitch")
 
 [node name="ShotgunWallBuy" parent="." instance=ExtResource("29_wall_buy")]
