@@ -4,6 +4,10 @@
 [ext_resource type="Theme" path="res://hud/hud_theme.tres" id="2_theme"]
 [ext_resource type="Script" path="res://hud/crosshair.gd" id="3_crosshair"]
 [ext_resource type="Script" path="res://hud/segment_bar.gd" id="5_segment_bar"]
+[ext_resource type="Script" path="res://hud/round_tally.gd" id="11_tally"]
+[ext_resource type="Script" path="res://hud/blood_splat.gd" id="12_splat"]
+[ext_resource type="Script" path="res://hud/grenade_icons.gd" id="13_grenades"]
+[ext_resource type="Script" path="res://hud/point_popup.gd" id="14_popup"]
 
 [ext_resource type="AudioStream" path="res://audio/hit.tres" id="6_hit"]
 [ext_resource type="AudioStream" path="res://audio/kill.tres" id="7_kill"]
@@ -21,21 +25,17 @@ fill = 1
 fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(1, 0.5)
 
-[sub_resource type="StyleBoxFlat" id="slot_selected"]
-bg_color = Color(1, 1, 1, 0.95)
-skew = Vector2(0.15, 0)
-
 [sub_resource type="StyleBoxFlat" id="perk_icon"]
 bg_color = Color(1, 1, 1, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.08, 0.08, 0.08, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.06, 0.04, 0.05, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
 [node name="Hud" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -89,14 +89,15 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
+offset_left = -300.0
 offset_top = 56.0
-offset_right = 200.0
-offset_bottom = 96.0
+offset_right = 300.0
+offset_bottom = 100.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 28
+theme_type_variation = &"InkLabel"
+theme_override_font_sizes/font_size = 30
+theme_override_constants/outline_size = 9
 text = "E  BUY"
 horizontal_alignment = 1
 
@@ -109,14 +110,16 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -120.0
-offset_right = 200.0
+offset_left = -300.0
+offset_top = -130.0
+offset_right = 300.0
 offset_bottom = -60.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_type_variation = &"InkLabel"
 theme_override_colors/font_color = Color(0.95, 0.2, 0.2, 1)
-theme_override_font_sizes/font_size = 46
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 54
 text = "DOWNED  10"
 horizontal_alignment = 1
 
@@ -129,15 +132,17 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -200.0
-offset_right = 300.0
+offset_left = -400.0
+offset_top = -210.0
+offset_right = 400.0
 offset_bottom = -130.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme_type_variation = &"InkLabel"
 theme_override_colors/font_color = Color(0.72, 0.5, 0.95, 1)
-theme_override_font_sizes/font_size = 56
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 64
 text = "MUTT ROUND"
 horizontal_alignment = 1
 
@@ -150,16 +155,16 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
+offset_left = -400.0
 offset_top = -58.0
-offset_right = 300.0
-offset_bottom = -24.0
+offset_right = 400.0
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_type_variation = &"InkLabel"
 theme_override_colors/font_color = Color(0.45, 0.7, 1, 1)
-theme_override_colors/font_outline_color = Color(0.05, 0.05, 0.1, 1)
-theme_override_constants/outline_size = 10
-theme_override_font_sizes/font_size = 26
+theme_override_constants/outline_size = 9
+theme_override_font_sizes/font_size = 28
 text = "SECOND WIND  GETTING UP IN 4"
 horizontal_alignment = 1
 
@@ -167,293 +172,306 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 visible = false
 layout_mode = 0
-offset_left = 36.0
-offset_top = 24.0
-offset_right = 236.0
-offset_bottom = 52.0
+offset_left = 28.0
+offset_top = 20.0
+offset_right = 228.0
+offset_bottom = 48.0
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_type_variation = &"InkLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.85)
+theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 20
 text = "60 FPS"
-
-[node name="PointsPanel" type="HBoxContainer" parent="Root"]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -276.0
-offset_top = 24.0
-offset_right = -36.0
-offset_bottom = 70.0
-grow_horizontal = 0
-mouse_filter = 2
-theme_override_constants/separation = 10
-alignment = 2
-
-[node name="PointsCaption" type="Label" parent="Root/PointsPanel"]
-layout_mode = 2
-size_flags_vertical = 8
-theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "POINTS"
-
-[node name="PointsValue" type="Label" parent="Root/PointsPanel"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 36
-text = "0"
-horizontal_alignment = 2
 
 [node name="PowerupLabel" type="Label" parent="Root"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -336.0
-offset_top = 72.0
-offset_right = -36.0
-offset_bottom = 104.0
-grow_horizontal = 0
-mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 22
-text = "DOUBLE POINTS  30"
-horizontal_alignment = 2
-
-[node name="RoundPanel" type="VBoxContainer" parent="Root"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchors_preset = 5
+anchors_preset = 7
 anchor_left = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-offset_left = -200.0
-offset_top = 20.0
-offset_right = 200.0
-offset_bottom = 140.0
+anchor_bottom = 1.0
+offset_left = -250.0
+offset_top = -64.0
+offset_right = 250.0
+offset_bottom = -24.0
 grow_horizontal = 2
+grow_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = -6
-
-[node name="RoundRow" type="HBoxContainer" parent="Root/RoundPanel"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 12
-alignment = 1
-
-[node name="RoundCaption" type="Label" parent="Root/RoundPanel/RoundRow"]
-unique_name_in_owner = true
-layout_mode = 2
+theme_type_variation = &"InkLabel"
 theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 46
-text = "ROUND"
-
-[node name="RoundValue" type="Label" parent="Root/RoundPanel/RoundRow"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 46
-text = "1"
-
-[node name="BreakLabel" type="Label" parent="Root/RoundPanel"]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 46
-text = "BREAK"
+theme_override_constants/outline_size = 9
+theme_override_font_sizes/font_size = 30
+text = "DOUBLE POINTS  30"
 horizontal_alignment = 1
 
-[node name="Objective" type="Label" parent="Root/RoundPanel"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 26
-text = "0 LEFT"
-horizontal_alignment = 1
-
-[node name="PerkIcons" type="HBoxContainer" parent="Root"]
-unique_name_in_owner = true
+[node name="LeftPanel" type="VBoxContainer" parent="Root"]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 36.0
-offset_top = -150.0
-offset_right = 336.0
-offset_bottom = -106.0
+offset_left = 24.0
+offset_top = -12.0
+offset_right = 34.0
+offset_bottom = -12.0
 grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="PerkIcons" type="HBoxContainer" parent="Root/LeftPanel"]
+unique_name_in_owner = true
+layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="PerkIcon" type="PanelContainer" parent="Root/PerkIcons"]
+[node name="PerkIcon" type="PanelContainer" parent="Root/LeftPanel/PerkIcons"]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(44, 44)
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("perk_icon")
 
-[node name="Text" type="Label" parent="Root/PerkIcons/PerkIcon"]
+[node name="Text" type="Label" parent="Root/LeftPanel/PerkIcons/PerkIcon"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.08, 0.08, 0.08, 1)
-theme_override_font_sizes/font_size = 26
+theme_type_variation = &"InkLabel"
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 34
 text = "?"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HealthPanel" type="VBoxContainer" parent="Root"]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 36.0
-offset_top = -96.0
-offset_right = 336.0
-offset_bottom = -32.0
-grow_vertical = 0
-mouse_filter = 2
-theme_override_constants/separation = 2
-alignment = 2
-
-[node name="Row" type="HBoxContainer" parent="Root/HealthPanel"]
+[node name="HealthRow" type="HBoxContainer" parent="Root/LeftPanel"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
-[node name="HealthValue" type="Label" parent="Root/HealthPanel/Row"]
+[node name="HealthBar" type="Control" parent="Root/LeftPanel/HealthRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(230, 20)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("5_segment_bar")
+outline_width = 3.0
+
+[node name="HealthValue" type="Label" parent="Root/LeftPanel/HealthRow"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_type_variation = &"InkLabel"
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 28
 text = "100"
 
-[node name="HealthMax" type="Label" parent="Root/HealthPanel/Row"]
+[node name="HealthMax" type="Label" parent="Root/LeftPanel/HealthRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 8
-theme_override_colors/font_color = Color(1, 1, 1, 0.6)
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"InkLabel"
+theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 18
 text = "/ 100"
 
-[node name="HealthBar" type="Control" parent="Root/HealthPanel"]
+[node name="RoundPanel" type="HBoxContainer" parent="Root/LeftPanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 22)
+visible = false
 layout_mode = 2
 mouse_filter = 2
-script = ExtResource("5_segment_bar")
+theme_override_constants/separation = 14
 
-[node name="WeaponPanel" type="VBoxContainer" parent="Root"]
+[node name="RoundCounter" type="HBoxContainer" parent="Root/LeftPanel/RoundPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+pivot_offset_ratio = Vector2(0, 1)
+mouse_filter = 2
+
+[node name="RoundTally" type="Control" parent="Root/LeftPanel/RoundPanel/RoundCounter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 104)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("11_tally")
+
+[node name="RoundValue" type="Label" parent="Root/LeftPanel/RoundPanel/RoundCounter"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_colors/font_color = Color(0.75, 0.05, 0.05, 1)
+theme_override_constants/outline_size = 14
+theme_override_font_sizes/font_size = 120
+text = "1"
+
+[node name="RoundInfo" type="VBoxContainer" parent="Root/LeftPanel/RoundPanel"]
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_override_constants/separation = -4
+
+[node name="BreakLabel" type="Label" parent="Root/LeftPanel/RoundPanel/RoundInfo"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_colors/font_color = Color(1, 0.9, 0, 1)
+theme_override_constants/outline_size = 9
+theme_override_font_sizes/font_size = 34
+text = "BREAK"
+
+[node name="Objective" type="Label" parent="Root/LeftPanel/RoundPanel/RoundInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"InkLabel"
+theme_override_colors/font_color = Color(1, 0.9, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 28
+text = "0 LEFT"
+
+[node name="RightPanel" type="VBoxContainer" parent="Root"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -276.0
-offset_top = -170.0
-offset_right = -36.0
-offset_bottom = -24.0
+offset_left = -34.0
+offset_top = -12.0
+offset_right = -24.0
+offset_bottom = -12.0
 grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
-theme_override_constants/separation = 2
-alignment = 2
+theme_override_constants/separation = 0
 
-[node name="ReloadLabel" type="Label" parent="Root/WeaponPanel"]
+[node name="PointsPanel" type="Control" parent="Root/RightPanel"]
+custom_minimum_size = Vector2(300, 116)
+layout_mode = 2
+size_flags_horizontal = 8
+mouse_filter = 2
+
+[node name="BloodSplat" type="Control" parent="Root/RightPanel/PointsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("12_splat")
+
+[node name="PointsValue" type="Label" parent="Root/RightPanel/PointsPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset_ratio = Vector2(0.5, 0.5)
+mouse_filter = 2
+theme_type_variation = &"InkLabel"
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 60
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PopupLayer" type="Control" parent="Root/RightPanel/PointsPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PopupTemplate" type="Label" parent="Root/RightPanel/PointsPanel/PopupLayer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 8.0
+offset_top = 34.0
+offset_right = 68.0
+offset_bottom = 74.0
+mouse_filter = 2
+theme_type_variation = &"InkLabel"
+theme_override_colors/font_color = Color(1, 0.9, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 32
+text = "+10"
+script = ExtResource("14_popup")
+
+[node name="ReloadLabel" type="Label" parent="Root/RightPanel"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
+theme_type_variation = &"InkLabel"
 theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 28
 text = "RELOADING"
 horizontal_alignment = 2
 
-[node name="Row" type="HBoxContainer" parent="Root/WeaponPanel"]
+[node name="WeaponRow" type="HBoxContainer" parent="Root/RightPanel"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
+alignment = 2
 
-[node name="WeaponName" type="Label" parent="Root/WeaponPanel/Row"]
+[node name="WeaponName" type="Label" parent="Root/RightPanel/WeaponRow"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
 size_flags_vertical = 8
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"InkLabel"
+theme_override_constants/outline_size = 7
+theme_override_font_sizes/font_size = 24
 text = "PISTOL"
 
-[node name="WeaponEffect" type="Label" parent="Root/WeaponPanel/Row"]
+[node name="WeaponEffect" type="Label" parent="Root/RightPanel/WeaponRow"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_vertical = 8
-theme_override_font_sizes/font_size = 20
+theme_type_variation = &"InkLabel"
+theme_override_constants/outline_size = 7
+theme_override_font_sizes/font_size = 24
 text = "FIRE"
 
-[node name="AmmoValue" type="Label" parent="Root/WeaponPanel/Row"]
+[node name="AmmoValue" type="Label" parent="Root/RightPanel"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+theme_type_variation = &"InkLabel"
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 60
 text = "12 / 48"
 horizontal_alignment = 2
 
-[node name="GrenadeRow" type="HBoxContainer" parent="Root/WeaponPanel"]
+[node name="GrenadeRow" type="HBoxContainer" parent="Root/RightPanel"]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 alignment = 2
 
-[node name="GrenadeCaption" type="Label" parent="Root/WeaponPanel/GrenadeRow"]
-layout_mode = 2
-size_flags_vertical = 8
-theme_override_colors/font_color = Color(1, 1, 1, 0.6)
-theme_override_font_sizes/font_size = 18
-text = "G  GRENADES"
-
-[node name="GrenadeFuse" type="Label" parent="Root/WeaponPanel/GrenadeRow"]
+[node name="GrenadeFuse" type="Label" parent="Root/RightPanel/GrenadeRow"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_vertical = 4
+theme_type_variation = &"InkLabel"
 theme_override_colors/font_color = Color(1, 0.62, 0.15, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 30
 text = "2.5"
 
-[node name="GrenadeValue" type="Label" parent="Root/WeaponPanel/GrenadeRow"]
+[node name="GrenadeIcons" type="Control" parent="Root/RightPanel/GrenadeRow"]
 unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "2"
-horizontal_alignment = 2
-
-[node name="Slots" type="HBoxContainer" parent="Root/WeaponPanel"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 mouse_filter = 2
-alignment = 2
-
-[node name="Slot" type="VBoxContainer" parent="Root/WeaponPanel/Slots"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 0
-
-[node name="Box" type="Panel" parent="Root/WeaponPanel/Slots/Slot"]
-custom_minimum_size = Vector2(64, 50)
-layout_mode = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("slot_selected")
-
-[node name="Icon" type="Polygon2D" parent="Root/WeaponPanel/Slots/Slot/Box"]
-position = Vector2(8, 7)
-color = Color(0.08, 0.08, 0.08, 1)
-polygon = PackedVector2Array(6, 6, 46, 6, 46, 15, 26, 15, 22, 32, 11, 32, 14, 15, 6, 15)
-
-[node name="Key" type="Label" parent="Root/WeaponPanel/Slots/Slot"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "1"
-horizontal_alignment = 1
+script = ExtResource("13_grenades")
 
 [node name="HitSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_hit")

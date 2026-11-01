@@ -32,24 +32,34 @@ extends Control
 	set(v):
 		empty_color = v
 		queue_redraw()
+@export var outline_color: Color = Color(0.06, 0.04, 0.05):
+	set(v):
+		outline_color = v
+		queue_redraw()
+## The ink line round each segment. It sits inside the rect of the control.
+@export_range(0.0, 10.0, 0.5, "suffix:px") var outline_width: float = 0.0:
+	set(v):
+		outline_width = v
+		queue_redraw()
 
 
 func _draw() -> void:
 	var count := maxi(ceili(max_value / segment_value), 1)
-	var width := (size.x - slant - gap * (count - 1)) / count
+	var width := (size.x - slant - gap * (count - 1) - outline_width * 2.0) / count
 	for i in count:
-		var x := i * (width + gap)
+		var x := outline_width + i * (width + gap)
 		var fraction := clampf((value - i * segment_value) / segment_value, 0.0, 1.0)
-		_draw_segment(x, width, empty_color)
+		Ink.polygon(self, _segment_points(x, width), empty_color, outline_color, outline_width)
 		if fraction > 0.0:
-			_draw_segment(x, width * fraction, fill_color)
+			draw_colored_polygon(_segment_points(x, width * fraction), fill_color)
 
 
-func _draw_segment(x: float, width: float, color: Color) -> void:
-	var points := PackedVector2Array([
-		Vector2(x + slant, 0.0),
-		Vector2(x + width + slant, 0.0),
-		Vector2(x + width, size.y),
-		Vector2(x, size.y),
+func _segment_points(x: float, width: float) -> PackedVector2Array:
+	var top := outline_width
+	var bottom := size.y - outline_width
+	return PackedVector2Array([
+		Vector2(x + slant, top),
+		Vector2(x + width + slant, top),
+		Vector2(x + width, bottom),
+		Vector2(x, bottom),
 	])
-	draw_colored_polygon(points, color)
