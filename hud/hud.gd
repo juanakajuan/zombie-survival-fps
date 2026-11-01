@@ -34,6 +34,8 @@ extends CanvasLayer
 @export_group("Round counter")
 ## The color of the round counter.
 @export var round_color: Color = Color(0.75, 0.05, 0.05)
+## The last round that shows as tally marks. Later rounds show the number.
+@export_range(0, 5) var tally_rounds: int = 5
 ## How big the counter gets at the start of a round, as a multiple of its size.
 @export_range(1.0, 3.0, 0.05) var round_pop_scale: float = 1.45
 ## The seconds that the counter takes to bounce back to its size.
@@ -391,7 +393,7 @@ func _update_round() -> void:
 		return
 	var number := round_manager.round_number
 	_round_value.text = str(number)
-	var tally_marks := number if number <= 5 else 0
+	var tally_marks := number if number <= tally_rounds else 0
 	_round_tally.count = tally_marks
 	_round_tally.visible = tally_marks > 0
 	_round_value.visible = tally_marks == 0
