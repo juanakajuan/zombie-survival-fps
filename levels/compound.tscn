@@ -627,7 +627,7 @@ rotation = Vector3(0, 3.1415927, 0)
 item = ExtResource("31_machine_gun_item")
 
 [node name="UpgradeMachine" parent="." node_paths=PackedStringArray("power") instance=ExtResource("29_upgrade_machine")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 10, 0, 4.8)
+position = Vector3(10, 0, 4.8)
 power = NodePath("../PowerSwitch")
 
 [node name="WeaponBoxPlaces" type="Node3D" parent="."]

@@ -2,27 +2,22 @@
 
 [ext_resource type="PackedScene" path="res://economy/buy_station.tscn" id="1_station"]
 [ext_resource type="Resource" path="res://upgrades/upgrade.tres" id="2_upgrade"]
-
-[sub_resource type="StandardMaterial3D" id="machine_material"]
-albedo_color = Color(0.85, 0.6, 0.1, 1)
-
-[sub_resource type="BoxMesh" id="machine_mesh"]
-material = SubResource("machine_material")
-size = Vector3(1.6, 1.2, 1)
+[ext_resource type="PackedScene" path="res://upgrades/upgrade_machine_model.glb" id="3_model"]
 
 [sub_resource type="BoxShape3D" id="machine_shape"]
-size = Vector3(1.6, 1.2, 1)
+size = Vector3(1.9, 2.7, 1)
 
 [node name="UpgradeMachine" instance=ExtResource("1_station")]
 item = ExtResource("2_upgrade")
 
 [node name="MeshInstance3D" parent="." index="0"]
-position = Vector3(0, 0.6, 0)
-mesh = SubResource("machine_mesh")
+visible = false
 
 [node name="CollisionShape3D" parent="." index="1"]
-position = Vector3(0, 0.6, 0)
+position = Vector3(-0.13, 1.35, 0.01)
 shape = SubResource("machine_shape")
 
 [node name="Label" parent="." index="2"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.95, 0)
+
+[node name="Model" parent="." index="3" instance=ExtResource("3_model")]
