@@ -147,6 +147,18 @@ func test_shows_the_weapon_name() -> void:
 	assert_eq(player.hud.readout().weapon_name, player.weapon.data.display_name, "weapon name")
 
 
+func test_shows_the_effect_of_the_weapon_in_hand() -> void:
+	var player := await spawn_player()
+	var pistol := player.weapon
+	assert_eq(player.hud.readout().weapon_effect, "", "no effect sign at start")
+	pistol.effect = preload("res://effects/fire.tres")
+	assert_eq(player.hud.readout().weapon_effect, "FIRE", "the sign names the effect")
+	player.give_weapon(preload("res://weapons/smg.tres"))
+	assert_eq(player.hud.readout().weapon_effect, "", "a weapon with no effect shows no sign")
+	player.switch_to(0)
+	assert_eq(player.hud.readout().weapon_effect, "FIRE", "the sign comes back with the pistol")
+
+
 func test_objective_counts_zombies_left_and_the_break() -> void:
 	var manager := _spawn_round_manager()
 	var player := await spawn_player()

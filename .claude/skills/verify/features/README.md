@@ -40,7 +40,7 @@ Each feature file starts with an H1 title and one paragraph about the behavior t
 - [Doors and pickups](./doors-and-pickups.md) covers the door that points buy, the spawn point that waits for it, and the max ammo and double points pickups that a walk over them give.
 - [Barricades](./barricades.md) covers the boarded window that a zombie breaks and the player repairs with a hold on E, and the points that each board gives.
 - [Power and perks](./power-and-perks.md) covers the power switch in the room behind the door, the perk machines that sell only with power, and the perk icons on the HUD.
-- [Weapon upgrade](./weapon-upgrade.md) covers the upgrade machine that needs power and turns the weapon in hand into its upgrade, one time, with more damage, more ammo, and new colors.
+- [Weapon upgrade](./weapon-upgrade.md) covers the upgrade machine that needs power. The first upgrade turns the weapon in hand into its upgrade, with more damage, more ammo, and new colors. The second upgrade opens a menu where the player selects an effect, such as FIRE, that sets zombies on fire.
 - [Rounds and HUD](./rounds-and-hud.md) covers zombie spawns, the zombie health bar, the zombies-left line, clearing a round, the BREAK label, and the next round with stronger zombies, and the runners from round 5.
 - [Death, game over, and restart](./death-and-game-over.md) covers zombie attacks, player death, the game-over screen, and restart with Enter.
 

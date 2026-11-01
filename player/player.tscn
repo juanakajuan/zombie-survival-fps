@@ -18,6 +18,7 @@
 [ext_resource type="Script" path="res://grenades/grenades.gd" id="16_grenades"]
 [ext_resource type="PackedScene" path="res://grenades/grenade.tscn" id="17_grenade"]
 [ext_resource type="PackedScene" path="res://grenades/grenade_view.tscn" id="18_grenade_view"]
+[ext_resource type="PackedScene" path="res://upgrades/effect_menu.tscn" id="19_effect_menu"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -92,6 +93,8 @@ powerups = NodePath("../Powerups")
 [node name="PauseMenu" parent="." instance=ExtResource("6_pause_menu")]
 
 [node name="DebugMenu" parent="." instance=ExtResource("13_debug_menu")]
+
+[node name="EffectMenu" parent="." instance=ExtResource("19_effect_menu")]
 
 [node name="HurtSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("12_hurt")

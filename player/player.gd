@@ -90,6 +90,7 @@ const GROUP := &"player"
 @onready var hud: Hud = $Hud
 @onready var pause_menu: PauseMenu = $PauseMenu
 @onready var debug_menu: DebugMenu = $DebugMenu
+@onready var effect_menu: EffectMenu = $EffectMenu
 @onready var body: Node3D = $Body
 @onready var animator: PlayerAnimator = $Animator
 @onready var wallet: Wallet = $Wallet
@@ -134,10 +135,12 @@ func _ready() -> void:
 	health.changed.connect(_on_health_changed)
 	health.damaged.connect(hurt_sound.play.unbind(1))
 	weapon.damaged.connect(_on_damaged)
+	weapon.effect_damaged.connect(_on_effect_damaged)
 	melee.damaged.connect(_on_damaged)
 	grenades.damaged.connect(_on_damaged)
 	pause_menu.resume_requested.connect(_resume)
 	pause_menu.settings_changed.connect(_apply_settings)
+	effect_menu.chosen.connect(_on_effect_chosen)
 	debug_menu.player = self
 	debug_menu.close_requested.connect(_close_debug_menu)
 	settings = GameSettings.load_saved()
@@ -290,6 +293,13 @@ func upgrade_weapon() -> Weapon:
 	return upgraded
 
 
+## Opens the effect menu. The player selects one of `effects`, and the weapon in hand keeps it. The menu has no cancel,
+## because the points are already spent.
+func choose_effect(effects: Array[WeaponEffect]) -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	effect_menu.open(effects)
+
+
 ## The held weapon that has this data or its upgrade, or null.
 func weapon_holding(data: WeaponData) -> Weapon:
 	for held: Weapon in weapons:
@@ -439,6 +449,7 @@ func _make_weapon(data: WeaponData) -> Weapon:
 	made.trigger_enabled = weapon.trigger_enabled
 	camera.add_child(made)
 	made.damaged.connect(_on_damaged)
+	made.effect_damaged.connect(_on_effect_damaged)
 	return made
 
 
@@ -462,6 +473,16 @@ func _equip(next: Weapon) -> void:
 func _on_damaged(target: Node, killed: bool, headshot: bool) -> void:
 	if target is Zombie:
 		wallet.reward_hit(killed, headshot)
+
+
+func _on_effect_chosen(effect: WeaponEffect) -> void:
+	weapon.effect = effect
+	effect_menu.close()
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _on_effect_damaged(target: Node, killed: bool) -> void:
+	_on_damaged(target, killed, false)
 
 
 func _resume() -> void:

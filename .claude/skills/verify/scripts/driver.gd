@@ -315,6 +315,8 @@ func _state() -> Dictionary[String, String]:
 		s["hud.health"] = hud.health_text
 		s["hud.ammo"] = hud.ammo_text
 		s["hud.weapon"] = hud.weapon_name
+		s["hud.weapon_effect"] = hud.weapon_effect
+		s["effect_menu.open"] = str(player.effect_menu.is_open())
 		s["hud.grenades"] = hud.grenades_text
 		s["hud.grenade_fuse"] = hud.grenade_fuse_text
 		s["hud.points"] = hud.points_text
@@ -340,6 +342,7 @@ func _state() -> Dictionary[String, String]:
 	var zombies := 0
 	var bars := 0
 	var runners := 0
+	var burning := 0
 	var dummies_up := 0
 	var doors_open := 0
 	var pickups := 0
@@ -351,6 +354,8 @@ func _state() -> Dictionary[String, String]:
 				bars += 1
 			if (node as Zombie).gait == Zombie.Gait.RUN:
 				runners += 1
+			if Burn.find_on(node) != null:
+				burning += 1
 		elif node is TargetDummy and (node as TargetDummy).visible:
 			dummies_up += 1
 		elif node is Door and (node as Door).is_open():
@@ -362,6 +367,7 @@ func _state() -> Dictionary[String, String]:
 	s["zombies.alive"] = str(zombies)
 	s["zombies.bars"] = str(bars)
 	s["zombies.runners"] = str(runners)
+	s["zombies.burning"] = str(burning)
 	s["tracers"] = str(get_nodes_in_group(Tracer.GROUP).size())
 	s["dummies.up"] = str(dummies_up)
 	s["doors.open"] = str(doors_open)

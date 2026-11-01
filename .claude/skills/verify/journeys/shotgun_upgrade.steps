@@ -35,7 +35,7 @@ tap interact
 wait 30
 expect hud.weapon SHOTGUN+
 expect hud.ammo 10 / 60
-expect hud.prompt SHOTGUN+ CANNOT BE UPGRADED
+expect hud.prompt E BUY UPGRADE SHOTGUN+ 2500
 face 0 0
 wait 40
 shot 02-upgraded

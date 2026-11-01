@@ -64,6 +64,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | Key | What the player sees |
 |---|---|
 | `hud.health`, `hud.ammo`, `hud.weapon` | The HUD text, for example `100`, `11 / 48` (rounds in the magazine, then in the reserve), and `PISTOL` (the weapon in hand). |
+| `hud.weapon_effect`, `effect_menu.open` | The effect of the weapon in hand on the HUD, for example `FIRE` (empty when it has none), and whether the SELECT AN EFFECT menu shows. |
 | `hud.grenades`, `hud.grenade_fuse` | The grenade count on the HUD, for example `2`, and the seconds left on the grenade in hand, for example `1.8` (empty when none is in hand). |
 | `hud.points`, `hud.prompt_visible`, `hud.prompt` | The points on the HUD, whether the buy prompt shows, and its text with each run of spaces made one space, for example `E BUY AMMO 250` (empty when hidden). |
 | `hud.powerups` | The timed effects under the points, one entry for each in the order they started, each with its runs of spaces made one space and joined with ` \| `, for example `DOUBLE POINTS 23 \| INSTA-KILL 30` (empty when none runs). |
@@ -75,7 +76,7 @@ State keys (all values are strings, and booleans are `true` or `false`):
 | `player.position`, `player.yaw_deg`, `player.pitch_deg`, `player.dead`, `player.downed`, `player.crouching`, `player.sliding`, `player.speed` | Feet position (`x y z`, 1 decimal), turn angle, up-down angle (`89` is straight up), death, crouch (true while sliding too), slide, and horizontal speed in m/s (1 decimal). The player starts at `0.0 0.0 6.0`, yaw `0`, pitch `0`, and looks toward -Z. |
 | `player.aiming`, `player.third_person` | Whether the player aims down the sights, and whether the debug third-person camera is on. |
 | `game.paused`, `pause_menu.open` | Whether the game tree is paused, and whether the pause menu shows. Esc toggles both. |
-| `zombies.alive`, `zombies.bars`, `zombies.runners`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, living runners (the red shirts that run), and target dummies that show. |
+| `zombies.alive`, `zombies.bars`, `zombies.runners`, `zombies.burning`, `dummies.up` | Zombies in the level, living zombies whose health bar shows, living runners (the red shirts that run), living zombies on fire, and target dummies that show. |
 | `doors.open`, `pickups` | Doors that are open, and pickups on the ground in the level (a placed one counts too). |
 | `power.on`, `hud.perks`, `hud.max_health`, `hud.downed` | Whether the power switch is on, the text of each perk icon on the HUD in order with one space between them (empty with no perk), the max health under the health number, and the downed timer text on the HUD (for example `DOWNED  7`, empty when hidden). |
 | `hud.fps` | The frame counter in the top-left corner, for example `60 FPS` (empty while the SHOW FPS setting is off). |

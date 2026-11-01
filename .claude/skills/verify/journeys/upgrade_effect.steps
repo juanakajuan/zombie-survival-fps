@@ -1,0 +1,127 @@
+# Upgrade effect: get to the upgrade machine as in upgrade.steps, buy both upgrades, select FIRE in the menu, and set a zombie on fire.
+expect power.on false
+expect hud.perks
+expect hud.max_health 100
+key F1
+key Tab
+key Tab
+key Enter
+key Enter
+key Tab
+key Tab
+key Tab
+key Tab
+key Enter
+key F1
+expect hud.points 10000
+expect zombies.alive 0
+face 143 0
+hold move_forward
+wait 70
+release move_forward
+wait 3
+face -90 0
+hold move_forward
+wait 255
+release move_forward
+wait 20
+face 180 0
+until hud.prompt_visible true 60
+tap interact
+wait 10
+expect doors.open 1
+hold move_forward
+wait 150
+release move_forward
+wait 20
+face -59 -9
+until hud.prompt_visible true 60
+expect hud.prompt E TURN ON POWER
+tap interact
+wait 10
+expect power.on true
+until hud.break false 600
+wait 30
+key F1
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Tab
+key Enter
+key F1
+expect zombies.alive 0
+face 0 0
+hold move_forward
+wait 150
+release move_forward
+wait 20
+face 90 0
+hold move_forward
+wait 190
+release move_forward
+wait 20
+face 0 0
+hold move_forward
+wait 110
+release move_forward
+wait 20
+face -90 -15
+until hud.prompt_visible true 60
+expect hud.weapon PISTOL
+expect hud.ammo 12 / 48
+expect hud.prompt E BUY UPGRADE PISTOL 5000
+debug GOD MODE
+shot 01-machine
+tap interact
+wait 30
+expect hud.points 4250
+expect hud.weapon PISTOL+
+expect hud.weapon_effect
+expect effect_menu.open false
+expect hud.prompt E BUY UPGRADE PISTOL+ 2500
+shot 02-first-upgrade
+tap interact
+wait 10
+expect effect_menu.open true
+expect game.paused true
+expect mouse.mode visible
+expect hud.points 1750
+expect hud.weapon_effect
+state 03-menu
+shot 03-menu
+key Escape
+expect effect_menu.open true
+expect pause_menu.open false
+key Enter
+wait 10
+expect effect_menu.open false
+expect game.paused false
+expect mouse.mode captured
+expect hud.weapon_effect FIRE
+expect hud.weapon PISTOL+
+expect hud.points 1750
+expect hud.prompt PISTOL+ CANNOT BE UPGRADED
+state 04-fire
+shot 04-fire
+tap interact
+wait 10
+expect hud.points 1750
+expect effect_menu.open false
+until zombies.alive 1 900
+expect zombies.burning 0
+fight_until zombies.burning 1 900
+expect zombies.burning 1
+aim
+hold move_left
+wait 30
+release move_left
+aim
+hold move_forward
+wait 60
+release move_forward
+aim
+state 05-burning
+shot 05-burning
+until hud.points 1770 180
