@@ -134,6 +134,7 @@ func _ready() -> void:
 	health.changed.connect(_on_health_changed)
 	health.damaged.connect(hurt_sound.play.unbind(1))
 	weapon.damaged.connect(_on_damaged)
+	weapon.effect_damaged.connect(_on_effect_damaged)
 	melee.damaged.connect(_on_damaged)
 	grenades.damaged.connect(_on_damaged)
 	pause_menu.resume_requested.connect(_resume)
@@ -439,6 +440,7 @@ func _make_weapon(data: WeaponData) -> Weapon:
 	made.trigger_enabled = weapon.trigger_enabled
 	camera.add_child(made)
 	made.damaged.connect(_on_damaged)
+	made.effect_damaged.connect(_on_effect_damaged)
 	return made
 
 
@@ -462,6 +464,10 @@ func _equip(next: Weapon) -> void:
 func _on_damaged(target: Node, killed: bool, headshot: bool) -> void:
 	if target is Zombie:
 		wallet.reward_hit(killed, headshot)
+
+
+func _on_effect_damaged(target: Node, killed: bool) -> void:
+	_on_damaged(target, killed, false)
 
 
 func _resume() -> void:

@@ -12,6 +12,10 @@ signal reload_cancelled
 signal hit(collider: Object, position: Vector3)
 ## Emitted when a ray of a shot damages a Health that is alive. `killed` is true when this ray took it to 0, and `headshot` is true when it hit a WeakSpot. A dead target takes no damage.
 signal damaged(target: Node, killed: bool, headshot: bool)
+## Emitted when the effect of the weapon damages a Health that is alive, such as a burn tick. `killed` is true when it took it to 0. It is not a ray hit, so `damaged` does not follow.
+signal effect_damaged(target: Node, killed: bool)
+## Emitted after `effect` changes.
+signal effect_changed
 ## Emitted after `ammo` or `reserve` changes.
 signal ammo_changed
 
@@ -39,6 +43,11 @@ var reserve: int:
 		ammo_changed.emit()
 ## When false, the fire and reload actions do nothing. The owner turns it off while the mouse is released.
 var trigger_enabled: bool = true
+## The bonus from the second upgrade, or null. The weapon keeps it while it is holstered.
+var effect: WeaponEffect:
+	set(value):
+		effect = value
+		effect_changed.emit()
 ## The instance of data.view_model, or null when the data has none or its root is not a ViewModel.
 var view_model: ViewModel
 
@@ -188,6 +197,8 @@ func _try_damage(collider: Object, amount: float, headshot: bool, point: Vector3
 		amount = wielder.powerups.hit_damage(collider as Node, health, amount)
 	health.damage_at(amount, point)
 	damaged.emit(collider, health.is_dead(), headshot)
+	if effect != null and not health.is_dead():
+		effect.on_hit(self, collider as Node)
 	return true
 
 
