@@ -3,12 +3,36 @@ extends TestCase
 const SETTINGS: RoundSettings = preload("res://rounds/round_settings.tres")
 
 
-func test_each_round_has_more_and_stronger_zombies_than_the_one_before() -> void:
+func test_each_round_has_at_least_as_many_and_stronger_zombies_than_the_one_before() -> void:
 	for n: int in range(1, 10):
-		assert_true(SETTINGS.zombie_count(n + 1) > SETTINGS.zombie_count(n), "round %d has more zombies" % (n + 1))
+		assert_true(SETTINGS.zombie_count(n + 1) >= SETTINGS.zombie_count(n), "round %d has at least as many zombies" % (n + 1))
 		assert_true(SETTINGS.zombie_health(n + 1) > SETTINGS.zombie_health(n), "round %d zombies have more health" % (n + 1))
 		assert_true(SETTINGS.zombie_speed(n + 1) >= SETTINGS.zombie_speed(n), "round %d zombies are not slower" % (n + 1))
 	assert_true(SETTINGS.zombie_speed(2) > SETTINGS.zombie_speed(1), "round 2 zombies are faster")
+
+
+func test_after_the_early_rounds_each_round_has_more_zombies_than_the_one_before() -> void:
+	for n: int in range(SETTINGS.early_round_counts.size(), 100):
+		assert_true(SETTINGS.zombie_count(n + 1) > SETTINGS.zombie_count(n), "round %d has more zombies" % (n + 1))
+
+
+func test_the_zombie_count_follows_the_black_ops_curve() -> void:
+	assert_eq(SETTINGS.zombie_count(1), 6, "round 1")
+	assert_eq(SETTINGS.zombie_count(9), 29, "round 9")
+	assert_eq(SETTINGS.zombie_count(10), 33, "round 10")
+	assert_eq(SETTINGS.zombie_count(11), 34, "round 11")
+	assert_eq(SETTINGS.zombie_count(20), 60, "round 20")
+	assert_eq(SETTINGS.zombie_count(30), 105, "round 30")
+	assert_eq(SETTINGS.zombie_count(50), 249, "round 50")
+
+
+func test_the_zombie_health_follows_the_black_ops_curve() -> void:
+	assert_almost_eq(SETTINGS.zombie_health(1), 150.0, 0.001, "round 1")
+	assert_almost_eq(SETTINGS.zombie_health(2), 250.0, 0.001, "round 2")
+	assert_almost_eq(SETTINGS.zombie_health(9), 950.0, 0.001, "round 9")
+	assert_almost_eq(SETTINGS.zombie_health(10), 1045.0, 0.001, "round 10")
+	assert_almost_eq(SETTINGS.zombie_health(11), 1149.0, 0.001, "round 11")
+	assert_almost_eq(SETTINGS.zombie_health(12), 1263.0, 0.001, "round 12")
 
 
 func test_the_game_settings_set_how_fast_and_tough_round_one_zombies_are() -> void:

@@ -121,7 +121,7 @@ func test_a_special_round_shows_a_banner_and_purple_round_and_plays_its_own_soun
 
 func _spawn_round_manager(first_special_round: int = 100) -> RoundManager:
 	var settings := RoundSettings.new()
-	settings.first_round_zombies = 1
+	settings.early_round_counts = PackedInt32Array([1, 3, 5])
 	settings.first_round_speed = 0.0
 	settings.break_time = 0.5
 	settings.first_special_round = first_special_round

@@ -202,6 +202,5 @@ func _still_zombies() -> RoundSettings:
 	settings.first_round_speed = STILL_SPEED
 	settings.speed_per_round = 0.0
 	settings.max_speed = STILL_SPEED
-	settings.first_round_zombies = 1
-	settings.zombies_per_round = 0
+	settings.early_round_counts = PackedInt32Array([1, 1])
 	return settings

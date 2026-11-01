@@ -157,7 +157,7 @@ func test_damage_plays_the_hurt_sound() -> void:
 
 func test_round_start_and_break_play_their_sounds() -> void:
 	var settings := RoundSettings.new()
-	settings.first_round_zombies = 1
+	settings.early_round_counts = PackedInt32Array([1, 3])
 	settings.first_round_speed = 0.0
 	settings.break_time = 0.5
 	var manager := RoundManager.new()

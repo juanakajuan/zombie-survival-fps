@@ -71,7 +71,6 @@ func test_the_closed_door_blocks_a_zombie_and_the_open_door_lets_it_through() ->
 
 func test_the_room_spawn_point_waits_for_its_door() -> void:
 	var settings := _still_zombies()
-	settings.first_round_zombies = 10
 	var level := await spawn_level(settings)
 	var manager := level.round_manager
 	var door := level.get_node("RoomDoor") as Door
@@ -95,8 +94,7 @@ func _still_zombies() -> RoundSettings:
 	settings.first_round_speed = 0.0
 	settings.speed_per_round = 0.0
 	settings.max_speed = 0.0
-	settings.first_round_zombies = 10
-	settings.zombies_per_round = 0
+	settings.early_round_counts = PackedInt32Array([10, 10])
 	settings.spawn_interval = 0.1
 	return settings
 
