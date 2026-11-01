@@ -339,6 +339,7 @@ func _state() -> Dictionary[String, String]:
 		s["hud.fps"] = hud.fps_text if hud.fps_visible else ""
 	var zombies := 0
 	var bars := 0
+	var runners := 0
 	var dummies_up := 0
 	var doors_open := 0
 	var pickups := 0
@@ -348,6 +349,8 @@ func _state() -> Dictionary[String, String]:
 			zombies += 1
 			if (node as Zombie).health_bar.visible:
 				bars += 1
+			if (node as Zombie).gait == Zombie.Gait.RUN:
+				runners += 1
 		elif node is TargetDummy and (node as TargetDummy).visible:
 			dummies_up += 1
 		elif node is Door and (node as Door).is_open():
@@ -358,6 +361,7 @@ func _state() -> Dictionary[String, String]:
 			boards += (node as Barricade).boards
 	s["zombies.alive"] = str(zombies)
 	s["zombies.bars"] = str(bars)
+	s["zombies.runners"] = str(runners)
 	s["tracers"] = str(get_nodes_in_group(Tracer.GROUP).size())
 	s["dummies.up"] = str(dummies_up)
 	s["doors.open"] = str(doors_open)
