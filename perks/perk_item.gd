@@ -12,6 +12,8 @@ extends BuyItem
 @export_range(0.1, 1.0, 0.05) var reload_time_scale: float = 1.0
 ## Multiplies the time between shots of every weapon.
 @export_range(0.1, 1.0, 0.05) var fire_interval_scale: float = 1.0
+## Multiplies the move speed of the player in every stance.
+@export_range(1.0, 2.0, 0.05) var move_speed_scale: float = 1.0
 ## Above 0, the player is downed at 0 health instead of dead, and stands up after this many seconds. Without such a
 ## perk, the player dies at once.
 @export_range(0.0, 30.0, 0.5, "suffix:s") var self_revive_time: float = 0.0

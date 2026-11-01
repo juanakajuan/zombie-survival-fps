@@ -64,3 +64,10 @@ func fire_interval_scale() -> float:
 	for perk: PerkItem in held:
 		scale *= perk.fire_interval_scale
 	return scale
+
+
+func move_speed_scale() -> float:
+	var scale := 1.0
+	for perk: PerkItem in held:
+		scale *= perk.move_speed_scale
+	return scale

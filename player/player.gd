@@ -230,7 +230,7 @@ func _physics_process(delta: float) -> void:
 
 	var move_input := _move_input()
 	var wish_dir := (global_basis * Vector3(move_input.x, 0.0, move_input.y)).normalized()
-	var target_speed := (downed_speed if is_downed() else crouch_speed if is_crouching() else aim_speed if is_aiming() else sprint_speed if is_sprinting() else walk_speed) * move_input.length()
+	var target_speed := (downed_speed if is_downed() else crouch_speed if is_crouching() else aim_speed if is_aiming() else sprint_speed if is_sprinting() else walk_speed) * move_input.length() * perks.move_speed_scale()
 	if not on_floor:
 		_air_accelerate(wish_dir, target_speed, delta)
 	elif _stance != Stance.SLIDING:
