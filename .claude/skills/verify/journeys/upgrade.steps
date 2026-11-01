@@ -1,4 +1,4 @@
-# Upgrade: get points from the debug menu, buy the room door, turn on the power, upgrade the pistol.
+# Upgrade: get points from the debug menu, buy the room door, turn on the power, upgrade the pistol (the effect is in upgrade_effect.steps).
 expect power.on false
 expect hud.perks
 expect hud.max_health 100
@@ -79,10 +79,6 @@ wait 30
 expect hud.points 4250
 expect hud.weapon PISTOL+
 expect hud.ammo 18 / 108
-expect hud.prompt PISTOL+ CANNOT BE UPGRADED
+expect hud.prompt E BUY UPGRADE PISTOL+ 2500
 state 02-upgraded
 shot 02-upgraded
-tap interact
-wait 10
-expect hud.points 4250
-expect hud.weapon PISTOL+

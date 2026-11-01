@@ -1,11 +1,13 @@
 # Weapon upgrade
 
-The upgrade machine is a wide, low yellow box labeled UPGRADE with its cost, 5000. It needs the power switch. Without power, it shows `NO POWER` and its prompt is `NEEDS POWER`. With power, its prompt names the weapon in hand, for example `E  BUY UPGRADE PISTOL  5000`. E takes the points and swaps the weapon in hand for its upgrade in the same slot, with a full magazine and reserve: the PISTOL becomes PISTOL+ (`18 / 108`, 60 damage), and the SMG becomes SMG+ (`45 / 270`, 32 damage). The upgraded gun shows new colors (the pistol slide purple, the SMG body red, and the accents cyan) and keeps its ink outline. An upgraded weapon cannot be upgraded again: the prompt reads `PISTOL+ CANNOT BE UPGRADED`, and E takes no points. The SMG wall station sells SMG+ ammo, not a new SMG.
+The upgrade machine is a wide, low yellow box labeled UPGRADE with its cost, 5000. It needs the power switch. Without power, it shows `NO POWER` and its prompt is `NEEDS POWER`. With power, its prompt names the weapon in hand, for example `E  BUY UPGRADE PISTOL  5000`. E takes the points and swaps the weapon in hand for its upgrade in the same slot, with a full magazine and reserve: the PISTOL becomes PISTOL+ (`18 / 108`, 60 damage), and the SMG becomes SMG+ (`45 / 270`, 32 damage). The upgraded gun shows new colors (the pistol slide purple, the SMG body red, and the accents cyan) and keeps its ink outline. An upgraded weapon with no effect has a second upgrade at 2500 points: the prompt reads `E  BUY UPGRADE PISTOL+  2500`. E takes the points and opens the SELECT AN EFFECT menu, with one button for each effect (FIRE). The game is paused and the mouse is visible. Esc does nothing. Enter or a click on the focused button gives the weapon the effect: the HUD shows `FIRE` in orange next to the weapon name, the game runs, and the mouse is captured. A weapon with an effect cannot be upgraded again: the prompt reads `PISTOL+ CANNOT BE UPGRADED`, and E takes no points. A zombie that a FIRE weapon hits burns for 4 seconds with orange and yellow flames, takes 15 damage each second, and each tick pays 10 points. The SMG wall station sells SMG+ ammo, not a new SMG.
 
 ## Sub-features
 
 - `upgrade-buy` takes 5000 points and swaps the weapon: `hud.weapon` goes from `PISTOL` to `PISTOL+`, and `hud.ammo` from `12 / 48` to `18 / 108`.
-- `upgrade-once` refuses a second upgrade and takes no points.
+- `upgrade-effect` takes 2500 points, opens the menu, and gives the weapon FIRE: `effect_menu.open` is `true` and `game.paused` is `true` while it shows, then `hud.weapon_effect` is `FIRE`. `journeys/upgrade_effect.steps` proves it.
+- `upgrade-fire` is a burning zombie: `zombies.burning` goes to `1` after a hit, and `hud.points` goes up by 10 for the hit and by 10 for each tick. `tests/effects/test_fire.gd` proves the burn time, the damage, the restart, and the kill points.
+- `upgrade-once` refuses a third purchase and takes no points.
 - `upgrade-no-power` refuses a sale while the power is off. `tests/upgrades/test_upgrade.gd` proves it.
 - `upgrade-damage` and `upgrade-look` are proved by the same test file. The screenshot shows the new colors.
 
@@ -25,9 +27,12 @@ Preconditions:
 - **Back to the machine.** Run `until hud.break false 600` and clear round 2 with KILL ALL ZOMBIES. Run `face 0 0` and 150 frames forward, `face 90 0` and 190 frames forward, `face 0 0` and 110 frames forward. The player stops at about `1.5 0 -0.4`.
 - **Upgrade.** Run `face -90 -15`. `expect hud.prompt E BUY UPGRADE PISTOL 5000` passes. `tap interact`, then `expect hud.points 4250`, `expect hud.weapon PISTOL+`, `expect hud.ammo 18 / 108`, and `expect hud.prompt PISTOL+ CANNOT BE UPGRADED` pass. A second `tap interact` leaves `hud.points` at `4250`.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/upgrade.steps`. `02-upgraded.png` shows the purple pistol.
+- **Effect.** After the first upgrade, `expect hud.prompt E BUY UPGRADE PISTOL+ 2500` passes. `tap interact`, then `expect effect_menu.open true`, `expect game.paused true`, `expect mouse.mode visible`, and `expect hud.points 1750` pass (the points before were 4250). `key Escape` leaves `effect_menu.open` at `true`. `key Enter` takes the focused FIRE button: `expect hud.weapon_effect FIRE`, `expect game.paused false`, `expect mouse.mode captured`, and `expect hud.prompt PISTOL+ CANNOT BE UPGRADED` pass.
+- **Fire.** `fight_until zombies.burning 1 900` shoots the nearest zombie. Then `expect zombies.burning 1` passes, and `hud.points` is 1760 for the hit and 1770 after the first tick. `05-burning.png` shows the flames on the zombie. `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/upgrade_effect.steps` runs the whole path, and `03-menu.png` shows the menu.
 
 ## Gotchas
 
 - The run can end with `ERROR: 2 resources still in use at exit` from the break sound after the mid-round kill-all, as in the perks journey (#62).
 - The machine sells to the weapon in hand. To upgrade the SMG, hold it when you press E.
+- After the first upgrade the machine prompt is not `CANNOT BE UPGRADED` any more. A journey that taps E again at 2500 points or more buys the effect and opens the menu.
 - In the Compound, the upgrade machine stands at the east end of the perk machines, along the south wall of the warehouse.

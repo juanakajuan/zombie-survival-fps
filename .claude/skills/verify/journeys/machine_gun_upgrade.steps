@@ -36,7 +36,7 @@ tap interact
 wait 30
 expect hud.weapon MACHINE GUN+
 expect hud.ammo 150 / 450
-expect hud.prompt MACHINE GUN+ CANNOT BE UPGRADED
+expect hud.prompt E BUY UPGRADE MACHINE GUN+ 2500
 face 0 0
 wait 40
 shot 02-upgraded

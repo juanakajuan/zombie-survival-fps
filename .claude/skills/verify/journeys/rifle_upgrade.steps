@@ -35,7 +35,7 @@ tap interact
 wait 30
 expect hud.weapon RIFLE+
 expect hud.ammo 15 / 90
-expect hud.prompt RIFLE+ CANNOT BE UPGRADED
+expect hud.prompt E BUY UPGRADE RIFLE+ 2500
 face 0 0
 wait 40
 shot 02-upgraded
