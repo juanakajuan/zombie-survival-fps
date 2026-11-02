@@ -10,7 +10,7 @@ An agent writes most of the code. The human uses the Godot editor at the same ti
 | Command | Use |
 |---|---|
 | `tools/check.sh [filter]` | The gate. It imports the project, lints the scripts, checks `project.godot`, loads every script and scene, and runs the tests. Run it after each change. |
-| `tools/smoke.sh [scene] [frames] [out.png]` | Runs the game off-screen with gamescope and saves a screenshot (default `.smoke/smoke.png`). Read the PNG to see the result. |
+| `tools/smoke.sh [scene] [frames] [out.png]` | Runs the game off-screen with gamescope and saves a screenshot (default `.smoke/smoke.png`). Read the PNG to see the result. `SHOT_SIZE=1920x1080` sets the size. |
 | `tools/record_sfx.sh [name ...]` | Records sound effects from the microphone into `audio/sfx/`. It cuts the silence and sets the level. This is for the human: it needs a terminal. |
 | `godot --path . -e` | Opens the editor. This is for the human. |
 | `tools/editor.sh start\|stop\|status` | Runs an editor for this checkout off-screen, so the godot-ai tools can work on a worktree. Stop it when the work is done. |
@@ -87,6 +87,14 @@ A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes o
 - `.mcp.json` registers the `blender` server: the official Blender Lab MCP (projects.blender.org/lab/blender_mcp), pinned to a commit. It is not the `blender-mcp` package on PyPI.
 - It works only while Blender runs with its MCP add-on enabled. The add-on listens on 127.0.0.1:9876 (`ss -ltn | grep 9876`).
 - The add-on opens its port only when Blender's Online Access preference is on. The human turns on Online Access and the add-on in Blender's Preferences. Do not change Blender preferences from the command line while Blender is open: Blender saves its own preferences on exit and undoes the change.
+
+## Screenshots and videos in a PR
+
+- Add images to a PR when the change has a result that a player can see: a model, an animation, the HUD, a menu, a level, or zombie behavior. Also add them when an image proves a claim in the PR body better than text does. Do not add them to a change that a player cannot see, such as tools, tests, or a refactor.
+- Use the images from `tools/smoke.sh` or from the `shot` steps of the verify skill. Capture them at 1920x1080: put `SHOT_SIZE=1920x1080` before the command. At the default 1280x720, the text is blurry in the PR. Show the result after the change. For a fix, also show the problem before the change.
+- For movement or an animation, make a GIF. Run `shot` steps with `wait` steps between them, then join the frames with `ffmpeg` at full width with a 256-color palette. Keep the GIF less than 10 MB: use fewer frames before a lower width.
+- `gh` cannot upload files to a PR. Commit the files to the orphan branch `pr-media`, in a folder with the name of the PR branch. Do not commit them to the PR branch. Check out `pr-media` in a separate worktree (`git worktree add`), so that the checkout of the PR branch does not change. To change a file, give the new file a new name: the raw URL keeps the old file in its cache. A new file can take a minute to show at its raw URL. In the PR body, show each file with `![<what it shows>](https://raw.githubusercontent.com/juanakajuan/zombie-survival-fps/pr-media/<branch>/<file>)`.
+- Write one sentence under each image that tells what it shows.
 
 ## Problems found during a task
 

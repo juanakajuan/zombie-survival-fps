@@ -2,7 +2,9 @@
 # Runs the game off-screen for N frames and saves a screenshot. Fails if the engine logs an error.
 # gamescope's headless backend renders on the GPU without a window, so nothing opens on the desktop.
 # Usage: tools/smoke.sh [scene res:// path] [frames] [out png]
+# SHOT_SIZE=<width>x<height> sets the screen size (default 1280x720). Use 1920x1080 for PR media.
 set -euo pipefail
+shot_size="${SHOT_SIZE:-1280x720}"
 cd "$(dirname "$0")/.."
 
 scene="${1:-}"
@@ -15,7 +17,7 @@ trap 'rm -f "$log"' EXIT
 
 # gamescope exits 0 whatever godot returns, even on a crash. A non-zero status here is the timeout or
 # gamescope itself. A game crash shows as engine errors or a missing screenshot below.
-if ! timeout 120 gamescope --backend headless -W 1280 -H 720 -- \
+if ! timeout 120 gamescope --backend headless -W "${shot_size%x*}" -H "${shot_size#*x}" -w "${shot_size%x*}" -h "${shot_size#*x}" -- \
 	godot --path . --display-driver x11 --audio-driver Dummy ${scene:+"$scene"} -- --smoke-out="$out" --smoke-frames="$frames" >"$log" 2>&1; then
 	cat "$log" >&2
 	echo "smoke: gamescope failed or timed out" >&2
