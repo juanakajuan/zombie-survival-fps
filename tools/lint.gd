@@ -2,7 +2,7 @@ extends SceneTree
 ## Line rules for the project scripts. Run it through tools/check.sh.
 ## Usage: godot --headless --path . -s res://tools/lint.gd [-- <dir>]
 ## The optional <dir> replaces res:// as the scan root (to prove a rule on an old checkout).
-## Output: `lint: <file>:<line>: <what>. <fix>`. Exit code 1 on any hit.
+## Output: `lint: <file>:<line>: <what> (<rule>). <fix>`. Exit code 1 on any hit.
 ## An exception goes on the offending line:
 ## `# lint-allow <rule>: <reason> (until YYYY-MM-DD, approved: <human>)`
 
@@ -70,6 +70,13 @@ func _init() -> void:
 			true,
 		),
 		Rule.new(
+			"tree_group_lookup",
+			"^(?!levels/level\\.gd$|tests/|tools/|debug/|\\.claude/).*\\.gd$",
+			"\\b(get_nodes_in_group|get_first_node_in_group|call_group(_flags)?)\\(",
+			"group lookup over the whole scene tree",
+			"The tree can hold more than one world. Use Level.nodes_in_group(group, self).",
+		),
+		Rule.new(
 			"mouse_mode_owner",
 			"^(?!player/player\\.gd$|tests/|debug/|\\.claude/).*\\.gd$",
 			"(Input\\.mouse_mode|\\btrigger_enabled)\\s*=[^=]|\\bInput\\.set_mouse_mode\\(",
@@ -124,7 +131,7 @@ func _lint_file(rel: String, path: String) -> void:
 				continue
 			var found := rule.line_re.search(code if rule.reads_strings else bare)
 			if found != null:
-				_report(rel, i + 1, rule.what, rule.fix.replace("{1}", found.get_string(1)))
+				_report(rel, i + 1, "%s (%s)" % [rule.what, rule.name], rule.fix.replace("{1}", found.get_string(1)))
 
 
 ## Without `keep_strings`, each string literal becomes "".

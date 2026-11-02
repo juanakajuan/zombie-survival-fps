@@ -41,6 +41,7 @@ A change is done only when `tools/check.sh` passes. For a visual change, also ru
 | Only `Player` writes `Input.mouse_mode` (or calls `Input.set_mouse_mode`) and `weapon.trigger_enabled` | `tools/lint.gd` rule `mouse_mode_owner` |
 | A gameplay script has no numeric or `Color` `const`; a tunable value is `@export` or in a `.tres` | `tools/lint.gd` rule `magic_const` |
 | A gameplay script does not walk up the tree (`n = n.get_parent()`) to find its owner. The node has a typed `@export` reference that its scene sets, as `player/player.tscn` sets `weapon.wielder` | `tools/lint.gd` rule `ancestor_walk` |
+| A gameplay script finds the members of a group with `Level.nodes_in_group(group, near)`, not a lookup over the whole scene tree. The tree can hold more than one world, as in a network test | `tools/lint.gd` rule `tree_group_lookup` |
 | A static collider on layer 1 is a navmesh obstacle with no group. A static body that zombies walk through goes on a layer other than 1 | The `NavigationMesh` in `levels/test_range.tscn` parses static colliders on layer 1, and `levels/level_navigation.gd` bakes it at start; `tests/levels/test_test_range.gd` checks that each layer-1 static body is off the navmesh |
 | Do not edit a scene that is open in the editor | `tools/check.sh` prints a warning (not an error) for each `.tscn` changed on the branch that is in `open_scenes` of the main checkout's `.godot/editor/editor_layout.cfg` |
 

@@ -10,6 +10,6 @@ func can_apply(player: Player) -> bool:
 
 
 func apply(player: Player) -> void:
-	for node: Node in player.get_tree().get_nodes_in_group(Barricade.GROUP):
+	for node: Node in Level.nodes_in_group(Barricade.GROUP, player):
 		(node as Barricade).fill()
 	player.wallet.add(points)
