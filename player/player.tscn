@@ -19,7 +19,6 @@
 [ext_resource type="PackedScene" path="res://grenades/grenade.tscn" id="17_grenade"]
 [ext_resource type="PackedScene" path="res://grenades/grenade_view.tscn" id="18_grenade_view"]
 [ext_resource type="PackedScene" path="res://upgrades/effect_menu.tscn" id="19_effect_menu"]
-[ext_resource type="Script" path="res://player/player_input.gd" id="20_input"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.35
@@ -45,6 +44,7 @@ position = Vector3(0, 1.6, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head"]
 fov = 80.0
+current = true
 
 [node name="Weapon" parent="Head/Camera3D" node_paths=PackedStringArray("wielder") instance=ExtResource("3_weapon")]
 data = ExtResource("4_pistol")
@@ -55,10 +55,6 @@ melee = NodePath("../../../Melee")
 
 [node name="GrenadeView" parent="Head/Camera3D" node_paths=PackedStringArray("grenades") instance=ExtResource("18_grenade_view")]
 grenades = NodePath("../../../Grenades")
-
-[node name="Input" type="Node" parent="." node_paths=PackedStringArray("player")]
-script = ExtResource("20_input")
-player = NodePath("..")
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("2_health")

@@ -62,7 +62,7 @@ func test_a_reload_cut_short_by_a_switch_leaves_the_gun_ready_when_drawn_again()
 		frames += 1
 	assert_true(not model.is_visible_in_tree(), "the reload threw the gun")
 	player.give_weapon(SMG)
-	await press_action(&"weapon_1")
+	press_action(&"weapon_1")
 	await physics_frames(SETTLE_FRAMES)
 	assert_true(model.is_visible_in_tree(), "the pistol is back in the hand")
 	assert_true(_pose_in_camera(player).origin.distance_to(rest.origin) < 0.005, "the pistol is at rest")

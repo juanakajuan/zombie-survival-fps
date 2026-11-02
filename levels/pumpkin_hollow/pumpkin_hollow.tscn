@@ -59,10 +59,11 @@ fog_light_color = Color(0.48, 0.38, 0.55, 1)
 fog_density = 0.006
 fog_sky_affect = 0.2
 
-[node name="PumpkinHollow" type="Node3D" node_paths=PackedStringArray("game_over", "navigation", "round_manager")]
+[node name="PumpkinHollow" type="Node3D" node_paths=PackedStringArray("game_over", "navigation", "player", "round_manager")]
 script = ExtResource("7_level")
 game_over = NodePath("GameOver")
 navigation = NodePath("NavigationRegion3D")
+player = NodePath("Player")
 round_manager = NodePath("RoundManager")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -207,9 +208,10 @@ omni_range = 6.0
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector3(0, 0, 8)
 
-[node name="RoundManager" type="Node" parent="."]
+[node name="RoundManager" type="Node" parent="." node_paths=PackedStringArray("player")]
 script = ExtResource("5_rounds")
 settings = ExtResource("6_settings")
+player = NodePath("../Player")
 
 [node name="SpawnSouthGate" type="Marker3D" parent="RoundManager" node_paths=PackedStringArray("barricade")]
 script = ExtResource("20_spawn_point")
@@ -249,7 +251,8 @@ script = ExtResource("20_spawn_point")
 position = Vector3(-10, 0, -30)
 doors = [NodePath("../../KitchenDoor"), NodePath("../../GarageBackDoor")]
 
-[node name="GameOver" parent="." node_paths=PackedStringArray("round_manager") instance=ExtResource("8_game_over")]
+[node name="GameOver" parent="." node_paths=PackedStringArray("player", "round_manager") instance=ExtResource("8_game_over")]
+player = NodePath("../Player")
 round_manager = NodePath("../RoundManager")
 
 [node name="AmmoStation" parent="." instance=ExtResource("9_station")]

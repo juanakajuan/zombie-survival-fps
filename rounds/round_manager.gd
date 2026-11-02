@@ -18,10 +18,8 @@ enum State { BREAK, ACTIVE }
 ## The free item on the ground where the last Mutt of a special round dies.
 @export var special_reward: BuyItem = preload("res://pickups/max_ammo.tres")
 @export var pickup_scene: PackedScene = preload("res://pickups/pickup.tscn")
-## The zombies chase these. Each zombie keeps this array itself, so a target added later is a target of the living zombies
-## at once. Level adds its players.
-# A typed array is invariant, so Level.players (Array[Player]) cannot be this array.
-var targets: Array[Node3D] = []
+## The zombies chase this player.
+@export var player: Player
 
 ## The current round. It is 0 until round 1 starts. During a break, it is the round that just ended.
 var round_number: int = 0
@@ -112,13 +110,13 @@ func _spawn_zombie() -> void:
 	var zombie: Zombie
 	if is_special_round():
 		zombie = special_scene.instantiate() as Zombie
-		zombie.configure(settings.special_speed, settings.crawl_speed, settings.special_health(round_number), targets,
+		zombie.configure(settings.special_speed, settings.crawl_speed, settings.special_health(round_number), player,
 				point.barricade)
 	else:
 		zombie = zombie_scene.instantiate() as Zombie
 		var gait := _next_gait()
 		var speed := settings.runner_speed if gait == Zombie.Gait.RUN else settings.zombie_speed(round_number)
-		zombie.configure(speed, settings.crawl_speed, settings.zombie_health(round_number), targets, point.barricade, gait)
+		zombie.configure(speed, settings.crawl_speed, settings.zombie_health(round_number), player, point.barricade, gait)
 	Health.find_on(zombie).died.connect(_on_zombie_died.bind(zombie))
 	zombie.dropped.connect(_on_zombie_dropped)
 	if _drops_this_round >= settings.max_drops:

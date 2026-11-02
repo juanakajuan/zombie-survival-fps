@@ -40,7 +40,7 @@ func test_the_game_settings_set_how_fast_and_tough_round_one_zombies_are() -> vo
 	var player := await spawn_player(Vector3.ZERO, 3)
 	var manager := RoundManager.new()
 	manager.settings = SETTINGS
-	manager.targets.append(player)
+	manager.player = player
 	var marker := SpawnPoint.new()
 	marker.position = Vector3(0.0, 0.0, -10.0)
 	manager.add_child(marker)

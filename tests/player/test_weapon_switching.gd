@@ -22,26 +22,26 @@ func test_keys_and_the_wheel_switch_the_weapon() -> void:
 	var smg := player.give_weapon(SMG)
 	var changes: Array[Weapon] = []
 	player.weapon_changed.connect(changes.append)
-	await press_action(&"weapon_1")
+	press_action(&"weapon_1")
 	assert_true(player.weapon == pistol, "key 1 draws the pistol")
 	assert_eq(player.hud.readout().weapon_name, "PISTOL", "HUD name after key 1")
 	assert_eq(player.hud.readout().ammo_text, "12 / 48", "HUD ammo after key 1")
-	await press_action(&"weapon_2")
+	press_action(&"weapon_2")
 	assert_true(player.weapon == smg, "key 2 draws the SMG")
-	await press_action(&"weapon_next")
+	press_action(&"weapon_next")
 	assert_true(player.weapon == pistol, "wheel down goes to the next slot, and wraps")
-	await press_action(&"weapon_previous")
+	press_action(&"weapon_previous")
 	assert_true(player.weapon == smg, "wheel up goes back")
 	assert_eq(changes.size(), 4, "weapon_changed for each switch")
-	await press_action(&"weapon_2")
+	press_action(&"weapon_2")
 	assert_eq(changes.size(), 4, "the slot in hand is a no-op")
 
 
 func test_a_player_with_one_weapon_does_not_switch() -> void:
 	var player := await spawn_player()
 	var pistol := player.weapon
-	await press_action(&"weapon_2")
-	await press_action(&"weapon_next")
+	press_action(&"weapon_2")
+	press_action(&"weapon_next")
 	assert_true(player.weapon == pistol, "nothing to switch to")
 	assert_true(pistol.is_visible_in_tree(), "the pistol stays in sight")
 
@@ -67,7 +67,7 @@ func test_a_holstered_weapon_gives_up_its_reload() -> void:
 	await run_seconds(pistol.data.reload_time + 0.2)
 	assert_eq(pistol.ammo, pistol.data.magazine_size - 1, "no refill while holstered")
 	assert_eq(pistol.reserve, pistol.data.max_reserve, "the reserve is unspent")
-	await press_action(&"weapon_1")
+	press_action(&"weapon_1")
 	assert_true(not pistol.is_reloading(), "the reload did not resume")
 	assert_true(not player.hud.readout().reloading, "no reload label")
 	assert_true(pistol.view_model.model.visible, "the pistol model is back after a cut reload")
@@ -76,10 +76,10 @@ func test_a_holstered_weapon_gives_up_its_reload() -> void:
 func test_a_drawn_weapon_fires_and_the_other_ammo_stays() -> void:
 	var player := await spawn_player()
 	var smg := player.give_weapon(SMG)
-	await press_action(&"weapon_1")
+	press_action(&"weapon_1")
 	assert_true(player.weapon.try_fire(), "the pistol fires after the draw")
 	assert_eq(smg.ammo, SMG.magazine_size, "the SMG magazine is unchanged")
-	await press_action(&"weapon_2")
+	press_action(&"weapon_2")
 	assert_eq(player.hud.readout().ammo_text, "30 / 150", "the SMG ammo shows again")
 
 
@@ -87,7 +87,7 @@ func test_the_inventory_never_holds_more_than_two_and_a_third_replaces_the_one_i
 	var player := await spawn_player()
 	var pistol := player.weapon
 	var smg := player.give_weapon(SMG)
-	await press_action(&"weapon_1")
+	press_action(&"weapon_1")
 	var third := player.give_weapon(THIRD)
 	await physics_frames(2)
 	assert_eq(player.weapons.size(), 2, "still two weapons")
@@ -101,21 +101,21 @@ func test_a_dead_player_does_not_switch() -> void:
 	var player := await spawn_player()
 	var pistol := player.weapon
 	player.give_weapon(SMG)
-	await press_action(&"weapon_1")
+	press_action(&"weapon_1")
 	Health.find_on(player).damage(1.0e6)
-	await press_action(&"weapon_2")
+	press_action(&"weapon_2")
 	assert_true(player.weapon == pistol, "no switch after death")
 
 
 func test_third_person_hides_the_weapon_in_hand_after_a_switch() -> void:
 	var player := await spawn_player()
 	var smg := player.give_weapon(SMG)
-	await press_action(&"third_person")
+	press_action(&"third_person")
 	await physics_frames(2)
 	assert_true(not smg.view_model.is_visible_in_tree(), "the SMG is hidden in third person")
-	await press_action(&"weapon_1")
+	press_action(&"weapon_1")
 	assert_true(not player.weapon.view_model.is_visible_in_tree(), "the pistol is hidden in third person")
-	await press_action(&"third_person")
+	press_action(&"third_person")
 	await physics_frames(2)
 	assert_true(player.weapon.view_model.is_visible_in_tree(), "the pistol shows in first person")
 

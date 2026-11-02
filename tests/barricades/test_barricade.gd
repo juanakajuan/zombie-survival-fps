@@ -102,7 +102,7 @@ func test_repairs_give_points_up_to_the_round_limit_and_a_new_round_restores_it(
 
 func test_a_new_round_in_the_level_restores_the_repair_points() -> void:
 	var level := await spawn_level(_still_zombies())
-	var wallet := level.players[0].wallet
+	var wallet := level.player.wallet
 	for _i: int in wallet.board_points_per_round / wallet.points_per_board + 1:
 		wallet.reward_board()
 	assert_eq(wallet.points, wallet.board_points_per_round, "points at the limit")
@@ -154,8 +154,7 @@ func test_a_zombie_from_a_spawn_point_with_a_barricade_walks_through_it() -> voi
 	assert_true(barricade != null, "the yard spawn point names a barricade")
 	assert_true(not barricade.is_inside(spawn.global_position), "the spawn point is outside")
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
-	var chase: Array[Node3D] = [level.players[0]]
-	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.zombie_health(1), chase,
+	zombie.configure(ROUND_SETTINGS.zombie_speed(1), ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.zombie_health(1), level.player,
 			spawn.barricade)
 	zombie.board_pull_interval = 0.2
 	zombie.move_speed = 6.0
@@ -166,7 +165,7 @@ func test_a_zombie_from_a_spawn_point_with_a_barricade_walks_through_it() -> voi
 	for _i: int in roundi(8.0 * Engine.physics_ticks_per_second):
 		await physics_frames(1)
 		crossed_with_boards = crossed_with_boards or (barricade.has_boards() and barricade.is_inside(zombie.global_position))
-		if not barricade.has_boards() and Vector2(zombie.global_position.x - level.players[0].global_position.x, zombie.global_position.z - level.players[0].global_position.z).length() < 2.0:
+		if not barricade.has_boards() and Vector2(zombie.global_position.x - level.player.global_position.x, zombie.global_position.z - level.player.global_position.z).length() < 2.0:
 			break
 	assert_true(not crossed_with_boards, "the zombie crossed while boards were left")
 	assert_eq(barricade.boards, 0, "the zombie pulled all the boards")
