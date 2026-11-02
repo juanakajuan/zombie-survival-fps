@@ -31,8 +31,8 @@ extends CanvasLayer
 ## Below this part of the max health, the health cross turns red and the red edge shows.
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
 @export_group("Round counter")
-## The color of the strip on the round panel.
-@export var round_color: Color = Color(0.722, 0.22, 0.231)
+## The color of the round number.
+@export var round_color: Color = Color(0.92, 0.886, 0.792)
 ## How big the counter gets at the start of a round, as a multiple of its size.
 @export_range(1.0, 3.0, 0.05) var round_pop_scale: float = 1.45
 ## The seconds that the counter takes to bounce back to its size.
@@ -52,7 +52,7 @@ extends CanvasLayer
 @export_range(1.0, 2.0, 0.05) var points_bounce_scale: float = 1.25
 @export_range(0.05, 2.0, 0.05, "suffix:s") var points_bounce_time: float = 0.35
 @export_group("Special round")
-## The color of the strip on the round panel and on the banner during a special round.
+## The color of the round number and the strip on the banner during a special round.
 @export var special_color: Color = Color(0.72, 0.5, 0.95)
 ## The seconds that the banner shows at the start of a special round.
 @export_range(0.0, 10.0, 0.1, "suffix:s") var special_banner_time: float = 3.0
@@ -117,8 +117,6 @@ class Readout extends RefCounted:
 
 var _banner_left: float = 0.0
 var _round_base_color: Color
-var _round_value_color: Color
-var _round_style: StyleBoxFlat
 var _shown_points: int = 0
 var _popup_serial: int = 0
 var _round_tween: Tween
@@ -159,9 +157,9 @@ var _points_tween: Tween
 
 
 func _ready() -> void:
-	_round_value_color = _round_value.get_theme_color("font_color")
-	_round_style = _strip_of(_round_panel, "panel")
-	_strip_of(_special_banner, "normal").border_color = special_color
+	var banner_style := _special_banner.get_theme_stylebox("normal").duplicate() as StyleBoxFlat
+	banner_style.border_color = special_color
+	_special_banner.add_theme_stylebox_override("normal", banner_style)
 	health.changed.connect(_on_health_changed)
 	melee.damaged.connect(_on_damaged)
 	grenades.damaged.connect(_on_damaged)
@@ -236,9 +234,9 @@ func round_counter_scale() -> float:
 	return _round_panel.scale.x
 
 
-## The color of the strip on the round panel now. It is white at the start of a round and fades to its color.
+## The color of the round number now. It is white at the start of a round and fades to its color.
 func round_counter_color() -> Color:
-	return _round_style.border_color
+	return _round_value.get_theme_color("font_color")
 
 
 ## Shows the seconds that a downed player has left, and the seconds until `revive_name` stands the player up.
@@ -396,17 +394,9 @@ func _update_round() -> void:
 	_update_objective()
 
 
-## Gives `control` its own copy of the theme stylebox `item`, so that a change to its strip color touches this control only.
-func _strip_of(control: Control, item: StringName) -> StyleBoxFlat:
-	var style := control.get_theme_stylebox(item).duplicate() as StyleBoxFlat
-	control.add_theme_stylebox_override(item, style)
-	return style
-
-
-## Paints the strip and the number `whiteness` of the way from their colors to white.
+## Paints the round number `whiteness` of the way from its color to white.
 func _paint_round(whiteness: float) -> void:
-	_round_style.border_color = _round_base_color.lerp(Color.WHITE, whiteness)
-	_round_value.add_theme_color_override("font_color", _round_value_color.lerp(Color.WHITE, whiteness))
+	_round_value.add_theme_color_override("font_color", _round_base_color.lerp(Color.WHITE, whiteness))
 
 
 ## Flashes the panel white and pops it big, then lets both settle back.
