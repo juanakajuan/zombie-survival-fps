@@ -57,7 +57,7 @@ Write a steps file (one command on each line, `#` starts a comment), or use one 
 | `self_revive` | Give the player SECOND WIND (HUD icon `S`) without the power and the points, so that 0 health downs the player. |
 | `expect <key> <value>` / `expect_not <key> <value>` | Compare a state value now. A failed expect is recorded and the run continues. Any other failed command stops the run. |
 | `state <name>` | Write the state to `<name>.json`. |
-| `shot <name>` | Save the screen to `<name>.png` (1280x720). |
+| `shot <name>` | Save the screen to `<name>.png` (1280x720, or the `SHOT_SIZE` of `drive.sh`). |
 
 State keys (all values are strings, and booleans are `true` or `false`):
 
