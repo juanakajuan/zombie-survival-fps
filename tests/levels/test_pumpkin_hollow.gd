@@ -11,13 +11,13 @@ const CHURCH_PLATFORM_HEIGHT := 0.45
 func test_the_player_stands_on_the_imported_ground() -> void:
 	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
 	await run_seconds(1.0)
-	assert_almost_eq(level.player.global_position.y, 0.0, 0.05, "player height on the square")
-	assert_true(level.player.is_on_floor(), "the player is on the floor")
+	assert_almost_eq(level.players[0].global_position.y, 0.0, 0.05, "player height on the square")
+	assert_true(level.players[0].is_on_floor(), "the player is on the floor")
 
 
 func test_every_spawn_point_has_a_path_to_the_player_start_once_the_doors_are_open() -> void:
 	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
-	var start := level.player.global_position
+	var start := level.players[0].global_position
 	var spawns := spawn_points_in(level)
 	assert_eq(spawns.size(), 7, "spawn points")
 	var closed := spawns.filter(func(spawn: SpawnPoint) -> bool: return not spawn.is_active())
@@ -36,7 +36,7 @@ func test_each_barricade_spawn_point_has_a_path_to_the_player_start_through_its_
 	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
 	_open_all_doors(level)
 	await run_seconds(1.0)
-	var start := level.player.global_position
+	var start := level.players[0].global_position
 	var with_barricade: Array[SpawnPoint] = spawn_points_in(level).filter(func(point: SpawnPoint) -> bool: return point.barricade != null)
 	assert_eq(with_barricade.size(), 6, "spawn points that name a barricade")
 	for spawn: SpawnPoint in with_barricade:
@@ -48,7 +48,7 @@ func test_each_barricade_spawn_point_has_a_path_to_the_player_start_through_its_
 
 func test_the_square_has_the_starting_shops_and_the_wall_buys_are_spread_over_the_map() -> void:
 	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
-	var start := level.player.global_position
+	var start := level.players[0].global_position
 	assert_true(sells(level, AmmoItem), "an ammo station")
 	assert_true(sells_weapon(level, "SMG"), "a weapon station that sells the SMG")
 	assert_true(sells_weapon(level, "SHOTGUN"), "a wall buy that sells the shotgun")
@@ -61,7 +61,7 @@ func test_the_square_has_the_starting_shops_and_the_wall_buys_are_spread_over_th
 func test_the_power_switch_is_in_the_garage_behind_its_door_and_powers_every_machine() -> void:
 	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
 	var power := level.get_node("PowerSwitch") as PowerSwitch
-	var start := level.player.global_position
+	var start := level.players[0].global_position
 	assert_true(GARAGE_XZ.has_point(Vector2(power.global_position.x, power.global_position.z)), "the switch is in the garage")
 	(level.get_node("GarageDoor") as Door).open()
 	await run_seconds(1.0)
@@ -79,7 +79,7 @@ func test_the_power_switch_is_in_the_garage_behind_its_door_and_powers_every_mac
 func test_the_weapon_box_starts_in_the_square_and_each_of_its_places_has_a_path_to_the_start() -> void:
 	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
 	var box := level.get_node("WeaponBox") as WeaponBox
-	var start := level.player.global_position
+	var start := level.players[0].global_position
 	assert_true(SQUARE_XZ.has_point(Vector2(box.global_position.x, box.global_position.z)), "the box starts in the square")
 	assert_eq(box.places.size(), 4, "box places")
 	_open_all_doors(level)
@@ -91,11 +91,11 @@ func test_the_weapon_box_starts_in_the_square_and_each_of_its_places_has_a_path_
 
 func test_the_player_walks_up_the_church_ramp_onto_the_platform() -> void:
 	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
-	level.player.global_position = CHURCH_RAMP_FOOT
-	look_at_point(level.player, CHURCH_RAMP_FOOT + Vector3.FORWARD * 100.0)
+	level.players[0].global_position = CHURCH_RAMP_FOOT
+	look_at_point(level.players[0], CHURCH_RAMP_FOOT + Vector3.FORWARD * 100.0)
 	Input.action_press("move_forward")
 	await run_seconds(1.5)
-	assert_almost_eq(level.player.global_position.y, CHURCH_PLATFORM_HEIGHT, 0.05, "player height on the church platform")
+	assert_almost_eq(level.players[0].global_position.y, CHURCH_PLATFORM_HEIGHT, 0.05, "player height on the church platform")
 
 
 func test_the_navmesh_answers_queries_when_the_level_loads_right_after_another_level() -> void:
@@ -104,7 +104,7 @@ func test_the_navmesh_answers_queries_when_the_level_loads_right_after_another_l
 	await physics_frames(1)
 	var level := await spawn_level(null, PUMPKIN_HOLLOW_SCENE)
 	var map := level.navigation.get_navigation_map()
-	var start := level.player.global_position
+	var start := level.players[0].global_position
 	assert_eq(NavigationServer3D.map_get_closest_point_owner(map, start), level.navigation.get_rid(), "the region that owns the navmesh at the player start")
 
 

@@ -30,6 +30,18 @@ func test_death_releases_the_mouse_and_shows_game_over() -> void:
 	assert_true(_game_over(level).visible, "game over shows after death")
 
 
+func test_shows_only_when_all_players_dead() -> void:
+	var level := await spawn_level()
+	var second := add_player_to(level, Vector3(2.0, 0.0, 2.0))
+	await physics_frames(5)
+	_kill(_player(level))
+	await physics_frames(1)
+	assert_true(not _game_over(level).visible, "game over stays hidden while one player lives")
+	_kill(second)
+	await physics_frames(1)
+	assert_true(_game_over(level).visible, "game over shows when the last player dies")
+
+
 func test_restart_while_alive_does_nothing() -> void:
 	var level := await spawn_level()
 	var requests: Array[int] = [0]

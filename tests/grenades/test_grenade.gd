@@ -232,11 +232,11 @@ func test_the_hud_shows_the_count() -> void:
 
 func test_the_level_gives_grenades_at_the_start_of_the_next_round() -> void:
 	var level := await spawn_level()
-	var grenades := level.player.grenades
+	var grenades := level.players[0].grenades
 	assert_eq(grenades.count, grenades.starting_count, "round 1 starts with the starting count")
 	grenades.count = 1
 	level.round_manager.kill_all()
 	level.round_manager.skip_break()
 	await physics_frames(2)
 	assert_eq(grenades.count, mini(1 + grenades.per_round, grenades.max_count), "round 2 adds grenades")
-	assert_eq(level.player.hud.readout().grenades_text, str(grenades.count), "the HUD shows them")
+	assert_eq(level.players[0].hud.readout().grenades_text, str(grenades.count), "the HUD shows them")
