@@ -22,7 +22,6 @@ enum State { BREAK, ACTIVE }
 ## at once. Level adds its players.
 # A typed array is invariant, so Level.players (Array[Player]) cannot be this array.
 var targets: Array[Node3D] = []
-@export var player: Player
 
 ## The current round. It is 0 until round 1 starts. During a break, it is the round that just ended.
 var round_number: int = 0
@@ -38,8 +37,6 @@ var _drops_this_round: int = 0
 
 
 func _ready() -> void:
-	if player != null:
-		targets.append(player)
 	for child: Node in get_children():
 		if child is SpawnPoint:
 			_spawn_points.append(child as SpawnPoint)

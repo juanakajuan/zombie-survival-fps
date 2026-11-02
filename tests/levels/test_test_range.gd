@@ -25,7 +25,7 @@ func test_round_1_starts_and_the_level_runs_for_5_seconds() -> void:
 
 func test_the_yard_spawn_point_has_a_path_to_the_player_start_through_its_window() -> void:
 	var level := await spawn_level()
-	var start := level.player.global_position
+	var start := level.players[0].global_position
 	var with_barricade: Array[SpawnPoint] = spawn_points_in(level).filter(func(point: SpawnPoint) -> bool: return point.barricade != null)
 	assert_eq(with_barricade.size(), 1, "spawn points that name a barricade")
 	for spawn: SpawnPoint in with_barricade:

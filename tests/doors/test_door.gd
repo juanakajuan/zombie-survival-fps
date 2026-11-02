@@ -7,7 +7,7 @@ const INSIDE_THE_ROOM := Vector3(16.0, 0.0, 17.0)
 
 func test_a_player_with_enough_points_buys_the_door_and_it_opens() -> void:
 	var level := await spawn_level()
-	var player := level.player
+	var player := level.players[0]
 	var door := level.get_node("RoomDoor") as Door
 	player.wallet.add(1000)
 	assert_true(not door.is_open(), "the door is closed at the start")
@@ -20,7 +20,7 @@ func test_a_player_with_enough_points_buys_the_door_and_it_opens() -> void:
 
 func test_a_player_with_too_few_points_cannot_buy_the_door() -> void:
 	var level := await spawn_level()
-	var player := level.player
+	var player := level.players[0]
 	var door := level.get_node("RoomDoor") as Door
 	player.wallet.add(700)
 	assert_true(not door.station.buy(player), "the purchase fails")
@@ -30,7 +30,7 @@ func test_a_player_with_too_few_points_cannot_buy_the_door() -> void:
 
 func test_the_player_cannot_buy_an_open_door_again() -> void:
 	var level := await spawn_level()
-	var player := level.player
+	var player := level.players[0]
 	var door := level.get_node("RoomDoor") as Door
 	player.wallet.add(2000)
 	var opened_count := [0]
@@ -46,7 +46,7 @@ func test_the_player_cannot_buy_an_open_door_again() -> void:
 
 func test_the_player_looks_at_the_closed_door_and_sees_its_price() -> void:
 	var level := await spawn_level()
-	var player := level.player
+	var player := level.players[0]
 	player.global_position = Vector3(16.5, 0.0, 10.5)
 	player.look(player.mouse_delta_to_angles(PI, 0.0))
 	await physics_frames(3)
@@ -56,7 +56,7 @@ func test_the_player_looks_at_the_closed_door_and_sees_its_price() -> void:
 func test_the_closed_door_blocks_a_zombie_and_the_open_door_lets_it_through() -> void:
 	var settings := _still_zombies()
 	var level := await spawn_level(settings)
-	var player := level.player
+	var player := level.players[0]
 	player.global_position = OUTSIDE_THE_DOORWAY
 	var closed_zombie := spawn_zombie(INSIDE_THE_ROOM, player)
 	await run_seconds(6.0)
