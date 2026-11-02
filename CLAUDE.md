@@ -88,6 +88,14 @@ A lint rule is a row in the `Rule` table in `tools/lint.gd`. An exception goes o
 - It works only while Blender runs with its MCP add-on enabled. The add-on listens on 127.0.0.1:9876 (`ss -ltn | grep 9876`).
 - The add-on opens its port only when Blender's Online Access preference is on. The human turns on Online Access and the add-on in Blender's Preferences. Do not change Blender preferences from the command line while Blender is open: Blender saves its own preferences on exit and undoes the change.
 
+## Screenshots and videos in a PR
+
+- Add images to a PR when the change has a result that a player can see: a model, an animation, the HUD, a menu, a level, or zombie behavior. Also add them when an image proves a claim in the PR body better than text does. Do not add them to a change that a player cannot see, such as tools, tests, or a refactor.
+- Use the images from `tools/smoke.sh` or from the `shot` steps of the verify skill. Show the result after the change. For a fix, also show the problem before the change.
+- For movement or an animation, make a GIF. Run `shot` steps with `wait` steps between them, then join the frames with `ffmpeg`. Keep the GIF short and small (less than 5 MB).
+- `gh` cannot upload files to a PR. Commit the files to the orphan branch `pr-media`, in a folder with the name of the PR branch. Do not commit them to the PR branch. Check out `pr-media` in a separate worktree (`git worktree add`), so that the checkout of the PR branch does not change. In the PR body, show each file with `![<what it shows>](https://raw.githubusercontent.com/juanakajuan/zombie-survival-fps/pr-media/<branch>/<file>)`.
+- Write one sentence under each image that tells what it shows.
+
 ## Problems found during a task
 
 File a GitHub issue for a problem that is outside the task only when all of these are true:
