@@ -1,14 +1,12 @@
-# Weapons: earn 1060 points in rounds 1 and 2, buy the SMG at the weapon station, switch with 1, 2 and the wheel, fire the SMG by holding fire, buy its ammo.
+# Weapons: get 1000 points and a break from the debug menu, buy the SMG at the weapon station, switch with 1, 2 and the wheel, fire the SMG by holding fire, buy its ammo.
 expect hud.weapon PISTOL
 expect hud.ammo 12 / 48
-until zombies.alive 4 300
-fight_until hud.break true 3600
-until hud.break false 700
-expect hud.round 2
-until zombies.alive 6 400
-fight_until hud.break true 5400
+debug +500 POINTS
+debug +500 POINTS
+debug KILL ALL ZOMBIES
+expect hud.break true
 expect zombies.alive 0
-expect hud.points 1060
+expect hud.points 1000
 state 01-earned
 shot 01-pistol
 face -53 0
@@ -23,7 +21,7 @@ state 02-prompt
 shot 02-prompt
 tap interact
 wait 5
-expect hud.points 60
+expect hud.points 0
 expect hud.weapon SMG
 expect hud.ammo 30 / 150
 wait 40
@@ -32,7 +30,7 @@ shot 03-smg
 expect hud.prompt E BUY SMG AMMO 300
 tap interact
 wait 5
-expect hud.points 60
+expect hud.points 0
 tap weapon_1
 wait 5
 expect hud.weapon PISTOL

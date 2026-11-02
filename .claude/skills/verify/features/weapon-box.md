@@ -11,7 +11,7 @@ A purple box with a yellow lid stands 3.5 m behind the start, with the label WEA
 
 ## How to get to it (user POV)
 
-- Earn 950 points (rounds 1 and 2 give 1060).
+- Earn 950 points.
 - Turn around from the start, walk to the box, look down at it, and press E. Press E again to take the weapon.
 
 ## Driving it with drive.sh
@@ -20,9 +20,9 @@ Preconditions:
 
 - Baseline state: `box.position` is `0.0 0.0 9.5`, `box.offer` is empty.
 
-- **Earn points.** Clear rounds 1 and 2 as in `journeys/weapons.steps`. `expect hud.points 1060` passes.
+- **Points and a break.** Run `debug +500 POINTS` twice, then `debug KILL ALL ZOMBIES`. `expect hud.points 1000` and `expect hud.break true` pass. The break gives 10 s with no zombies, and the box steps need about 3 s of it. The journey does not earn the points in play: a cleared round 1 gives 720, and the pistol reserve runs out in round 2.
 - **Face the box.** Run `face 180 0`, `hold move_forward`, `wait 25`, `release move_forward`, `wait 30`, `look 0 260`. `expect hud.prompt E WEAPON BOX 950` passes.
-- **Use.** Run `tap interact`, `wait 5`. `expect hud.points 110` passes, and `expect_not box.offer` (empty) passes because a weapon name is over the box. The roll is random: any weapon in the table except the pistol, which the player holds. The screenshot shows the name over the box.
+- **Use.** Run `tap interact`, `wait 5`. `expect hud.points 50` passes, and `expect_not box.offer` (empty) passes because a weapon name is over the box. The roll is random: any weapon in the table except the pistol, which the player holds. The screenshot shows the name over the box.
 - **Take.** Run `tap interact`, `wait 5`. `expect_not hud.weapon PISTOL` and `expect box.offer` (empty) pass, and the prompt is `E  WEAPON BOX  950` again. `tests/weapon_box/test_weapon_box.gd` proves `NO NEW WEAPONS` with a table of two weapons.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/weapon_box.steps`.
 

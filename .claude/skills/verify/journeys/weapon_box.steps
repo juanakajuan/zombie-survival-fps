@@ -1,12 +1,12 @@
-# Weapon box: earn 1060 points in rounds 1 and 2, walk to the box behind the start, use it, see the weapon over it, take it with E.
+# Weapon box: get 1000 points and a break from the debug menu, walk to the box behind the start, use it, see the weapon over it, take it with E.
 expect box.position 0.0 0.0 9.5
 expect box.offer
-until zombies.alive 4 300
-fight_until hud.break true 3600
-until hud.break false 700
-until zombies.alive 6 400
-fight_until hud.break true 5400
-expect hud.points 1060
+debug +500 POINTS
+debug +500 POINTS
+debug KILL ALL ZOMBIES
+expect hud.break true
+expect zombies.alive 0
+expect hud.points 1000
 state 01-earned
 face 180 0
 hold move_forward
@@ -20,7 +20,7 @@ state 02-prompt
 shot 02-prompt
 tap interact
 wait 5
-expect hud.points 110
+expect hud.points 50
 expect_not box.offer
 expect_not hud.prompt E WEAPON BOX 950
 look 0 -200

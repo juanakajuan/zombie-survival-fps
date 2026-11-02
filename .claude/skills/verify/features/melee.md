@@ -20,8 +20,8 @@ Preconditions:
 
 - Baseline state: `hud.points` is `0`.
 
-- **Wait for a zombie.** `until zombies.alive 4 300`. A zombie reaches the player in about 8 s.
-- **Punch it dead.** Run `punch_until hud.objective 3 LEFT 900`. It punches the nearest zombie as soon as it is in reach. A round 1 zombie has 100 health and a punch does 50, so two punches kill it before it hits the player. `expect hud.points 80` (10 for the hit, 10 + 60 for the kill) and `expect player.dead false` pass.
+- **Wait for a zombie.** `until zombies.alive 6 600`. A zombie reaches the player in about 8 s.
+- **Punch it dead.** Run `punch_until hud.objective 5 LEFT 900`. It punches the nearest zombie as soon as it is in reach. A round 1 zombie has 150 health and a punch does 50, so three punches kill it. `expect hud.points 90` (10 for each of the first two hits, 10 + 60 for the kill) and `expect player.dead false` pass.
 - **See the swing.** Run `aim`, `tap melee`, `wait 5`, `shot`. The screenshot shows the fist mid-swing.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/melee.steps`. No state key reads the swing; `tests/player/test_melee.gd` covers it.
 
