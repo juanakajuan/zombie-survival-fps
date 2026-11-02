@@ -71,6 +71,15 @@ func spawn_player(at: Vector3 = Vector3.ZERO, settle_frames: int = 1) -> Player:
 	return player
 
 
+## Adds a second player to a level at `at`, as a player that joins late.
+func add_player_to(level: Level, at: Vector3) -> Player:
+	var player := PLAYER_SCENE.instantiate() as Player
+	player.position = at
+	level.add_child(player)
+	level.add_player(player)
+	return player
+
+
 ## A round 1 zombie of the game's round settings. A RUN zombie has the runner speed of the settings. Without a target, it
 ## stands still.
 func spawn_zombie(at: Vector3, target: Node3D = null, gait: Zombie.Gait = Zombie.Gait.WALK) -> Zombie:
