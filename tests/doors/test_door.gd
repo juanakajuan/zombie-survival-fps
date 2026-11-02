@@ -58,15 +58,12 @@ func test_the_closed_door_blocks_a_zombie_and_the_open_door_lets_it_through() ->
 	var level := await spawn_level(settings)
 	var player := level.player
 	player.global_position = OUTSIDE_THE_DOORWAY
-	var closed_zombie := spawn_zombie(INSIDE_THE_ROOM, player)
-	await run_seconds(6.0)
-	assert_true(ROOM.has_point(Vector2(closed_zombie.global_position.x, closed_zombie.global_position.z)), "a zombie in the closed room stays in the room, at %s" % closed_zombie.global_position)
-	closed_zombie.queue_free()
-	(level.get_node("RoomDoor") as Door).open()
-	await run_seconds(1.0)
 	var zombie := spawn_zombie(INSIDE_THE_ROOM, player)
-	await run_seconds(8.0)
-	assert_true(_flat_distance(zombie, player) < 2.0, "a zombie in the open room reaches the player outside the doorway, %.1f m away" % _flat_distance(zombie, player))
+	await run_seconds(6.0)
+	assert_true(ROOM.has_point(Vector2(zombie.global_position.x, zombie.global_position.z)), "a zombie in the closed room stays in the room, at %s" % zombie.global_position)
+	(level.get_node("RoomDoor") as Door).open()
+	await run_seconds(9.0)
+	assert_true(_flat_distance(zombie, player) < 2.0, "the zombie that waited in the room reaches the player outside the doorway once the door opens, %.1f m away" % _flat_distance(zombie, player))
 
 
 func test_the_room_spawn_point_waits_for_its_door() -> void:
