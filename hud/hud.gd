@@ -34,8 +34,6 @@ extends CanvasLayer
 @export_group("Round counter")
 ## The color of the round counter.
 @export var round_color: Color = Color(0.75, 0.05, 0.05)
-## The last round that shows as tally marks. Later rounds show the number.
-@export_range(0, 5) var tally_rounds: int = 5
 ## How big the counter gets at the start of a round, as a multiple of its size.
 @export_range(1.0, 3.0, 0.05) var round_pop_scale: float = 1.45
 ## The seconds that the counter takes to bounce back to its size.
@@ -95,8 +93,6 @@ class Readout extends RefCounted:
 	var reloading: bool
 	var round_visible: bool
 	var round_text: String
-	## The number of tally marks that show in place of the round number. It is 0 when the number shows.
-	var round_tally: int
 	var round_color: Color
 	var objective_text: String
 	## The banner that names a special round as it starts.
@@ -147,7 +143,6 @@ var _points_tween: Tween
 @onready var _round_panel: Control = %RoundPanel
 @onready var _round_value: Label = %RoundValue
 @onready var _round_counter: Control = %RoundCounter
-@onready var _round_tally: RoundTally = %RoundTally
 @onready var _special_banner: Label = %SpecialBanner
 @onready var _objective: Label = %Objective
 @onready var _break_label: Label = %BreakLabel
@@ -206,7 +201,6 @@ func readout() -> Readout:
 	r.reloading = _reload_label.is_visible_in_tree()
 	r.round_visible = _round_panel.is_visible_in_tree()
 	r.round_text = _round_value.text
-	r.round_tally = _round_tally.count if _round_tally.visible else 0
 	r.round_color = _round_base_color
 	_update_objective()
 	r.objective_text = _objective.text
@@ -237,7 +231,7 @@ func round_counter_scale() -> float:
 
 ## The color that the round counter shows now. It is white at the start of a round and fades to its color.
 func round_counter_color() -> Color:
-	return _round_tally.color if _round_tally.visible else _round_value.get_theme_color("font_color")
+	return _round_value.get_theme_color("font_color")
 
 
 ## Shows the seconds that a downed player has left, and the seconds until `revive_name` stands the player up.
@@ -393,10 +387,6 @@ func _update_round() -> void:
 		return
 	var number := round_manager.round_number
 	_round_value.text = str(number)
-	var tally_marks := number if number <= tally_rounds else 0
-	_round_tally.count = tally_marks
-	_round_tally.visible = tally_marks > 0
-	_round_value.visible = tally_marks == 0
 	_round_base_color = special_color if round_manager.is_special_round() else round_color
 	_paint_round(_round_base_color)
 	_break_label.visible = round_manager.state == RoundManager.State.BREAK
@@ -404,7 +394,6 @@ func _update_round() -> void:
 
 
 func _paint_round(color: Color) -> void:
-	_round_tally.color = color
 	_round_value.add_theme_color_override("font_color", color)
 
 

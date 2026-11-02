@@ -4,8 +4,6 @@
 [ext_resource type="Theme" path="res://hud/hud_theme.tres" id="2_theme"]
 [ext_resource type="Script" path="res://hud/crosshair.gd" id="3_crosshair"]
 [ext_resource type="Script" path="res://hud/segment_bar.gd" id="5_segment_bar"]
-[ext_resource type="Script" path="res://hud/round_tally.gd" id="11_tally"]
-[ext_resource type="Script" path="res://hud/blood_splat.gd" id="12_splat"]
 [ext_resource type="Script" path="res://hud/grenade_icons.gd" id="13_grenades"]
 [ext_resource type="Script" path="res://hud/point_popup.gd" id="14_popup"]
 
@@ -287,16 +285,8 @@ layout_mode = 2
 pivot_offset_ratio = Vector2(0, 1)
 mouse_filter = 2
 
-[node name="RoundTally" type="Control" parent="Root/LeftPanel/RoundPanel/RoundCounter"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 104)
-layout_mode = 2
-mouse_filter = 2
-script = ExtResource("11_tally")
-
 [node name="RoundValue" type="Label" parent="Root/LeftPanel/RoundPanel/RoundCounter"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 theme_type_variation = &"InkLabel"
 theme_override_colors/font_color = Color(0.75, 0.05, 0.05, 1)
@@ -350,16 +340,6 @@ custom_minimum_size = Vector2(300, 116)
 layout_mode = 2
 size_flags_horizontal = 8
 mouse_filter = 2
-
-[node name="BloodSplat" type="Control" parent="Root/RightPanel/PointsPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("12_splat")
 
 [node name="PointsValue" type="Label" parent="Root/RightPanel/PointsPanel"]
 unique_name_in_owner = true
