@@ -74,9 +74,14 @@ func spawn_player(at: Vector3 = Vector3.ZERO, settle_frames: int = 1) -> Player:
 ## A round 1 zombie of the game's round settings. A RUN zombie has the runner speed of the settings. Without a target, it
 ## stands still.
 func spawn_zombie(at: Vector3, target: Node3D = null, gait: Zombie.Gait = Zombie.Gait.WALK) -> Zombie:
+	return spawn_zombie_chasing(at, _targets_of(target), gait)
+
+
+## A round 1 zombie that chases the nearest living one of `targets`. It keeps the array itself.
+func spawn_zombie_chasing(at: Vector3, targets: Array[Node3D], gait: Zombie.Gait = Zombie.Gait.WALK) -> Zombie:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
 	var speed := ROUND_SETTINGS.runner_speed if gait == Zombie.Gait.RUN else ROUND_SETTINGS.zombie_speed(1)
-	zombie.configure(speed, ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.zombie_health(1), target, null, gait)
+	zombie.configure(speed, ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.zombie_health(1), targets, null, gait)
 	zombie.position = at
 	zombie.drops = null
 	add_child(zombie)
@@ -87,7 +92,8 @@ func spawn_zombie(at: Vector3, target: Node3D = null, gait: Zombie.Gait = Zombie
 func spawn_mutt(at: Vector3, target: Node3D = null) -> Zombie:
 	var mutt := MUTT_SCENE.instantiate() as Zombie
 	var round_number := ROUND_SETTINGS.first_special_round
-	mutt.configure(ROUND_SETTINGS.special_speed, ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.special_health(round_number), target)
+	mutt.configure(ROUND_SETTINGS.special_speed, ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.special_health(round_number),
+			_targets_of(target))
 	mutt.position = at
 	add_child(mutt)
 	return mutt
@@ -250,6 +256,13 @@ func spawn_nav_world(with_wall: bool = false) -> NavigationRegion3D:
 			return region
 	failures.append("navigation map never became ready")
 	return region
+
+
+func _targets_of(target: Node3D) -> Array[Node3D]:
+	var targets: Array[Node3D] = []
+	if target != null:
+		targets.append(target)
+	return targets
 
 
 func _box(size: Vector3, at: Vector3) -> StaticBody3D:
