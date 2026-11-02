@@ -97,24 +97,24 @@ func test_kill_all_zombies_ends_the_round_and_gives_no_points() -> void:
 	await physics_frames(2)
 	var manager := level.round_manager
 	assert_eq(manager.zombies_left(), ROUND_SETTINGS.zombie_count(1), "zombies in round 1, most not spawned yet")
-	var points := level.player.wallet.points
-	level.player.debug_menu.run_command("KILL ALL ZOMBIES")
+	var points := level.players[0].wallet.points
+	level.players[0].debug_menu.run_command("KILL ALL ZOMBIES")
 	assert_eq(manager.zombies_left(), 0, "zombies left")
 	assert_eq(manager.state, RoundManager.State.BREAK, "the break starts")
-	assert_eq(level.player.wallet.points, points, "points")
+	assert_eq(level.players[0].wallet.points, points, "points")
 
 
 func test_skip_break_starts_the_next_round() -> void:
 	var level := await spawn_level(_one_zombie_settings())
 	await physics_frames(2)
 	var manager := level.round_manager
-	level.player.debug_menu.run_command("SKIP BREAK")
+	level.players[0].debug_menu.run_command("SKIP BREAK")
 	assert_eq(manager.round_number, 1, "skip during a round does nothing")
-	level.player.debug_menu.run_command("KILL ALL ZOMBIES")
-	level.player.debug_menu.run_command("SKIP BREAK")
+	level.players[0].debug_menu.run_command("KILL ALL ZOMBIES")
+	level.players[0].debug_menu.run_command("SKIP BREAK")
 	assert_eq(manager.round_number, 2, "round number")
 	assert_eq(manager.state, RoundManager.State.ACTIVE, "state")
-	assert_eq(level.player.hud.readout().round_text, "2", "the HUD round")
+	assert_eq(level.players[0].hud.readout().round_text, "2", "the HUD round")
 
 
 func test_skip_break_without_a_level_does_nothing() -> void:

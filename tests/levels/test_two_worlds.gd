@@ -11,7 +11,7 @@ func test_nuke_stays_in_its_world() -> void:
 	var client_zombie := spawn_zombie(Vector3(6.0, 0.0, -4.0))
 	client_zombie.reparent(session.client_level, false)
 	await physics_frames(1)
-	NUKE.apply(session.host_level.player)
+	NUKE.apply(session.host_level.players[0])
 	await physics_frames(1)
 	assert_true(host_zombie.is_dead(), "the nuke kills the zombie in its world")
 	assert_true(not client_zombie.is_dead(), "the zombie in the other world lives")
@@ -23,7 +23,7 @@ func test_repair_all_stays_in_its_world() -> void:
 	var client_barricade := session.client_level.get_node("YardBarricade") as Barricade
 	for barricade: Barricade in [host_barricade, client_barricade]:
 		barricade.remove_board()
-	REPAIR_ALL.apply(session.host_level.player)
+	REPAIR_ALL.apply(session.host_level.players[0])
 	assert_true(host_barricade.is_full(), "repair all fills the barricade in its world")
 	assert_true(not client_barricade.is_full(), "the barricade in the other world stays open")
 
