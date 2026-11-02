@@ -51,7 +51,7 @@ func _add_branch(branch_name: String, api: SceneMultiplayer, peer: LoopbackPeer)
 	add_child(viewport)
 	get_tree().set_multiplayer(api, viewport.get_path())
 	_api_paths.append(viewport.get_path())
-	api.multiplayer_peer = peer
+	api.multiplayer_peer = peer if peer != null else OfflineMultiplayerPeer.new()
 	var level := _scene.instantiate() as Level
 	viewport.add_child(level)
 	return level

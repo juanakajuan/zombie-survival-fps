@@ -84,6 +84,13 @@ func _init() -> void:
 			"Only Player writes the mouse mode and the trigger. Ask the player (Player.died, a Player method) instead.",
 		),
 		Rule.new(
+			"input_owner",
+			"^(?!player/player_input\\.gd$|tests/|tools/|debug/|\\.claude/).*\\.gd$",
+			"\\bInput\\.(is_action_\\w+|get_vector|get_axis)\\(",
+			"device input read outside PlayerInput",
+			"Only PlayerInput reads the devices, and only for a local player. Read player.input (is_held(), is_just_pressed(), move).",
+		),
+		Rule.new(
 			"ancestor_walk",
 			"^(?!tests/|tools/|debug/|\\.claude/).*\\.gd$",
 			"\\b(\\w+)\\s*=\\s*\\1\\.get_parent\\(\\)",

@@ -52,4 +52,4 @@ func restart() -> void:
 
 func _on_player_died() -> void:
 	if players.all(func(player: Player) -> bool: return player.is_dead()):
-		game_over.open()
+		game_over.open(players)
