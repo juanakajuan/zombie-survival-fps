@@ -25,6 +25,11 @@ const GROUP := &"zombie"
 @export_range(0.5, 30.0, 0.5, "suffix:s") var groan_interval_min: float = 4.0
 @export_range(0.5, 30.0, 0.5, "suffix:s") var groan_interval_max: float = 9.0
 
+@export_group("Path")
+## The zombie asks for a new path when its goal moves this far from the goal of its current path, or when the navigation
+## mesh changes.
+@export_range(0.0, 5.0, 0.05, "suffix:m") var repath_distance: float = 0.5
+
 @export_group("Look")
 @export_range(0.0, 50.0, 0.5, "suffix:1/s") var turn_rate: float = 10.0
 
@@ -68,6 +73,10 @@ var _attack_cooldown: float = 0.0
 var _pull_cooldown: float = 0.0
 var _groan_left: float
 var _configured := false
+## The goal of the last path request. INF until the first request.
+var _path_goal := Vector3.INF
+## The navigation map iteration of the last path request. A rebake, as when a door opens, changes it.
+var _path_map_iteration: int = -1
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 @onready var _health: Health = $Health
@@ -169,7 +178,7 @@ func _physics_process(delta: float) -> void:
 	match state:
 		State.CHASE:
 			if live_target != null:
-				_agent.target_position = _chase_goal(live_target)
+				_request_path(_chase_goal(live_target))
 				heading = _agent.get_next_path_position() - global_position
 				heading.y = 0.0
 				heading = heading.normalized()
@@ -236,6 +245,17 @@ func _chase_goal(live_target: Node3D) -> Vector3:
 	if entry != null and entry.is_inside(global_position):
 		entry = null
 	return live_target.global_position if entry == null else entry.inside_point()
+
+
+## Setting target_position always asks the server for a new path. Asked on each frame, the path can flip each frame
+## between two routes of almost the same length, and the zombie stops between them (issue 125).
+func _request_path(goal: Vector3) -> void:
+	var iteration := NavigationServer3D.map_get_iteration_id(_agent.get_navigation_map())
+	if goal.distance_to(_path_goal) <= repath_distance and iteration == _path_map_iteration:
+		return
+	_path_goal = goal
+	_path_map_iteration = iteration
+	_agent.target_position = goal
 
 
 func _live_target() -> Node3D:

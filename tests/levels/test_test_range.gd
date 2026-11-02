@@ -35,6 +35,22 @@ func test_the_yard_spawn_point_has_a_path_to_the_player_start_through_its_window
 		assert_true(path_goes_inside(path, spawn.barricade), "the path of %s goes through its barricade" % spawn.name)
 
 
+func test_a_zombie_where_the_routes_around_the_far_dummy_cost_the_same_walks_on_toward_the_player_start() -> void:
+	var settings := ROUND_SETTINGS.duplicate() as RoundSettings
+	settings.early_round_counts = PackedInt32Array([0])
+	var level := await spawn_level(settings)
+	# The point where a round 1 zombie of SpawnNorthEast stopped (issue 125). A step west of it makes the east route
+	# shorter, and a step east makes the west route shorter.
+	var zombie := spawn_zombie(Vector3(2.43, 0.0, -12.68), level.player)
+	var start := _flat_distance(zombie, level.player)
+	await run_seconds(2.0)
+	var closed := start - _flat_distance(zombie, level.player)
+	assert_true(closed >= zombie.move_speed * 1.0, "zombie closed %.2f m in 2 s, speed is %s m/s" % [closed, zombie.move_speed])
+
+
+func _flat_distance(a: Node3D, b: Node3D) -> float:
+	return Vector2(a.global_position.x - b.global_position.x, a.global_position.z - b.global_position.z).length()
+
 func _distance_to_navmesh(map: RID, at: Vector3) -> float:
 	var closest := NavigationServer3D.map_get_closest_point(map, at)
 	return Vector2(closest.x - at.x, closest.z - at.z).length()
