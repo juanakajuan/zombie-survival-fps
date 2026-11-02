@@ -70,25 +70,11 @@ func _init() -> void:
 			true,
 		),
 		Rule.new(
-			"tree_group_lookup",
-			"^(?!levels/level\\.gd$|tests/|tools/|debug/|\\.claude/).*\\.gd$",
-			"\\b(get_nodes_in_group|get_first_node_in_group|call_group(_flags)?)\\(",
-			"group lookup over the whole scene tree",
-			"The tree can hold more than one world. Use Level.nodes_in_group(group, self).",
-		),
-		Rule.new(
 			"mouse_mode_owner",
 			"^(?!player/player\\.gd$|tests/|debug/|\\.claude/).*\\.gd$",
 			"(Input\\.mouse_mode|\\btrigger_enabled)\\s*=[^=]|\\bInput\\.set_mouse_mode\\(",
 			"mouse mode or trigger written outside Player",
 			"Only Player writes the mouse mode and the trigger. Ask the player (Player.died, a Player method) instead.",
-		),
-		Rule.new(
-			"input_owner",
-			"^(?!player/player_input\\.gd$|tests/|tools/|debug/|\\.claude/).*\\.gd$",
-			"\\bInput\\.(is_action_\\w+|get_vector|get_axis)\\(",
-			"device input read outside PlayerInput",
-			"Only PlayerInput reads the devices, and only for a local player. Read player.input (is_held(), is_just_pressed(), move).",
 		),
 		Rule.new(
 			"ancestor_walk",

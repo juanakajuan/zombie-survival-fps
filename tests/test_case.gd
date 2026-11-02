@@ -40,18 +40,13 @@ func run_seconds(seconds: float) -> void:
 	await physics_frames(roundi(seconds * Engine.physics_ticks_per_second))
 
 
-## Taps an Input Map action with a press and a release event, as a key or wheel notch does, and runs physics until
-## PlayerInput has read it. `Input.action_press()` sends no event.
+## Sends one press of an Input Map action as an input event, as a key or wheel notch does. `Input.action_press()` sends none.
 func press_action(action: StringName) -> void:
-	var states: Array[bool] = [true, false]
-	for pressed: bool in states:
-		var event := InputEventAction.new()
-		event.action = action
-		event.pressed = pressed
-		Input.parse_input_event(event)
+	var event := InputEventAction.new()
+	event.action = action
+	event.pressed = true
+	Input.parse_input_event(event)
 	Input.flush_buffered_events()
-	# Input reports the press as just pressed in the next physics frame, and the test resumes before nodes process it.
-	await physics_frames(2)
 
 
 ## The lowest (x) and highest (y) value that `value` gives over `seconds` of physics frames.
@@ -76,26 +71,12 @@ func spawn_player(at: Vector3 = Vector3.ZERO, settle_frames: int = 1) -> Player:
 	return player
 
 
-## Adds a second player to a level at `at`, as a player that joins late.
-func add_player_to(level: Level, at: Vector3) -> Player:
-	var player := PLAYER_SCENE.instantiate() as Player
-	player.position = at
-	level.add_child(player)
-	level.add_player(player)
-	return player
-
-
 ## A round 1 zombie of the game's round settings. A RUN zombie has the runner speed of the settings. Without a target, it
 ## stands still.
 func spawn_zombie(at: Vector3, target: Node3D = null, gait: Zombie.Gait = Zombie.Gait.WALK) -> Zombie:
-	return spawn_zombie_chasing(at, _targets_of(target), gait)
-
-
-## A round 1 zombie that chases the nearest living one of `targets`. It keeps the array itself.
-func spawn_zombie_chasing(at: Vector3, targets: Array[Node3D], gait: Zombie.Gait = Zombie.Gait.WALK) -> Zombie:
 	var zombie := ZOMBIE_SCENE.instantiate() as Zombie
 	var speed := ROUND_SETTINGS.runner_speed if gait == Zombie.Gait.RUN else ROUND_SETTINGS.zombie_speed(1)
-	zombie.configure(speed, ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.zombie_health(1), targets, null, gait)
+	zombie.configure(speed, ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.zombie_health(1), target, null, gait)
 	zombie.position = at
 	zombie.drops = null
 	add_child(zombie)
@@ -106,8 +87,7 @@ func spawn_zombie_chasing(at: Vector3, targets: Array[Node3D], gait: Zombie.Gait
 func spawn_mutt(at: Vector3, target: Node3D = null) -> Zombie:
 	var mutt := MUTT_SCENE.instantiate() as Zombie
 	var round_number := ROUND_SETTINGS.first_special_round
-	mutt.configure(ROUND_SETTINGS.special_speed, ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.special_health(round_number),
-			_targets_of(target))
+	mutt.configure(ROUND_SETTINGS.special_speed, ROUND_SETTINGS.crawl_speed, ROUND_SETTINGS.special_health(round_number), target)
 	mutt.position = at
 	add_child(mutt)
 	return mutt
@@ -202,35 +182,7 @@ func spawn_level(round_settings: RoundSettings = null, scene: PackedScene = LEVE
 	if round_settings != null:
 		(level.get_node("RoundManager") as RoundManager).settings = round_settings
 	add_child(level)
-	await await_navmesh(level)
-	return level
-
-
-## Adds two copies of a level in two 3D worlds with no network (see NetSession), after both navmesh bakes.
-func spawn_worlds(scene: PackedScene = LEVEL_SCENE) -> NetSession:
-	var session := NetSession.offline(scene)
-	add_child(session)
-	await await_navmesh(session.host_level)
-	await await_navmesh(session.client_level)
-	return session
-
-
-## Adds a host and a client of a level that a LoopbackPeer pair joins, after both navmesh bakes and the connection.
-func spawn_session(scene: PackedScene = LEVEL_SCENE) -> NetSession:
-	var session := NetSession.loopback(scene)
-	add_child(session)
-	await await_navmesh(session.host_level)
-	await await_navmesh(session.client_level)
-	for _i: int in 60:
-		if session.host_api.get_peers().has(NetSession.CLIENT_ID):
-			return session
-		await physics_frames(1)
-	failures.append("the client never connected to the host")
-	return session
-
-
-## Returns when the navigation map of the level answers queries from its baked navmesh.
-func await_navmesh(level: Level) -> void:
+	await level.navigation.bake_finished
 	# The server syncs the new mesh on a worker thread, so it takes a number of physics frames that is not known.
 	var map := level.navigation.get_navigation_map()
 	for _i: int in 60:
@@ -239,8 +191,9 @@ func await_navmesh(level: Level) -> void:
 		if NavigationServer3D.map_get_iteration_id(map) == 0:
 			continue
 		if NavigationServer3D.map_get_closest_point_owner(map, Vector3.ZERO) == level.navigation.get_rid():
-			return
+			return level
 	failures.append("the navigation map never answered queries from the level navmesh")
+	return level
 
 
 ## Bakes a 60 m navigation floor at y = 0, with a 10 m wall across x at z = 0 when `with_wall` is true.
@@ -270,13 +223,6 @@ func spawn_nav_world(with_wall: bool = false) -> NavigationRegion3D:
 			return region
 	failures.append("navigation map never became ready")
 	return region
-
-
-func _targets_of(target: Node3D) -> Array[Node3D]:
-	var targets: Array[Node3D] = []
-	if target != null:
-		targets.append(target)
-	return targets
 
 
 func _box(size: Vector3, at: Vector3) -> StaticBody3D:

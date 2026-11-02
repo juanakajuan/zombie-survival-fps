@@ -48,8 +48,8 @@ const GROUP := &"zombie"
 @export var drops: DropTable
 @export var pickup_scene: PackedScene
 
-## Set by configure(). The zombie chases the nearest of these that is alive. An empty array means it stands still.
-var targets: Array[Node3D]
+## Set by configure(). Null means the zombie stands still.
+var target: Node3D
 ## Set by configure(). RoundSettings owns the value for each round.
 var move_speed: float
 ## Set by configure(). The move speed after the zombie loses its legs.
@@ -125,15 +125,14 @@ func is_dead() -> bool:
 	return state == State.DEAD
 
 
-## Sets the speeds, health, targets, and gait of this zombie. Call it before the zombie enters the tree. The speed does not
-## follow from the gait: RoundSettings gives each gait its own speed. `crawl` is the speed after the legs come off. The
-## zombie keeps the `chase` array itself, not a copy, so a target that the owner adds later is a target at once.
-func configure(speed: float, crawl: float, max_health: float, chase: Array[Node3D], through: Barricade = null,
+## Sets the speeds, health, target, and gait of this zombie. Call it before the zombie enters the tree. The speed does not
+## follow from the gait: RoundSettings gives each gait its own speed. `crawl` is the speed after the legs come off.
+func configure(speed: float, crawl: float, max_health: float, chase: Node3D, through: Barricade = null,
 		with_gait: Gait = Gait.WALK) -> void:
 	move_speed = speed
 	crawl_speed = crawl
 	gait = with_gait
-	targets = chase
+	target = chase
 	entry = through
 	Health.find_on(self).max_health = max_health
 	_configured = true
@@ -240,23 +239,14 @@ func _chase_goal(live_target: Node3D) -> Vector3:
 
 
 func _live_target() -> Node3D:
-	var nearest: Node3D = null
-	var nearest_distance := INF
-	for candidate: Node3D in targets:
-		var offset := candidate.global_position - global_position
-		var distance := Vector2(offset.x, offset.z).length_squared()
-		if distance < nearest_distance and not _is_dead_target(candidate):
-			nearest = candidate
-			nearest_distance = distance
-	return nearest
-
-
-## A downed player is not dead: zombies still attack it.
-func _is_dead_target(candidate: Node3D) -> bool:
-	if candidate is Player:
-		return (candidate as Player).is_dead()
-	var candidate_health := Health.find_on(candidate)
-	return candidate_health == null or candidate_health.is_dead()
+	if target == null:
+		return null
+	if target is Player:
+		return null if (target as Player).is_dead() else target
+	var target_health := Health.find_on(target)
+	if target_health == null or target_health.is_dead():
+		return null
+	return target
 
 
 func _on_died() -> void:

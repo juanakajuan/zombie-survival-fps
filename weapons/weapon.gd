@@ -75,12 +75,12 @@ func _physics_process(delta: float) -> void:
 		ammo += taken
 		reload_finished.emit()
 
-	if not trigger_enabled or wielder == null:
+	if not trigger_enabled:
 		return
-	var input := wielder.input
-	if input.is_held(PlayerInput.Action.FIRE) if data.automatic else input.is_just_pressed(PlayerInput.Action.FIRE):
+	var fire_pressed := Input.is_action_pressed("fire") if data.automatic else Input.is_action_just_pressed("fire")
+	if fire_pressed:
 		try_fire()
-	if input.is_just_pressed(PlayerInput.Action.RELOAD):
+	if Input.is_action_just_pressed("reload"):
 		start_reload()
 
 
