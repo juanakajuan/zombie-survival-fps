@@ -13,15 +13,6 @@
 [ext_resource type="Resource" path="res://pickups/nuke.tres" id="11_nuke"]
 [ext_resource type="Resource" path="res://pickups/repair_all.tres" id="12_repair_all"]
 
-[sub_resource type="StyleBoxFlat" id="panel"]
-bg_color = Color(0.06, 0.06, 0.07, 0.92)
-border_width_left = 6
-border_color = Color(1, 0.9, 0, 1)
-content_margin_left = 32.0
-content_margin_top = 24.0
-content_margin_right = 32.0
-content_margin_bottom = 24.0
-
 [node name="DebugMenu" type="CanvasLayer"]
 process_mode = 3
 layer = 21
@@ -34,7 +25,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.55)
+color = Color(0.1, 0.08, 0.07, 0.6)
 
 [node name="Center" type="CenterContainer" parent="."]
 anchors_preset = 15
@@ -46,7 +37,7 @@ grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("panel")
+theme_type_variation = &"MenuPanel"
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel"]
 layout_mode = 2
@@ -54,8 +45,7 @@ theme_override_constants/separation = 18
 
 [node name="Title" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0, 1)
-theme_override_font_sizes/font_size = 64
+theme_type_variation = &"MenuTitle"
 text = "DEBUG"
 horizontal_alignment = 1
 
@@ -75,6 +65,6 @@ text = "CLOSE"
 
 [node name="Hint" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_type_variation = &"MenuHint"
 text = "PRESS F1 OR ESC TO CLOSE"
 horizontal_alignment = 1

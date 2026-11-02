@@ -34,6 +34,16 @@ func test_red_edge_grows_as_health_gets_low_and_goes_when_it_comes_back() -> voi
 	assert_almost_eq(player.hud.readout().low_health_vignette, 0.0, 0.001, "hidden after health comes back")
 
 
+func test_the_health_cross_turns_red_at_low_health_and_back() -> void:
+	var player := await spawn_player()
+	player.hud.low_health_fraction = 0.3
+	assert_true(not player.hud.readout().health_low, "cream at full health")
+	player.health.damage(70.0)
+	assert_true(player.hud.readout().health_low, "red at 30 hp")
+	player.health.reset()
+	assert_true(not player.hud.readout().health_low, "cream after a reset")
+
+
 func test_fps_counter_is_hidden_until_turned_on() -> void:
 	var player := await spawn_player()
 	assert_true(not player.hud.readout().fps_visible, "hidden by default")
@@ -119,7 +129,7 @@ func test_a_special_round_shows_a_banner_and_purple_round_and_plays_its_own_soun
 	assert_true(not hud.readout().special_banner_visible, "no banner in round 3")
 
 
-func test_the_first_five_rounds_show_tally_marks_and_later_rounds_show_the_number() -> void:
+func test_the_round_panel_shows_the_number_in_every_round() -> void:
 	var manager := _spawn_round_manager()
 	var player := await spawn_player()
 	var hud := player.hud
@@ -130,8 +140,8 @@ func test_the_first_five_rounds_show_tally_marks_and_later_rounds_show_the_numbe
 			manager.skip_break()
 		var readout := hud.readout()
 		assert_eq(manager.round_number, round_number, "round %d is running" % round_number)
+		assert_true(readout.round_visible, "round panel shown in round %d" % round_number)
 		assert_eq(readout.round_text, str(round_number), "round text in round %d" % round_number)
-		assert_eq(readout.round_tally, round_number if round_number <= 5 else 0, "tally marks in round %d" % round_number)
 
 
 func test_a_new_round_pops_the_counter_and_flashes_it_white_then_it_settles() -> void:
