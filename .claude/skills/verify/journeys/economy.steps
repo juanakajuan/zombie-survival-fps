@@ -2,10 +2,10 @@
 expect hud.points 0
 expect hud.ammo 12 / 48
 expect hud.prompt_visible false
-until zombies.alive 4 300
+until zombies.alive 6 400
 fight_until hud.break true 3600
 expect zombies.alive 0
-expect hud.points 400
+expect hud.points 720
 expect_not hud.ammo 12 / 48
 state 01-earned
 shot 01-earned
@@ -21,17 +21,21 @@ until hud.prompt_visible true 60
 expect hud.prompt E BUY AMMO 250
 state 02-prompt
 shot 02-prompt
+# Round 1 can leave the reserve empty, so buy, reload from the new reserve, and buy again to see a full 12 / 48.
+tap interact
+wait 5
+expect hud.points 470
 tap reload
 wait 90
 tap interact
 wait 5
-expect hud.points 150
+expect hud.points 220
 expect hud.ammo 12 / 48
 state 03-bought
 shot 03-bought
 tap interact
 wait 5
-expect hud.points 150
+expect hud.points 220
 look 0 -400
 wait 5
 expect hud.prompt_visible false

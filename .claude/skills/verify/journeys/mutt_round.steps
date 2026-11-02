@@ -1,0 +1,31 @@
+# Mutt round: skip to round 6 with the debug menu and see the Mutt round: the MUTT ROUND banner and 16 MUTTS LEFT.
+# The debug KILL ALL ZOMBIES and SKIP BREAK buttons only set up the late round. The proof is what round 6 shows.
+debug GOD MODE
+debug KILL ALL ZOMBIES
+until hud.break true 60
+debug SKIP BREAK
+until hud.round 2 60
+debug KILL ALL ZOMBIES
+until hud.break true 60
+debug SKIP BREAK
+until hud.round 3 60
+debug KILL ALL ZOMBIES
+until hud.break true 60
+debug SKIP BREAK
+until hud.round 4 60
+debug KILL ALL ZOMBIES
+until hud.break true 60
+debug SKIP BREAK
+until hud.round 5 60
+debug KILL ALL ZOMBIES
+until hud.break true 60
+debug SKIP BREAK
+until hud.round 6 60
+expect hud.objective 16 MUTTS LEFT
+wait 5
+state 01-mutt-round
+shot 01-mutt-round
+until zombies.alive 16 1200
+wait 60
+aim
+shot 02-mutts

@@ -27,7 +27,7 @@ Preconditions:
 - Baseline state: `hud.grenades` is `2` and `hud.points` is `0`.
 
 - **Wait for the zombies.** `until zombies.alive 4 300`, then `wait 40` and `aim`. The nearest zombie is about 13 m away and walks at 2.5 m/s.
-- **Aim at the ground ahead.** `look 0 220` turns the view about 33 degrees down from the zombie, so that the grenade lands about 4 m ahead and rolls on toward the zombies.
+- **Aim at the ground ahead.** `look 0 220` turns the view about 31 degrees down from the zombie, so that the grenade lands about 4 m ahead and rolls on toward the zombies.
 - **Throw.** `tap grenade`, then `expect hud.grenades 1`. A `shot` 30 frames later shows the grenade on the ground. `look 0 -190` first turns the view back up to the zombies.
 - **Blast.** The grenade explodes 150 frames after the press of G. A `shot` at about frame 153 shows the flash. `expect_not hud.points 0` and `expect_not zombies.alive 4` pass after it.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/grenade.steps`. The fuse, the falloff, the points of a kill, the self damage, and the refill are in `tests/grenades/test_grenade.gd`.
@@ -37,5 +37,5 @@ Preconditions:
 
 - Throw early. A grenade that hits a zombie in the air bounces back at the player. Thrown at the ground a few metres ahead while the zombies are still far, it is already in their path when it explodes.
 - The blast hurts the player. A grenade that lands at the player's feet takes about a quarter of what a zombie would take, so keep the throw out past 3 m.
-- The swing takes 0.12 s, which is 7 frames, and a `shot` takes real time, so a `shot` after `release grenade` shows the start of the swing or the thrown grenade, not a fixed frame. To look at the middle of the swing, set `Grenades.throw_wind_time` to about 0.8 while you tune, and put it back.
+- The swing takes 0.12 s, so the grenade leaves on the 8th frame, and a `shot` takes real time, so a `shot` after `release grenade` shows the start of the swing or the thrown grenade, not a fixed frame. To look at the middle of the swing, set `Grenades.throw_wind_time` to about 0.8 while you tune, and put it back.
 - The run is real time, so the exact landing spot and the frame of the blast move a little between runs. `expect_not` against the start value is the safe check.

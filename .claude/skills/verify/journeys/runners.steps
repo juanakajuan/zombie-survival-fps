@@ -1,4 +1,4 @@
-# Runners: skip to round 4 with the debug menu and see that no zombie runs, then go to round 5 and see 3 of its 12 zombies run in red shirts.
+# Runners: skip to round 4 with the debug menu and see that no zombie runs, then go to round 5 and see 6 of its 24 zombies run in red shirts.
 # The debug KILL ALL ZOMBIES and SKIP BREAK buttons only set up the late round. The proof is the runners that round 5 spawns.
 debug GOD MODE
 expect hud.round 1
@@ -14,8 +14,8 @@ debug KILL ALL ZOMBIES
 until hud.break true 60
 debug SKIP BREAK
 until hud.round 4 60
-until zombies.alive 10 900
-expect hud.objective 10 LEFT
+until zombies.alive 18 1200
+expect hud.objective 18 LEFT
 expect zombies.runners 0
 wait 60
 aim
@@ -25,10 +25,10 @@ debug KILL ALL ZOMBIES
 until hud.break true 60
 debug SKIP BREAK
 until hud.round 5 60
-expect hud.objective 12 LEFT
-until zombies.alive 12 900
-expect zombies.runners 3
-expect hud.objective 12 LEFT
+expect hud.objective 24 LEFT
+until zombies.alive 24 1600
+expect zombies.runners 6
+expect hud.objective 24 LEFT
 wait 60
 aim
 state 01-round-five

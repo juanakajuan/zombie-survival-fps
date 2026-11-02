@@ -1,10 +1,10 @@
-# Full loop: clear round 1, see round 2 with 6 zombies, die in round 2, read the game-over screen, restart.
+# Full loop: clear round 1, see round 2 with 8 zombies, die in round 2, read the game-over screen, restart.
 expect hud.round 1
 expect hud.health 100
 expect hud.ammo 12 / 48
 state 01-start
 shot 01-start
-until zombies.alive 4 300
+until zombies.alive 6 400
 fight_until hud.break true 3600
 expect zombies.alive 0
 expect hud.round 1
@@ -12,7 +12,7 @@ state 02-break
 shot 02-break
 until hud.break false 700
 expect hud.round 2
-until zombies.alive 6 400
+until zombies.alive 8 500
 state 03-round-two
 shot 03-round-two
 until game_over.visible true 5400

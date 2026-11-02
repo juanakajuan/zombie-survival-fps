@@ -1,10 +1,10 @@
-# Melee: punch the first zombie that comes close with V until it dies, while the player is alive.
+# Melee: punch the first zombie that comes close with V until it dies (three punches at 150 health), while the player is alive.
 expect hud.points 0
 until zombies.alive 4 300
-punch_until hud.objective 3 LEFT 900
+punch_until hud.objective 5 LEFT 900
 state 01-killed
 shot 01-killed
-expect hud.points 80
+expect hud.points 90
 expect player.dead false
 aim
 tap melee
