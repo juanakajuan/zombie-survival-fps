@@ -6,7 +6,7 @@ The ARC GUN is the special weapon. Only the weapon box gives it, and no station 
 
 - `box-only` means that the weapon box can roll the ARC GUN, and that no wall buy or crate sells it.
 - `give` takes the ARC GUN from the debug menu (`GIVE ARC GUN`) without the box: `hud.weapon` is `ARC GUN`, `hud.ammo` is `8 / 48`.
-- `chain` sends arcs from the zombie that the shot hits to the zombies near it. One shot into a group of round 1 zombies pays 70 for the kill and 10 for each zombie that an arc hits, and every hit zombie flashes red and shows its health bar.
+- `chain` sends arcs from the zombie that the shot hits to the zombies near it. A round 1 zombie has 150 health, more than the 110 of a shot, so one shot into a group of round 1 zombies pays 10 for the hit and 10 for each zombie that an arc hits, and every hit zombie flashes red and shows its health bar.
 - `reload` drops the empty battery cell and the left hand pushes in a new one.
 
 ## How to get to it (user POV)
@@ -21,7 +21,7 @@ Preconditions:
 - Baseline state: `hud.weapon` is `PISTOL`, `hud.points` is `0`.
 
 - **Take it.** Run `debug GOD MODE`, `debug GIVE ARC GUN`, `wait 5`. `expect hud.weapon ARC GUN` and `expect hud.ammo 8 / 48` pass.
-- **Chain.** Run `until zombies.alive 4 300`, `wait 420` for the zombies to come close together, then `aim`, `tap fire`, and `shot` at once. The screenshot shows the cyan arcs and the hit zombies in red. `state` shows `hud.points` above 70 (the kill alone) when an arc hit another zombie. In the recorded run it was `100`: the kill and 3 arc hits.
+- **Chain.** Run `until zombies.alive 4 300`, `wait 420` for the zombies to come close together, then `aim`, `tap fire`, and `shot` at once. The screenshot shows the cyan arcs and the hit zombies in red. `state` shows `hud.points` above 10 (the hit alone) when an arc hit another zombie. In the recorded run it was `30`: the hit and 2 arc hits.
 - **Proof.** Run `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/arc_gun.steps`.
 
 ## Gotchas

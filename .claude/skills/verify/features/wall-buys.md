@@ -2,7 +2,7 @@
 
 A wall buy is a dark board on a wall with a pale silhouette of a weapon on it and a yellow label: SHOTGUN, and 1200 under it. In the test range it is on the outer (west) wall of the room behind the door, at `11.75 0 15`. When the player looks at the board within 2.5 m, the prompt shows `E  BUY SHOTGUN  1200`. E spends 1200 points and puts the shotgun in hand, with `6 / 36` on the HUD. Then the board sells shotgun ammo for 500. The shotgun is semi-automatic, and each shot sends 8 pellets in a cone of 5 degrees, so one press shows a spray of tracers. A reload throws the shotgun away and draws a new one, as the pistol does.
 
-A second wall buy, on the north wall of the same room at `13.4 0 11.75`, sells the RIFLE for 1500 (ammo 600). The rifle is semi-automatic, with 10 rounds and 70 damage a shot, so two body shots kill a round 1 zombie. Its reload keeps the gun in the hand and swaps the magazine, as the SMG does.
+A second wall buy, on the north wall of the same room at `13.4 0 11.75`, sells the RIFLE for 1500 (ammo 600). The rifle is semi-automatic, with 10 rounds and 70 damage a shot, so three body shots kill a round 1 zombie (150 health). Its reload keeps the gun in the hand and swaps the magazine, as the SMG does.
 
 A third wall buy, on the east face of the large crate at `-4 0 -8`, sells the MACHINE GUN for 2500 (ammo 1000). It is automatic, with a 100-round magazine and a 300-round reserve, and its reload takes 4.5 s.
 
@@ -48,4 +48,4 @@ Preconditions:
 - The `debug` command runs a debug menu button. It skips the earning of points, so this journey proves the wall buy and the shotgun, not the points from kills. `journeys/weapons.steps` proves the points.
 - Zombies spawn during these journeys and can reach the player, so the health on the HUD can drop.
 - The pellet spread is random, so the tracers are in a different place on each run.
-- In the Compound, the shotgun wall buy is on the east end of the container south of the start, at `0 0 18.75`, the rifle wall buy is on the north side of the same container, at `-4 0 17.5`, and the machine gun wall buy is on the north side of the container by the south wall, at `10 0 25.5`.
+- In Pumpkin Hollow (`levels/pumpkin_hollow/pumpkin_hollow.tscn`, the main scene), the shotgun wall buy is at `-7 0 13.75`, the rifle wall buy at `28 0 9.75`, and the machine gun wall buy at `-16 0 9.75`. The journeys are for the test range.

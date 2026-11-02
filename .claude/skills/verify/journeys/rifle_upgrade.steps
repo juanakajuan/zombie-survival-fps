@@ -27,7 +27,8 @@ debug KILL ALL ZOMBIES
 walk_to 16.5 15 600
 walk_to 16.5 10 600
 walk_to 2.6 0 900
-face -90 -15
+wait 30
+face -110 -15
 until hud.prompt_visible true 60
 expect hud.prompt E BUY UPGRADE RIFLE 5000
 shot 01-machine

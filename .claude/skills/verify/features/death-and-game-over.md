@@ -20,7 +20,7 @@ Zombies hit the player for 40 damage each second when they are close, so three h
 
 Preconditions:
 
-- Baseline state. Do not fire, so that all 4 zombies of round 1 reach the player.
+- Baseline state. Do not fire, so that the zombies of round 1 reach the player.
 
 - **Die.** Run `until zombies.alive 4 300`, then `until game_over.visible true 3600`. It passes after a few seconds. `expect player.dead true` and `expect hud.health 0` pass.
 - **Read the screen.** `expect game_over.text You reached round 1` and `expect mouse.mode visible` pass. The screenshot shows GAME OVER over a dim screen.

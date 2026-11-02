@@ -1,13 +1,12 @@
-# Weapon box: earn 1060 points in rounds 1 and 2, walk to the box behind the start, use it, see the weapon over it, take it with E.
+# Weapon box: get 1000 points from the debug menu, walk to the box behind the start, use it, see the weapon over it, take it with E.
+# The debug points and GOD MODE only set up the use; journeys/economy.steps proves how points are earned.
+debug GOD MODE
+debug +500 POINTS
+debug +500 POINTS
 expect box.position 0.0 0.0 9.5
 expect box.offer
-until zombies.alive 4 300
-fight_until hud.break true 3600
-until hud.break false 700
-until zombies.alive 6 400
-fight_until hud.break true 5400
-expect hud.points 1060
-state 01-earned
+expect hud.points 1000
+state 01-points
 face 180 0
 hold move_forward
 wait 25
@@ -20,7 +19,7 @@ state 02-prompt
 shot 02-prompt
 tap interact
 wait 5
-expect hud.points 110
+expect hud.points 50
 expect_not box.offer
 expect_not hud.prompt E WEAPON BOX 950
 look 0 -200

@@ -18,7 +18,7 @@ The player walks with WASD, sprints with Shift, jumps with Space, crouches with 
 
 ## How to get to it (user POV)
 
-- Start the game. The mouse is captured and the player can move at once. The game starts in the Compound map. The crawl tunnel is only in the test range, which the driver loads.
+- Start the game. The mouse is captured and the player can move at once. The game starts in Pumpkin Hollow, the main scene. The crawl tunnel is only in the test range, which the driver loads.
 - In the test range, turn left from the spawn to see the crawl tunnel: a low roof between two walls, about 6 m away.
 - Press Esc to pause and get the mouse cursor back. Press Esc again, or click Resume, to play again.
 
