@@ -40,13 +40,18 @@ func run_seconds(seconds: float) -> void:
 	await physics_frames(roundi(seconds * Engine.physics_ticks_per_second))
 
 
-## Sends one press of an Input Map action as an input event, as a key or wheel notch does. `Input.action_press()` sends none.
+## Taps an Input Map action with a press and a release event, as a key or wheel notch does, and runs physics until
+## PlayerInput has read it. `Input.action_press()` sends no event.
 func press_action(action: StringName) -> void:
-	var event := InputEventAction.new()
-	event.action = action
-	event.pressed = true
-	Input.parse_input_event(event)
+	var states: Array[bool] = [true, false]
+	for pressed: bool in states:
+		var event := InputEventAction.new()
+		event.action = action
+		event.pressed = pressed
+		Input.parse_input_event(event)
 	Input.flush_buffered_events()
+	# Input reports the press as just pressed in the next physics frame, and the test resumes before nodes process it.
+	await physics_frames(2)
 
 
 ## The lowest (x) and highest (y) value that `value` gives over `seconds` of physics frames.

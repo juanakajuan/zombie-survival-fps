@@ -98,6 +98,7 @@ const GROUP := &"player"
 @onready var powerups: Powerups = $Powerups
 @onready var hurt_sound: AudioStreamPlayer = $HurtSound
 @onready var health: Health = $Health
+@onready var input: PlayerInput = $Input
 @onready var _collision: CollisionShape3D = $CollisionShape3D
 
 ## The weapon in hand: one of `weapons`, or the loaner pistol of a downed player who holds no pistol.
@@ -130,7 +131,10 @@ var _focused: Interactable
 
 
 func _ready() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	camera.current = is_local()
+	hud.visible = is_local()
+	set_process_unhandled_input(is_local())
 	health.died.connect(_on_health_died)
 	health.changed.connect(_on_health_changed)
 	health.damaged.connect(hurt_sound.play.unbind(1))
@@ -162,6 +166,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	look(input.take_look())
 	_aim_blend = lerpf(_aim_blend, 1.0 if is_aiming() else 0.0, 1.0 - exp(-aim_sharpness * delta))
 	_apply_field_of_view()
 	_place_camera(head.get_global_transform_interpolated().origin)
@@ -170,29 +175,20 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if is_dead():
 		return
-	if event is InputEventMouseMotion:
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			look((event as InputEventMouseMotion).screen_relative)
-	elif event.is_action_pressed("third_person") and OS.is_debug_build():
+	if event.is_action_pressed("third_person") and OS.is_debug_build():
 		_set_third_person(not _third_person)
-	elif event.is_action_pressed("weapon_1"):
-		switch_to(0)
-	elif event.is_action_pressed("weapon_2"):
-		switch_to(1)
-	elif event.is_action_pressed("weapon_next"):
-		switch_to(posmod(weapons.find(weapon) + 1, weapons.size()))
-	elif event.is_action_pressed("weapon_previous"):
-		switch_to(posmod(weapons.find(weapon) - 1, weapons.size()))
 	elif event.is_action_pressed("debug_menu") and OS.is_debug_build():
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		_set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		debug_menu.open()
 	elif event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		_set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		pause_menu.open(settings)
 
 
 func _physics_process(delta: float) -> void:
+	look(input.take_look())
+	_switch_from_input()
 	var on_floor := is_on_floor()
 	if is_downed():
 		_downed_left -= delta
@@ -204,19 +200,19 @@ func _physics_process(delta: float) -> void:
 			_die()
 	_update_focus()
 	if _focused != null and weapon.trigger_enabled:
-		if Input.is_action_just_pressed("interact"):
+		if input.is_just_pressed(PlayerInput.Action.INTERACT):
 			_focused.press(self)
-		if Input.is_action_pressed("interact"):
+		if input.is_held(PlayerInput.Action.INTERACT):
 			_focused.hold(self, delta)
-	if weapon.trigger_enabled and not weapon.is_reloading() and not is_throwing() and Input.is_action_just_pressed("melee"):
+	if weapon.trigger_enabled and not weapon.is_reloading() and not is_throwing() and input.is_just_pressed(PlayerInput.Action.MELEE):
 		melee.try_swing()
-	if weapon.trigger_enabled and not is_meleeing() and Input.is_action_just_pressed("grenade"):
+	if weapon.trigger_enabled and not is_meleeing() and input.is_just_pressed(PlayerInput.Action.GRENADE):
 		grenades.start_cook()
-	if grenades.is_cooking() and not Input.is_action_pressed("grenade"):
+	if grenades.is_cooking() and not input.is_held(PlayerInput.Action.GRENADE):
 		grenades.release()
 	_slide_cooldown_left = maxf(_slide_cooldown_left - delta, 0.0)
 	_update_stance(on_floor, delta)
-	var jumping := on_floor and Input.is_action_just_pressed("jump") and not is_dead() and not is_downed()
+	var jumping := on_floor and input.is_just_pressed(PlayerInput.Action.JUMP) and not is_dead() and not is_downed()
 	if jumping:
 		velocity.y = jump_velocity
 	elif on_floor:
@@ -296,7 +292,7 @@ func upgrade_weapon() -> Weapon:
 ## Opens the effect menu. The player selects one of `effects`, and the weapon in hand keeps it. The menu has no cancel,
 ## because the points are already spent.
 func choose_effect(effects: Array[WeaponEffect]) -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	effect_menu.open(effects)
 
 
@@ -324,12 +320,12 @@ func focused() -> Interactable:
 
 ## True while the aim action is held. A dead player does not aim.
 func is_aiming() -> bool:
-	return Input.is_action_pressed("aim") and not is_dead()
+	return input.is_held(PlayerInput.Action.AIM) and not is_dead()
 
 
 ## True while on the floor, not crouched, not aiming, with the sprint action held and the move input pointing forward.
 func is_sprinting() -> bool:
-	return is_on_floor() and _stance == Stance.STANDING and not is_aiming() and Input.is_action_pressed("sprint") and _move_input().y < -0.5
+	return is_on_floor() and _stance == Stance.STANDING and not is_aiming() and input.is_held(PlayerInput.Action.SPRINT) and _move_input().y < -0.5
 
 
 ## True while the player is low: crouched or sliding. The player stays low after the crouch action is released
@@ -370,6 +366,28 @@ func revive(health_fraction: float) -> void:
 	if not is_downed():
 		return
 	health.heal(maxf(health.max_health * health_fraction, 1.0))
+
+
+## True for the player that the devices of this machine control: the multiplayer authority of this node. With the offline
+## peer, every player is local. Only a local player has the current camera, shows its HUD and menus, and takes the mouse.
+func is_local() -> bool:
+	return is_multiplayer_authority()
+
+
+func _switch_from_input() -> void:
+	if input.is_just_pressed(PlayerInput.Action.WEAPON_1):
+		switch_to(0)
+	elif input.is_just_pressed(PlayerInput.Action.WEAPON_2):
+		switch_to(1)
+	elif input.is_just_pressed(PlayerInput.Action.WEAPON_NEXT):
+		switch_to(posmod(weapons.find(weapon) + 1, weapons.size()))
+	elif input.is_just_pressed(PlayerInput.Action.WEAPON_PREVIOUS):
+		switch_to(posmod(weapons.find(weapon) - 1, weapons.size()))
+
+
+func _set_mouse_mode(mode: Input.MouseMode) -> void:
+	if is_local():
+		Input.mouse_mode = mode
 
 
 func _update_focus() -> void:
@@ -435,7 +453,7 @@ func _die() -> void:
 	grenades.drop()
 	_set_stance(Stance.CROUCHED)
 	hud.hide_downed()
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	for held: Weapon in weapons:
 		held.trigger_enabled = false
 	weapon.trigger_enabled = false
@@ -464,7 +482,7 @@ func _equip(next: Weapon) -> void:
 	next.visible = true
 	next.process_mode = Node.PROCESS_MODE_INHERIT
 	if next.view_model != null:
-		next.view_model.visible = not _third_person
+		next.view_model.visible = not _shows_body()
 		next.view_model.draw()
 	hud.weapon = next
 	weapon_changed.emit(next)
@@ -478,7 +496,7 @@ func _on_damaged(target: Node, killed: bool, headshot: bool) -> void:
 func _on_effect_chosen(effect: WeaponEffect) -> void:
 	weapon.effect = effect
 	effect_menu.close()
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 
 func _on_effect_damaged(target: Node, killed: bool) -> void:
@@ -487,12 +505,12 @@ func _on_effect_damaged(target: Node, killed: bool) -> void:
 
 func _resume() -> void:
 	pause_menu.close()
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 
 func _close_debug_menu() -> void:
 	debug_menu.close()
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 
 func _apply_settings() -> void:
@@ -525,9 +543,10 @@ func is_third_person() -> bool:
 
 func _set_third_person(on: bool) -> void:
 	_third_person = on
+	var shown_body := _shows_body()
 	# In first person the body draws only its shadow, so it does not block the view. A camera cull mask would hide
 	# the shadow too.
-	var casting := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if on else GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+	var casting := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shown_body else GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 	for mesh: MeshInstance3D in body.find_children("*", "MeshInstance3D", true, false):
 		mesh.cast_shadow = casting
 	var shown: Array[Weapon] = weapons.duplicate()
@@ -535,9 +554,14 @@ func _set_third_person(on: bool) -> void:
 		shown.append(_loaner_pistol)
 	for held: Weapon in shown:
 		if held.view_model != null:
-			held.view_model.visible = not on
-	punch_view.visible = not on
-	grenade_view.visible = not on
+			held.view_model.visible = not shown_body
+	punch_view.visible = not shown_body
+	grenade_view.visible = not shown_body
+
+
+## True when the full body draws: in the debug third person, and for a player that is not local, whom others see.
+func _shows_body() -> bool:
+	return _third_person or not is_local()
 
 
 ## The head position with the look rotation. Shots, punches, and the buy-station check start here and point along -Z.
@@ -552,7 +576,7 @@ func _look_basis() -> Basis:
 func _move_input() -> Vector2:
 	if is_dead():
 		return Vector2.ZERO
-	return Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	return input.move
 
 
 func _horizontal_speed() -> float:
@@ -593,7 +617,7 @@ func _update_stance(on_floor: bool, delta: float) -> void:
 
 
 func _choose_stance(on_floor: bool) -> void:
-	var crouch_held := Input.is_action_pressed("crouch")
+	var crouch_held := input.is_held(PlayerInput.Action.CROUCH)
 	if not crouch_held:
 		if _stance != Stance.STANDING and _has_room_to_stand():
 			_set_stance(Stance.STANDING)

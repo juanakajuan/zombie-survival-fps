@@ -194,23 +194,36 @@ func test_damaged_reports_the_target_and_whether_the_shot_killed_it() -> void:
 
 
 func test_reload_action_starts_a_reload() -> void:
-	var weapon := _spawn_weapon(_data())
+	var player := await spawn_player(Vector3.ZERO, 5)
+	var weapon := player.weapon
 	weapon.try_fire()
 	Input.action_press("reload")
 	await physics_frames(2)
 	assert_true(weapon.is_reloading(), "reload key starts a reload")
 
 
+func test_weapon_without_wielder_ignores_the_keys() -> void:
+	var weapon := _spawn_weapon(_data())
+	Input.action_press("fire")
+	await physics_frames(3)
+	assert_eq(weapon.ammo, _data().magazine_size, "no shot from the fire key")
+
+
 func test_automatic_weapon_keeps_firing_while_held_and_semi_auto_fires_once() -> void:
+	var player := await spawn_player(Vector3.ZERO, 5)
 	var auto_data := _data()
 	auto_data.automatic = true
 	auto_data.fire_interval = 0.05
-	var auto_weapon := _spawn_weapon(auto_data)
-	var semi_data := _data()
-	var semi_weapon := _spawn_weapon(semi_data)
+	var auto_weapon := player.give_weapon(auto_data)
 	Input.action_press("fire")
 	await run_seconds(0.5)
 	assert_true(auto_weapon.ammo < auto_data.magazine_size - 3, "automatic fired several shots, ammo %s" % auto_weapon.ammo)
+	Input.action_release("fire")
+	var semi_data := _data()
+	var semi_weapon := player.give_weapon(semi_data)
+	await physics_frames(1)
+	Input.action_press("fire")
+	await run_seconds(0.5)
 	assert_eq(semi_weapon.ammo, semi_data.magazine_size - 1, "semi-auto fired exactly once")
 
 

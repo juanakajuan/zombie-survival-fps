@@ -94,8 +94,8 @@ func test_weapon_switch_does_nothing_while_downed() -> void:
 	player.give_weapon(SMG)
 	down_player(player)
 	var pistol := player.weapon
-	press_action(&"weapon_2")
-	press_action(&"weapon_next")
+	await press_action(&"weapon_2")
+	await press_action(&"weapon_next")
 	assert_true(player.weapon == pistol, "the pistol stays in hand")
 	assert_true(not player.melee.try_swing(), "no punch while downed")
 

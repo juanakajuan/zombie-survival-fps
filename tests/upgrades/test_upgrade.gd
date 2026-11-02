@@ -81,7 +81,7 @@ func test_the_effect_menu_has_no_cancel() -> void:
 	player.wallet.add(UPGRADE.cost + UPGRADE.effect_cost)
 	var machine := _spawn_machine(null)
 	assert_true(machine.buy(player) and machine.buy(player), "both upgrades")
-	press_action(&"ui_cancel")
+	await press_action(&"ui_cancel")
 	await physics_frames(2)
 	assert_true(player.effect_menu.is_open(), "Esc leaves the menu open")
 	assert_true(not player.pause_menu.is_open(), "the pause menu stays closed")

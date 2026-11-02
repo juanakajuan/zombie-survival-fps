@@ -44,7 +44,7 @@ func test_ammo_goes_to_the_smg_when_the_pistol_is_in_hand() -> void:
 	station.buy(player)
 	var smg := player.weapon
 	smg.reserve = 0
-	press_action(&"weapon_1")
+	await press_action(&"weapon_1")
 	var pistol_reserve := player.weapon.reserve
 	assert_true(station.buy(player), "the ammo purchase works")
 	assert_eq(smg.reserve, SMG_ITEM.weapon.max_reserve, "the SMG reserve is full")
