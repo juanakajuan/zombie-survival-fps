@@ -182,7 +182,35 @@ func spawn_level(round_settings: RoundSettings = null, scene: PackedScene = LEVE
 	if round_settings != null:
 		(level.get_node("RoundManager") as RoundManager).settings = round_settings
 	add_child(level)
-	await level.navigation.bake_finished
+	await await_navmesh(level)
+	return level
+
+
+## Adds two copies of a level in two 3D worlds with no network (see NetSession), after both navmesh bakes.
+func spawn_worlds(scene: PackedScene = LEVEL_SCENE) -> NetSession:
+	var session := NetSession.offline(scene)
+	add_child(session)
+	await await_navmesh(session.host_level)
+	await await_navmesh(session.client_level)
+	return session
+
+
+## Adds a host and a client of a level that a LoopbackPeer pair joins, after both navmesh bakes and the connection.
+func spawn_session(scene: PackedScene = LEVEL_SCENE) -> NetSession:
+	var session := NetSession.loopback(scene)
+	add_child(session)
+	await await_navmesh(session.host_level)
+	await await_navmesh(session.client_level)
+	for _i: int in 60:
+		if session.host_api.get_peers().has(NetSession.CLIENT_ID):
+			return session
+		await physics_frames(1)
+	failures.append("the client never connected to the host")
+	return session
+
+
+## Returns when the navigation map of the level answers queries from its baked navmesh.
+func await_navmesh(level: Level) -> void:
 	# The server syncs the new mesh on a worker thread, so it takes a number of physics frames that is not known.
 	var map := level.navigation.get_navigation_map()
 	for _i: int in 60:
@@ -191,9 +219,8 @@ func spawn_level(round_settings: RoundSettings = null, scene: PackedScene = LEVE
 		if NavigationServer3D.map_get_iteration_id(map) == 0:
 			continue
 		if NavigationServer3D.map_get_closest_point_owner(map, Vector3.ZERO) == level.navigation.get_rid():
-			return level
+			return
 	failures.append("the navigation map never answered queries from the level navmesh")
-	return level
 
 
 ## Bakes a 60 m navigation floor at y = 0, with a 10 m wall across x at z = 0 when `with_wall` is true.
