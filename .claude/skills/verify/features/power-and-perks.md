@@ -9,6 +9,8 @@ The power switch is a dark cabinet with a red lamp and a yellow lever up, labele
 - `perk-buy` takes the cost and adds the perk icon: `hud.perks` goes from empty to `F`.
 - `perk-effects` changes max health, reload time, fire rate, and move speed. `tests/perks/test_perks.gd` proves each one. With IRON GUT, `hud.max_health` reads `150`.
 - `perk-limit` refuses a held perk and a perk over `Perks.max_held`. Tests cover it.
+- `fleet-foot` makes the player 1.2 times as fast: `player.speed` goes from `4.5` to `5.4` when walking and from `7.0` to `8.4` when sprinting. Proof: `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/fleet_foot.steps`.
+- `second-wind` downs the player at 0 health in place of death. The player moves at 1 m/s, the HUD shows `DOWNED` with a 10 s timer and `SECOND WIND  GETTING UP IN 4`, and after 4 s the player stands up with half health and no perks. Proof: `.claude/skills/verify/scripts/drive.sh .claude/skills/verify/journeys/downed.steps`, which gives the perk with `self_revive`.
 
 ## How to get to it (user POV)
 
@@ -33,4 +35,5 @@ Preconditions:
 
 - The journey needs a break for each walk. Round 2 starts while the player is in the room, and its zombies block the walk back unless it is cleared.
 - A machine still shows its buy prompt for a held perk, as the ammo station does with a full reserve. E does nothing and takes no points.
-- In the Compound, the power switch is on the west wall of the office, and the perk machines stand along the south wall of the warehouse, outside it.
+- In Pumpkin Hollow (`levels/pumpkin_hollow/pumpkin_hollow.tscn`, the main scene), the power switch is at `-31.5 0 -14.5`. The perk machines are spread out: IRON GUT at `-3.5 0 -16.9`, QUICK HANDS at `3.5 0 -16.9`, HAIR TRIGGER at `31.2 0 3.5`, SECOND WIND at `24 0 -29`, and FLEET FOOT at `-31.2 0 6`.
+- The switch powers the upgrade machine too (see [Weapon upgrade](./weapon-upgrade.md)).

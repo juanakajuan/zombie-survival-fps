@@ -1,12 +1,15 @@
+# Health regen: kill four zombies, let one of the rest hit the player down to 20, see the red edge, kill it, and see health come back to 100.
+# GOD MODE only keeps the player alive once health is 20; it does not stop regen. The proof is the low screen and the regen.
 expect hud.health 100
-fight_until hud.objective 1 LEFT 2400
+fight_until hud.objective 2 LEFT 2400
 tap reload
 until hud.reloading false 120
 face 0 0
 until hud.health 20 1200
+debug GOD MODE
 shot low
 state low
-fight_until zombies.alive 0 600
+fight_until hud.objective 1 LEFT 600
 until hud.health 100 600
 shot healed
 expect player.dead false

@@ -13,7 +13,7 @@ A barricade is a window with five brown boards, in the south-west yard of the te
 ## How to get to it (user POV)
 
 - Start the test range. The yard is in the south-west corner, `x -20..-15` and `z 14..20`. The window is in its east wall at `-15 0 17`, and the spawn point is behind it at `-18 0 17`.
-- The yard spawn point is not the first used. Clear round 1 (or take KILL ALL ZOMBIES in the F1 menu once all 4 zombies are out), and skip the break: the first zombie of round 2 spawns in the yard.
+- The yard spawn point is not the first used. Take KILL ALL ZOMBIES in the F1 menu once 4 zombies are out, before the fifth spawns, and skip the break: the first zombie of round 2 spawns in the yard. In a full round 1 (6 zombies) the fifth zombie comes through the yard.
 - Walk to about `-13.7 0 17.5` inside the arena, turn toward -X, and wait for a board to go. Hold E.
 
 ## Driving it with drive.sh
