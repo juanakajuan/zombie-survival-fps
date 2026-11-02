@@ -34,6 +34,16 @@ func test_red_edge_grows_as_health_gets_low_and_goes_when_it_comes_back() -> voi
 	assert_almost_eq(player.hud.readout().low_health_vignette, 0.0, 0.001, "hidden after health comes back")
 
 
+func test_the_health_cross_turns_red_at_low_health_and_back() -> void:
+	var player := await spawn_player()
+	player.hud.low_health_fraction = 0.3
+	assert_true(not player.hud.readout().health_low, "cream at full health")
+	player.health.damage(70.0)
+	assert_true(player.hud.readout().health_low, "red at 30 hp")
+	player.health.reset()
+	assert_true(not player.hud.readout().health_low, "cream after a reset")
+
+
 func test_fps_counter_is_hidden_until_turned_on() -> void:
 	var player := await spawn_player()
 	assert_true(not player.hud.readout().fps_visible, "hidden by default")

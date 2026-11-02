@@ -28,12 +28,11 @@ extends CanvasLayer
 @export var wallet: Wallet
 @export var perks: Perks
 @export var powerups: Powerups
-@export var health_color: Color = Color(1, 1, 1, 0.95)
-@export var low_health_color: Color = Color(0.95, 0.2, 0.2)
+## Below this part of the max health, the health cross turns red and the red edge shows.
 @export_range(0.0, 1.0, 0.05) var low_health_fraction: float = 0.3
 @export_group("Round counter")
-## The color of the round counter.
-@export var round_color: Color = Color(0.75, 0.05, 0.05)
+## The color of the strip on the round panel.
+@export var round_color: Color = Color(0.722, 0.22, 0.231)
 ## How big the counter gets at the start of a round, as a multiple of its size.
 @export_range(1.0, 3.0, 0.05) var round_pop_scale: float = 1.45
 ## The seconds that the counter takes to bounce back to its size.
@@ -53,7 +52,7 @@ extends CanvasLayer
 @export_range(1.0, 2.0, 0.05) var points_bounce_scale: float = 1.25
 @export_range(0.05, 2.0, 0.05, "suffix:s") var points_bounce_time: float = 0.35
 @export_group("Special round")
-## The color of the round number and the banner during a special round.
+## The color of the strip on the round panel and on the banner during a special round.
 @export var special_color: Color = Color(0.72, 0.5, 0.95)
 ## The seconds that the banner shows at the start of a special round.
 @export_range(0.0, 10.0, 0.1, "suffix:s") var special_banner_time: float = 3.0
@@ -75,6 +74,8 @@ var round_manager: RoundManager:
 ## What the HUD shows, as a player sees it. Tests and the verify driver read it.
 class Readout extends RefCounted:
 	var health_text: String
+	## Whether the health cross shows the low-health color.
+	var health_low: bool
 	var ammo_text: String
 	## The number of grenades the icons show.
 	var grenades_text: String
@@ -116,6 +117,8 @@ class Readout extends RefCounted:
 
 var _banner_left: float = 0.0
 var _round_base_color: Color
+var _round_value_color: Color
+var _round_style: StyleBoxFlat
 var _shown_points: int = 0
 var _popup_serial: int = 0
 var _round_tween: Tween
@@ -129,20 +132,20 @@ var _points_tween: Tween
 @onready var _crosshair: Crosshair = %Crosshair
 @onready var _health_value: Label = %HealthValue
 @onready var _health_max: Label = %HealthMax
-@onready var _health_bar: SegmentBar = %HealthBar
+@onready var _health_cross: HealthCross = %HealthCross
 @onready var _low_health_vignette: TextureRect = %LowHealthVignette
 @onready var _weapon_name: Label = %WeaponName
 @onready var _weapon_effect: Label = %WeaponEffect
 @onready var _ammo_value: Label = %AmmoValue
+@onready var _ammo_reserve: Label = %AmmoReserve
 @onready var _grenade_icons: GrenadeIcons = %GrenadeIcons
 @onready var _grenade_fuse: Label = %GrenadeFuse
 @onready var _points_value: Label = %PointsValue
 @onready var _powerup_label: Label = %PowerupLabel
 @onready var _prompt: Label = %Prompt
 @onready var _reload_label: Label = %ReloadLabel
-@onready var _round_panel: Control = %RoundPanel
+@onready var _round_panel: PanelContainer = %RoundPanel
 @onready var _round_value: Label = %RoundValue
-@onready var _round_counter: Control = %RoundCounter
 @onready var _special_banner: Label = %SpecialBanner
 @onready var _objective: Label = %Objective
 @onready var _break_label: Label = %BreakLabel
@@ -156,6 +159,9 @@ var _points_tween: Tween
 
 
 func _ready() -> void:
+	_round_value_color = _round_value.get_theme_color("font_color")
+	_round_style = _strip_of(_round_panel, "panel")
+	_strip_of(_special_banner, "normal").border_color = special_color
 	health.changed.connect(_on_health_changed)
 	melee.damaged.connect(_on_damaged)
 	grenades.damaged.connect(_on_damaged)
@@ -183,7 +189,8 @@ func _process(delta: float) -> void:
 func readout() -> Readout:
 	var r := Readout.new()
 	r.health_text = _health_value.text
-	r.ammo_text = _ammo_value.text
+	r.health_low = _health_cross.low
+	r.ammo_text = "%s %s" % [_ammo_value.text, _ammo_reserve.text]
 	r.grenades_text = str(_grenade_icons.count)
 	_update_grenade_fuse()
 	r.grenade_fuse_text = _grenade_fuse.text if _grenade_fuse.visible else ""
@@ -224,14 +231,14 @@ func readout() -> Readout:
 	return r
 
 
-## The scale of the round counter. It is above 1 while the counter pops at the start of a round.
+## The scale of the round panel. It is above 1 while the panel pops at the start of a round.
 func round_counter_scale() -> float:
-	return _round_counter.scale.x
+	return _round_panel.scale.x
 
 
-## The color that the round counter shows now. It is white at the start of a round and fades to its color.
+## The color of the strip on the round panel now. It is white at the start of a round and fades to its color.
 func round_counter_color() -> Color:
-	return _round_value.get_theme_color("font_color")
+	return _round_style.border_color
 
 
 ## Shows the seconds that a downed player has left, and the seconds until `revive_name` stands the player up.
@@ -248,14 +255,10 @@ func hide_downed() -> void:
 
 
 func _on_health_changed(current: float) -> void:
-	_health_bar.max_value = health.max_health
 	_health_max.text = "/ %d" % ceili(health.max_health)
 	_health_value.text = str(ceili(current))
-	_health_bar.value = current
 	var low_health := health.max_health * low_health_fraction
-	var color := low_health_color if current <= low_health else health_color
-	_health_value.add_theme_color_override("font_color", color)
-	_health_bar.fill_color = color
+	_health_cross.low = current <= low_health
 	_low_health_vignette.visible = current < low_health
 	_low_health_vignette.modulate.a = clampf(1.0 - current / low_health, 0.0, 1.0)
 
@@ -294,7 +297,8 @@ func _on_damaged(_target: Node, killed: bool, headshot: bool) -> void:
 func _update_ammo() -> void:
 	if not is_node_ready():
 		return
-	_ammo_value.text = "%d / %d" % [weapon.ammo, weapon.reserve]
+	_ammo_value.text = str(weapon.ammo)
+	_ammo_reserve.text = "/ %d" % weapon.reserve
 	_reload_label.visible = weapon.is_reloading()
 
 
@@ -314,10 +318,9 @@ func _update_perks() -> void:
 	for perk: PerkItem in perks.held:
 		var icon := _perk_icon_template.duplicate() as PanelContainer
 		icon.visible = true
-		var style := icon.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
-		style.bg_color = perk.icon_color
-		icon.add_theme_stylebox_override("panel", style)
-		(icon.get_child(0) as Label).text = perk.icon_text
+		var text := icon.get_child(0) as Label
+		text.text = perk.icon_text
+		text.add_theme_color_override("font_color", perk.icon_color)
 		_perk_icons.add_child(icon)
 
 
@@ -388,29 +391,34 @@ func _update_round() -> void:
 	var number := round_manager.round_number
 	_round_value.text = str(number)
 	_round_base_color = special_color if round_manager.is_special_round() else round_color
-	_paint_round(_round_base_color)
+	_paint_round(0.0)
 	_break_label.visible = round_manager.state == RoundManager.State.BREAK
 	_update_objective()
 
 
-func _paint_round(color: Color) -> void:
-	_round_value.add_theme_color_override("font_color", color)
+## Gives `control` its own copy of the theme stylebox `item`, so that a change to its strip color touches this control only.
+func _strip_of(control: Control, item: StringName) -> StyleBoxFlat:
+	var style := control.get_theme_stylebox(item).duplicate() as StyleBoxFlat
+	control.add_theme_stylebox_override(item, style)
+	return style
 
 
-## Flashes the counter white and pops it big, then lets both settle back.
+## Paints the strip and the number `whiteness` of the way from their colors to white.
+func _paint_round(whiteness: float) -> void:
+	_round_style.border_color = _round_base_color.lerp(Color.WHITE, whiteness)
+	_round_value.add_theme_color_override("font_color", _round_value_color.lerp(Color.WHITE, whiteness))
+
+
+## Flashes the panel white and pops it big, then lets both settle back.
 func _pop_round() -> void:
 	if _round_tween != null:
 		_round_tween.kill()
-	_round_counter.scale = Vector2.ONE * round_pop_scale
-	_flash_round(1.0)
+	_round_panel.scale = Vector2.ONE * round_pop_scale
+	_paint_round(1.0)
 	_round_tween = create_tween()
 	_round_tween.set_parallel(true)
-	_round_tween.tween_property(_round_counter, "scale", Vector2.ONE, round_pop_time).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-	_round_tween.tween_method(_flash_round, 1.0, 0.0, round_flash_time)
-
-
-func _flash_round(whiteness: float) -> void:
-	_paint_round(_round_base_color.lerp(Color.WHITE, whiteness))
+	_round_tween.tween_property(_round_panel, "scale", Vector2.ONE, round_pop_time).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	_round_tween.tween_method(_paint_round, 1.0, 0.0, round_flash_time)
 
 
 func _on_round_started() -> void:
